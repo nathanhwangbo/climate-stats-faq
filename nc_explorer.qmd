@@ -8,10 +8,14 @@ filters:
   - shinylive
 ---
 
+<!-- :::{.column-page} -->
+:::{.column-screen-inset}
 ```{shinylive-python}
 #| standalone: true
 #| viewerHeight: 1000
 #| viewerWidth: 1000
+#| components: [editor, viewer]
+#| package: netcdf4
 
 from shiny import *
 import xarray as xr
@@ -185,3 +189,4 @@ app = App(app_ui, server)
 
 ```
 
+:::
