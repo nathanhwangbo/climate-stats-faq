@@ -10,13 +10,18 @@ filters:
 
 ```{shinylive-python}
 #| standalone: true
-#| viewerHeight: 800
+#| viewerHeight: 1000
+#| viewerWidth: 1000
 
 from shiny import *
 import xarray as xr
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import io
+
+# import micropip
+# await micropip.install("netCDF4")
+# import netCDF4
 
 app_ui = ui.page_fluid(
     ui.layout_sidebar(
