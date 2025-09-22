@@ -8,14 +8,17 @@ filters:
   - shinylive
 ---
 
-<!-- :::{.column-page} -->
-:::{.column-screen-inset}
+:::{.column-page}
+<!-- :::{.column-screen-inset} -->
 ```{shinylive-python}
 #| standalone: true
 #| viewerHeight: 1000
-#| viewerWidth: 1000
-#| components: [editor, viewer]
 #| package: netcdf4
+
+## file: app.py
+
+# components: [editor, viewer]
+
 
 from shiny import *
 import xarray as xr
@@ -23,9 +26,6 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import io
 
-# import micropip
-# await micropip.install("netCDF4")
-# import netCDF4
 
 app_ui = ui.page_fluid(
     ui.layout_sidebar(
@@ -186,6 +186,13 @@ def server(input, output, session):
 
 # Create the Shiny app object
 app = App(app_ui, server)
+
+
+
+## file: requirements.txt
+netCDF4
+h5py
+h5netcdf
 
 ```
 
