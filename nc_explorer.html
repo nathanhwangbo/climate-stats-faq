@@ -177,7 +177,7 @@ ul.task-list li input[type="checkbox"] {
         
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content page-columns page-full" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./nc_explorer.html">Tools</a></li><li class="breadcrumb-item"><a href="./nc_explorer.html">netCDF Explorer</a></li></ol></nav>
 <div class="quarto-title">
@@ -198,12 +198,16 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<!-- :::{.column-page} -->
+<div class="column-screen-inset">
 <pre class="shinylive-python" data-engine="python"><code>#| '!! shinylive warning !!': |
 #|   shinylive does not work in self-contained HTML documents.
 #|   Please set `embed-resources: false` in your metadata.
 #| standalone: true
 #| viewerHeight: 1000
 #| viewerWidth: 1000
+#| components: [editor, viewer]
+#| package: netcdf4
 
 from shiny import *
 import xarray as xr
@@ -375,6 +379,7 @@ def server(input, output, session):
 # Create the Shiny app object
 app = App(app_ui, server)
 </code></pre>
+</div>
 
 
 
