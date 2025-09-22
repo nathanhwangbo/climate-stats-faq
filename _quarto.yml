@@ -1,0 +1,40 @@
+project:
+  type: website
+
+website:
+  title: "climate-stats-faq"
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - href: index.qmd
+        text: Home
+      - section: "Notes"
+        contents:
+          - nc_tutorial.qmd
+          - eof_terminology.qmd  
+          - climate_data_access_R.qmd
+          - when_to_average.qmd
+          # - cmip_data_access.qmd   # TODO: convert from get_cmip6_le_rss_tas.py
+          
+      - section: "Tools"
+        contents: 
+          - nc_explorer.qmd       # TODO: need to work out shinylive
+          #- eof_data_simulator.qmd # TODO: make from scratch. use probablistic pca to make a testbed for eof-based methods.
+      # - section: "Side Quests"
+      #   contents:
+          #- what_are_anomalies.qmd # TODO: make from scratch
+          #- eof_internal_variability.qmd # TODO: make from scratch
+          #- lfca_vs_lowpass_preprocess.qmd # TODO: make from scratch
+      # - section: "One page primers"
+      
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css
+    toc: true
+
+
+

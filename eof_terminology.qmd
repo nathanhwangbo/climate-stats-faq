@@ -1,0 +1,64 @@
+---
+title: "What's an EOF?"
+format: html
+---
+
+Empirical Orthogonal Functions (EOFs) and Principle Component Analysis (PCA) describe the same mathematical operations, but use different terminology. How do we translate between the two vocabularies?
+
+
+## Preliminaries
+
+Let's start with a time by space matrix $X$ with dimensions $n \times p$.^[note that this means that lon-lat must be collapsed into a single variable]. $X$ can represent any climate variable that varies over space and time.
+
+We're interested in summarizing $X$. Summaries need to serve two purposes: they need to be (1) compact and (2) a meaningful description of $X$.  
+
+Our first attempt might be to calculate the spatial mean at each time point (i.e. a time series), or the temporal mean at each location (i.e. a map). This is a good start, but it might be too compact. This averaging can lose a lot of interesting information, especially if there are spatial patterns that change over time.
+
+On the other side, we could fit a model that explicity models the conditional distribution of $X$ given space and time. But this can get really complicated really quickly and it's hard to know where to start. Balancing parsimony and model skill is really tough, and probably depends on the specifics of the dataset on hand.
+
+EOF/PCA achieves this balance by finding low-dimensional representations of $X$ which captures the most *spatial* variance. Unfortunately, the two fields use different notation to denote spatial variance.
+
+The real problem is that the EOF terminology is based on the use of a space by time matrix, while the PCA terminology is based on the use of a time by space matrix. I think that the (time, space) formatting makes way more sense, but that's my bias showing. The mathematical notation below uses (time, space) formatting, but if you prefer to go the other way,then just replace every instance of $X$ with $X^\top$ and swap every instance of $U$ and $V$.
+
+## Notation mapping
+
+- The SVD of $X$ is written $X = U\Sigma V^\top$. ($X$ is dimension $n \times p$)
+    - In general, $U$ has dimension $n \times n$, $V$ has dimension $p \times p$, and $\Sigma$ has dimension $n \times p$ (although $\Sigma$ is really a square matrix with added rows/columns of zeros added to make the matrix multiplication work)
+    - $\Sigma$ is effectively diagonal, and the diagonal elements are known as *singular values*. 
+- The covariance matrix of $X$ is $Cov(X) = \frac{1}{n-1} X^\top X$ (dimension $p \times p$)
+    - it's worth pointing out that although $\Sigma$ is commonly used in statistics as the notation for the covariance matrix, that isn't quite true here. If you plug in the SVD for $X$, then you get $Cov(X) = \frac{1}{n-1} V \Sigma^2 V^\top$.
+
+- The columns of $V$ are known as **EOFs** in the EOF literature and known as **Loadings** or **Principal Components** in the PCA literature (each column is a vector of dimension $p$, i.e. a *map*)
+    - these are also the eigenvectors of $Cov(X)$.
+
+- The columns of $U\Sigma$ are known as the **Principal Components** in the EOF literature and known as the **scores** in the PCA literature. (each column is a vector of dimension $n$, i.e. a *time series*)
+    - Note that $\Sigma$ is diagonal, so that this is really just the column of $U$, scaled by the corresponding singular value (i.e. the diagonal element of $\Sigma$).
+    - PCA people sometimes refer to the first $k$ columns of $U\Sigma$ as the "projection of $X$ onto the first $k$ PCs"
+
+- The variance explained by the $k$-th EOF/PC is denoted $\sigma_k^2$.
+    - relatedly, the $k$-th eigenvalue of $Cov(X)$ is $\frac{1}{n-1}\sigma_k^2$.
+
+- The *rank-k* approximation of $X$ is given by $U_k \Sigma_k V_k^\top$, where the $k$ subscript refers to the taking the first $k$ columns of $U, \Sigma$, and $V$.
+    - i.e. this is written equivalently as $\sum_{i=1}^k \sigma_i u_i v_i^\top$, where $u_i$ and $v_i$ are columns of $U$ and $V$, respectively. This is also sometimes called the "reconstruction" of $X$ using the first $k$ principal components.
+
+## Recommendations
+
+When talking about EOFs / PCA in the spatiotemporal context, I have the following recommendations (which are ordered as easiest -> hardest to implement for people trained in EOFs)
+
+- Always mention the dimension (i.e. map or time series)
+    - e.g. say "principal component time series" or "EOF map"
+
+- Use the PCA terminology, "scores" and "loadings" along with the dimension!!! This is not just because that's how I was trained -- it's also practical because these terms can't really get confused with anything in the climate literature, so there isn't much chance of overloading the terms.
+    - i.e. say "PC score time series" and "map of EOF loadings"
+
+- Don't be afraid to use the SVD notation! Luckily, notation for SVD is super standard across all disciplines, so this works *as long as you specify* whether $X$ is (time, space) or (space, time).
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,492 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Climate Statistics FAQ",
+    "section": "",
+    "text": "Perhaps the single largest distinguisher between climate statics and other areas of spatiotemporal statistics is the heavy reliance on physics-based climate models. These models are complicated, so I’ve found it tricky to figure out how to work with them in a principled way.\nThe term “FAQ” in the website title is a bit misleading – these questions considered here are only “frequently asked” in the sense that I’ve frequently asked them them. This website is a compilation of notes that I’ve compiled throughout grad school, along with some resources that have helped me understand them.\nThe goal of these notes is to provide a quick, easy to understand overview of the techniques being used. I use them to remind myself of the key ideas whenever I revisit these ideas. My approach was inspired by Richard Feynman, who famously kept a few simple examples in his head to run through whenever he encountered a new idea, and by Jeopardy champion James Holzhauer, who credits his quick recall to reading a lot of children’s books.",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "climate_data_access_R.html",
+    "href": "climate_data_access_R.html",
+    "title": "Where to get climate data?",
+    "section": "",
+    "text": "CMIP\n\nRPython\n\n\n\n# pak::pkg_install('eliocamp/rcmip6')       # for nice CMIP access\nlibrary(tidyverse)\nlibrary(rcmip6) # pak::pkg_install(\"eliocamp/rcmip6\")\nsource(here::here('rcmip6_fixes.R'))\n\n\ntas_query &lt;- list(\n  type = \"Dataset\",\n  replica = \"false\",\n  latest = \"true\",\n  variable_id = \"tas\",\n  project = \"CMIP6\",\n  frequency = \"mon\",\n  table_id = \"Amon\",\n  experiment_id = \"historical\",\n  source_id = \"CanESM5\"\n)\n\n\nquery_rss_canesm5 &lt;- list(\n  type = \"Dataset\",\n  replica = \"false\",\n  latest = \"true\",\n  variable_id = \"rss\",\n  project = \"CMIP6\",\n  frequency = \"mon\",\n  experiment_id = \"historical\",\n  source_id = \"CanESM5\"\n)\n\n\nresults_rss_canesm5 &lt;- cmip_search(\n  query_rss_canesm5,\n  url = \"https://aims2.llnl.gov/proxy/search\"\n)\nresults_rss_canesm5_filtered &lt;- results_rss_canesm5 %&gt;%\n  cmip_simplify() |&gt; # To keep only the most informative columns\n  subset(, select = -full_info) |&gt;\n  as_tibble() %&gt;%\n  distinct(member_id, .keep_all = T) %&gt;%\n  filter(str_detect(member_id, 'p1f1'))\n\n\ncmip_urls(results_rss_canesm5_filtered)\ncmip_download(results_rss_canesm5_filtered)\n\ncmip_info(results_rss_canesm5)\nresults_rss_canesm5_filtered |&gt;\n  cmip_simplify() |&gt; # To keep only the most informative columns\n  mutate(ens_number = as.numeric(str_extract(member_id, \"(?&lt;=r)\\\\d+\"))) %&gt;%\n  arrange(ens_number)\n\n\nvar_list &lt;- c(\"rss\", \"tas\")\n# list of cmip6 models with large ensembles\nsource_df &lt;- tribble(\n  ~source_id, ~n_members,\n  'CanESM5',\n  25,\n  'ACCESS-ESM1-5',\n  30,\n  'IPSL-CM6A-LR',\n  32,\n  'MIROC-ES2L',\n  31,\n  'MIROC6',\n  50,\n  'CNRM-CM6-1',\n  29,\n  'EC-Earth3',\n  22,\n  'NorCPM1',\n  30\n)\n\n\n\ntribble(\n  ~col1, ~ col2,\n  1, 2\n  3, 3\n)\n\n\n#' @param var should use cmip variable_id.\nget_cmip6_monthly_le &lt;- function(source = 'CANESM5', var = 'tas') {\n  query &lt;- list(\n    type = \"Dataset\",\n    replica = \"false\",\n    latest = \"true\",\n    variable_id = var,\n    project = \"CMIP6\",\n    frequency = \"mon\",\n    experiment_id = \"historical\",\n    source_id = source\n  )\n  results &lt;- cmip_search(\n    query,\n    url = \"https://aims2.llnl.gov/proxy/search\"\n  )\n  results_filtered &lt;- results %&gt;%\n    cmip_simplify() |&gt; # To keep only the most informative columns\n    subset(, select = -full_info) |&gt;\n    as_tibble() %&gt;%\n    distinct(member_id, .keep_all = T) #%&gt;%\n  #filter(str_detect(member_id, 'p1f1'))\n\n  results_filtered\n}\n\n\nidentical(\n  nrow(results),\n  source_df %&gt;%\n    filter(source_id == distinct(results$source_id)) %&gt;%\n    pull(n_members)\n)\n\n\n\n\n\nCode\nimport intake\nimport xarray as xr\nfrom tqdm import tqdm\nimport pyarrow as pa\nimport polars as pl\nimport numpy as np\nimport os.path\n\n\n#### change the next three lines\nvar_to_use = [\"rsus\", \"rsds\", \"tas\"]\nexps = [\"historical\"]\nsavedir = \"D:data\\\\CMIP6\\\\processed_data\\\\\"\n#########################################\n\n# Open catalog\ncol_url = \"https://storage.googleapis.com/cmip6/pangeo-cmip6.json\"\ncol = intake.open_esm_datastore(col_url)\n\n# Search for the variable and experiments\n# might need to change the table_id, depending on the variables\ncat = col.search(variable_id=var_to_use, table_id=\"Amon\", experiment_id=exps)\n\n# Work with a local copy of the catalog dataframe\ndf = cat.df.dropna(subset=[\"zstore\"]).copy()\n\n# Create a combined ID of model and member\ndf[\"source_member\"] = df[\"source_id\"].astype(str) + \".\" + df[\"member_id\"].astype(str)\n\n# Keep only model/member pairs that have all variables in both experiments\n# can also add experiments to the groupby\ncounts = df.groupby([\"source_member\", \"variable_id\"]).size().unstack()\nvalid_sources = counts.dropna().index.tolist()\ndf = df[df[\"source_member\"].isin(valid_sources)]\n\n\n# Keep only members that have the \"standard forcings\" (f1), and the first set of physics (p1) ----\n# this part is optional. Can replace with any other subsetting you want to do.\nis_p1f1 = df[\"member_id\"].str.endswith(\"p1f1\")\ndf = df[is_p1f1]\n\n# remove duplicates\ndf = df.drop_duplicates(\n    subset=[\"source_id\", \"member_id\", \"experiment_id\", \"variable_id\"]\n)\n\n# Keep only source_ids that have at least 20 ensemble members\n# this part is optional. Can replace with any other subsetting you want to do.\nens_member_counts = (\n    df.groupby([\"source_id\", \"variable_id\"]).size().reset_index(name=\"count\")\n)\nmin_n_members = ens_member_counts.groupby(\"source_id\")[\"count\"].min()\nsources_to_keep = min_n_members[min_n_members &gt;= 20].index.tolist()\ndf = df[df[\"source_id\"].isin(sources_to_keep)]\n\n# View example keys (you can check one with df.iloc[0])\nprint(df)\n\n# Group by model/member\ngrouped = df.groupby([\"source_id\", \"member_id\"])\n\n## go through each model/member and save to file.\n\n# next(iter(grouped)) # look at the first group\nfor (model, member), group_df in tqdm(grouped, desc=\"Processing models\"):\n    if os.path.exists(f\"{savedir}monthly_rss_tas_{member}_{model}.nc\"):\n        # skip if file already exists\n        continue\n    try:\n        # get paths for all of the different variables\n        zstores = dict(zip(group_df[\"variable_id\"], group_df[\"zstore\"]))\n        if not set(var_to_use).issubset(zstores):\n            continue  # skip incomplete\n\n        # load all of the variables\n        ds = xr.open_mfdataset(\n            list(zstores.values()), engine=\"zarr\", combine=\"by_coords\", join=\"override\"\n        )\n        \n        # can do some preprocessing to ds here.\n\n        # save to file. replace with desired filename.\n        ds.to_netcdf(f\"{savedir}monthly_rss_tas_{member}_{model}.nc\")\n\n    except Exception as e:\n        print(f\"Skipped {model}_{member}: {e}\")\n\n\n\n\n\n\n\nCESM specifically\n\n\nERA\necmwfr is an R API wrapper to download ERA data. To use this package, you’ll need to head over to the ECMWF website, make an account, and get your API key. See instructions on the ecmwfr package README (the code chunk below is directly copied from that readme.)\nNote: the general workflow is: go to the “climate data store”, use their gui to filter files that you want, grab the api call (the cilmate data store has a big button for you to click on to copy it), then paste that text into R.\nThe original ecmwfr package had a RStudio add-on that would convert that copied text into an R list, but since I’m not using RStudio anymore, I’ve instead modified their function that takes text -&gt; list. This is python_to_list() below.\n\n# pak::pkg_install('bluegreen-labs/ecmwfr') # for better ERA5 data access\nlibrary(ecmwfr)\n\n# set a key to the keychain -- you'll only have to do this once!\n# wf_set_key(key = \"abcd1234-foo-bar-98765431-XXXXXXXXXX\")\n\n# fixing ecmwfr:::python_to_list so that it works without the add in.\npython_to_list &lt;- function(python_text) {\n\n  if(missing(python_text)){\n    stop(\"No input text provided\")\n  }\n\n  # substitute inconsistent quotes, sorting the f-ing API mess\n  # for consistency\n  python_text &lt;- gsub(\"\\\\\\\"\",\"\\'\", python_text)\n\n  # split string on line breaks\n  line_breaks &lt;- strsplit(python_text, \"\\\\n\")[[1]]\n\n  leading &lt;- line_breaks[grep(\"dataset =\", line_breaks)]\n  trailing &lt;- line_breaks[grep(\"target =\", line_breaks)]\n\n  # clean up leading and trailing ends if any\n  if (nchar(leading) == 0 || length(leading) == 0){\n    stop(\"Incomplete query selection: dataset is missing\")\n  }\n\n  # dropping field name and removing quotes\n  leading &lt;- gsub(\"dataset = \",\"\", leading)\n  leading &lt;- gsub(\"\\'\",\"\", leading)\n\n  # clean up leading and trailing ends if any\n  if (nchar(trailing) == 0 || length(trailing) == 0){\n    trailing &lt;- \"TMPFILE\"\n  } else {\n    # dropping field name and removing quotes\n    trailing &lt;- gsub(\"target = \",\"\", trailing)\n    trailing &lt;- gsub(\"\\'\",\"\", trailing)\n  }\n\n  # grab anything between {} within ()\n  c_brackets &lt;- try(gsub(\"[\\\\{\\\\}]\", \"\",\n                         regmatches(python_text,\n                                    gregexpr(\"\\\\{.*?\\\\}\", python_text))[[1]]))\n\n  # check if strings have content\n  if(length(c_brackets) == 0){\n    stop(\"Incomplete query selection\")\n  }\n\n  # trap the goddamn inconsistent MARS json formatting issue\n  c_brackets &lt;- gsub(\"\\n| \",\"\", c_brackets)\n  if(substr(c_brackets, nchar(c_brackets),nchar(c_brackets)) == \",\"){\n    c_brackets &lt;- substr(c_brackets, 1, nchar(c_brackets)-1)\n  }\n\n  # Remove trailing commas (\",]\")\n  c_brackets &lt;- gsub(\",]\", \"]\", c_brackets)\n  c_brackets &lt;- paste0(\"{\",c_brackets,\"}\")\n  c_brackets &lt;- gsub(\"\\'\", \"\\\"\", c_brackets)\n\n  # read in data as list\n  c_list &lt;- jsonlite::fromJSON(c_brackets)\n\n  # add leading and trailing bits\n  # to request list\n  c_list &lt;- c(dataset_short_name = leading, c_list, target = trailing)\n\n  # clean up leading and trailing ends if any\n  if (nchar(leading) == 0 || length(leading) == 0){\n    c_list$dataset_short_name &lt;- gsub('\\\\n|,\\\\n| |\"','', leading)\n  }\n\n  if (nchar(trailing) == 0 || length(trailing) == 0){\n    c_list$target &lt;- gsub('\\\\n|,\\\\n| |\"','', trailing)\n  }\n\n  # clean up list values\n  list_values &lt;- lapply(c_list, function(l){\n    if(length(l) == 1){\n      paste0('\"',l,'\"')\n    } else {\n      l\n    }\n  })\n\n  # returned cleaned up list\n\n  c_list\n\n\n}\n\nrequest &lt;- python_to_list(\n  'dataset = \"reanalysis-era5-single-levels-monthly-means\"\nrequest = {\n    \"product_type\": [\"monthly_averaged_reanalysis\"],\n    \"variable\": [\"2m_temperature\"],\n    \"year\": [\"2024\"],\n    \"month\": [\n        \"01\", \"02\", \"03\",\n        \"04\", \"05\", \"06\",\n        \"07\", \"08\", \"09\",\n        \"10\", \"11\", \"12\"\n    ],\n    \"time\": [\"00:00\"],\n    \"data_format\": \"netcdf\",\n    \"download_format\": \"unarchived\"\n}\n') \n\n# If you have stored your user login information\n# in the keyring by calling cds_set_key you can\n# call:\nfile &lt;- wf_request(\n request  = request,  # the request\n transfer = TRUE,     # download the file\n path     = here()      # store data in current working directory\n )\n\n\nera_path &lt;- here('era5-demo.nc')\n\nNow, era5-demo.nc should be downloaded into your working directory!\n\n\nNASA GISSTEMP\nThis is their land temperature product. Using good old fashioned base R capabilities.\n\ngisstemp_url &lt;- 'https://data.giss.nasa.gov/pub/gistemp/gistemp250_GHCNv4.nc.gz'\n\n# downloads into the working directory\ndownload.file(gisstemp_url, destfile = here('ghcn_demo.nc.gz'))\n\n# unzip the file\nR.utils::gunzip(here('ghcn_demo.nc.gz'), remove = FALSE)\n\n\nghcn_path &lt;- here('ghcn_demo.nc')\n\n\n\nmisc\nClimateR is a cool package for pulling out data from a point (or a general area)\n\n# climateR demo\n\ngeodata is a nice source for simplified, smaller versions of data. Super easy to pull.\n\n# # example data (picked because of ease of access and small size)\n# WARNING: will download to current directory\nlibrary(geodata)\neg_res10 &lt;- cmip6_world(\n  model = 'CanESM5', ssp = '585', \n  time ='2021-2040', var = 'tavg',\n  res = 10, path = here()\n  )\n\neg_res5 &lt;- cmip6_world('CanESM5')",
+    "crumbs": [
+      "Notes",
+      "Where to get climate data?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html",
+    "href": "nc_tutorial.html",
+    "title": "How to work with netcdf?",
+    "section": "",
+    "text": "How I use this document: I click the tab I want (R or python), and control-F to find the operation I’m looking for.",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#preliminaries",
+    "href": "nc_tutorial.html#preliminaries",
+    "title": "How to work with netcdf?",
+    "section": "Preliminaries",
+    "text": "Preliminaries\nTo start, let’s load a bunch of packages and get some utilities\n\nRPython\n\n\n\n# global utils\nlibrary(tidyverse)\nlibrary(here)\nlibrary(rnaturalearth)\n\n# specific R utils\nlibrary(tidync)\nlibrary(stars)\nlibrary(terra)\n\n# helper function\nlon_to_180 &lt;- function(lon360){\n  ifelse(lon360 &gt; 180, lon360 - 360, lon360)\n}\n\n# example data\ncoasts &lt;- ne_coastline(returnclass = 'sf')\n\n\n\n\n\nCode\nimport xarray as xr\nimport matplotlib.pyplot as plt\nimport urllib\nimport gzip\nimport xesmf as xe # need to get this one from conda-forge. not pip!\n\n\n\n\n\nLet’s grab some netCDF files to play with. For demonstration purposes, we’ll use a land temperature product – NASA GISSTEMP (qfe is a quality control adjusted version). I’m just going to download this one using good old fashioned wget\nLet’s grab two more files – two decades of monthly data from a CESM2 historical run, accessed from here. Again pulling 2m air temperature.\n(aside: I find this cesm data dictionary extremely helpful)\n\nRPython\n\n\n\n\nCode\n# GISTEMP ------------------------------------------------------\ngistemp_url &lt;- 'https://data.giss.nasa.gov/pub/gistemp/gistemp250_GHCNv4.nc.gz'\n\n# downloads into the working directory\ndownload.file(gistemp_url, destfile = here('ghcn_demo.nc.gz'))\n# unzip the file\nR.utils::gunzip(here('ghcn_demo.nc.gz'), remove = FALSE)\nghcn_path &lt;- here('ghcn_demo.nc')\n\n\n# CESM ----------------------------------------------------------\n\n# 2010-2014\ncesm_url &lt;- 'https://data-osdf.rda.ucar.edu/ncar/rda/d651056/CESM2-LE/atm/proc/tseries/month_1/TREFHT/b.e21.BHISTcmip6.f09_g17.LE2-1001.001.cam.h0.TREFHT.201001-201412.nc'\ndownload.file(cesm_url, destfile = here('cesm_demo.nc'), method = 'wget')\n\n# 2000-2009\ncesm_url2 &lt;- 'https://data-osdf.rda.ucar.edu/ncar/rda/d651056/CESM2-LE/atm/proc/tseries/month_1/TREFHT/b.e21.BHISTcmip6.f09_g17.LE2-1001.001.cam.h0.TREFHT.200001-200912.nc'\ndownload.file(cesm_url2, destfile = here('cesm_demo2.nc'), method = 'wget')\n\n\ncesm_paths &lt;- c(here('cesm_demo.nc'), here('cesm_demo2.nc'))\n\n\n\n\n\n# GISTEMP ------------------------------------------------------\ngistemp_url = 'https://data.giss.nasa.gov/pub/gistemp/gistemp250_GHCNv4.nc.gz'\n\n\n# downloads ghcn_demo.nc into the working directory\ngistemp_response = urllib.request.urlopen(gistemp_url)\ncompressed_file = gistemp_response.read()\nwith open(\"ghcn_demo.nc\", mode=\"wb\") as file:\n    file.write(gzip.decompress(compressed_file))\n\n# CESM ----------------------------------------------------------\n\n# downlaods cesm_demo.nc and cesm_demo2.nc to working directory\n\n# 2010-2014\ncesm_url = 'https://data-osdf.rda.ucar.edu/ncar/rda/d651056/CESM2-LE/atm/proc/tseries/month_1/TREFHT/b.e21.BHISTcmip6.f09_g17.LE2-1001.001.cam.h0.TREFHT.201001-201412.nc'\ncesm_response = urllib.request.urlopen(cesm_url).read()\nwith open(\"cesm_demo.nc\", mode=\"wb\") as file:\n    file.write(cesm_response)\n\n\n# 2000-2009\ncesm_url2 = 'https://data-osdf.rda.ucar.edu/ncar/rda/d651056/CESM2-LE/atm/proc/tseries/month_1/TREFHT/b.e21.BHISTcmip6.f09_g17.LE2-1001.001.cam.h0.TREFHT.200001-200912.nc'\ncesm_response2 = urllib.request.urlopen(cesm_url2).read()\nwith open(\"cesm_demo2.nc\", mode=\"wb\") as file:\n    file.write(cesm_response2)",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#reading-in-a-single-netcdf",
+    "href": "nc_tutorial.html#reading-in-a-single-netcdf",
+    "title": "How to work with netcdf?",
+    "section": "Reading in a single netcdf",
+    "text": "Reading in a single netcdf\n\nRPython\n\n\n\n# terra\ncesm_terra &lt;- rast(cesm_paths[1], subds = 'TREFHT')\ngistemp_terra &lt;- rast(ghcn_path, subds = 'tempanomaly')\n\n\n## this might be equivalent?\n# cesm_terra &lt;- rast(cesm_path)\n# cesm_terra_TREFHT &lt;- subset(cesm_terra, 'TREFHT')\n\n\n# stars\ncesm_stars &lt;- read_ncdf(cesm_paths[1], var = 'TREFHT', proxy = F)\ngistemp_stars &lt;- read_ncdf(ghcn_path, var = 'tempanomaly', proxy = F)\n\n\n# tidync\ncesm_tnc &lt;- tidync(cesm_paths[1])\ngistemp_tnc &lt;- tidync(ghcn_path)\n\n\n\n\ngistemp_path = \"climate-notebooks/gistemp250_GHCNv4.nc\"\ngistemp_da = xr.open_dataset(gistemp_path)\ngistemp_da = gistemp_da['tempanomaly']\n\ncesm_path1 = 'climate-notebooks/cesm_demo.nc'\ncesm1_da = xr.open_dataset(cesm_path1)\ncesm1_da = cesm1_da['TREFHT']\n\ncesm_path2 = 'climate-notebooks/cesm_demo2.nc'\ncesm2_da = xr.open_dataset(cesm_path2)\ncesm2_da = cesm2_da['TREFHT']",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#reading-multiple-netcdf",
+    "href": "nc_tutorial.html#reading-multiple-netcdf",
+    "title": "How to work with netcdf?",
+    "section": "Reading multiple netcdf",
+    "text": "Reading multiple netcdf\nLarge netCDFs are often split up into multiple files, with each file representing a time chunk. For example, in the CESM files downloaded above, one file represents monthly output for 2000-2010, and the other file represents monthly output for 2010-2014. The two files live on identical grids, so it makes sense to combine them into a single object. (if the two files live on different grids, Section 3.4 might be useful)\n\nRPython\n\n\n\n## terra\n\nall_cesm &lt;- rast(cesm_paths) # recall, cesm_paths is a vector containing two files\n\n# if we already have two rasters read in, we can combine them\ncesm1 &lt;- rast(cesm_paths[1], subds = 'TREFHT')\ncesm2 &lt;- rast(cesm_paths[2], subds = 'TREFHT')\nall_cesm_alt &lt;- c(cesm1, cesm2)\n\n\n## stars\n\nall_cesm_stars &lt;- read_stars(cesm_paths)\n\n\n\n\ncesm_mf = xr.open_mfdataset('climate-notebooks/cesm_demo*.nc')\ncesm_mf = cesm_mf['TREFHT']",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#switching-between--180-180-and-0-360-lon",
+    "href": "nc_tutorial.html#switching-between--180-180-and-0-360-lon",
+    "title": "How to work with netcdf?",
+    "section": "Switching between (-180, 180) and (0, 360) lon",
+    "text": "Switching between (-180, 180) and (0, 360) lon\nClimate model data usually formats longitudes to be between (0, 360), but observations are typically use (-180, 180).\nBelow is code to just do this reshift. This is easy for point data (e.g climate model output), because we can just shift the longitude values over. But for polygons (e.g. adding coastlines), this is tricky, because we need to make sure we respect the prime meridian when we shift over.\nIn general, my recommendation is to move the climate model output to (-180, 180), NOT move the observational data to (0, 360).\n\nRPython\n\n\nIf you want more complex reprojections, see here\n\n# terra\ncesm180 &lt;- rotate(cesm_terra)  # recall: cesm_terra is in (0, 360)\n\n\n## BONUS: an alternate approach using just sf ---------------\n\n# pak::pkg_install('lwgeom') \nlibrary(lwgeom) # useful for st_wrap_x, https://github.com/r-spatial/sf/issues/2058\n\n# example data, which is in (-180, 180)\ncoasts &lt;- ne_coastline()\nplot(st_geometry(x))\n\n# Shift from -180 - 180 to 0 - 360\ncoasts360 &lt;- st_wrap_x(coasts, 0, 360)\nplot(st_geometry(coasts360))\n\n# Shift from 0 - 360 to -180 - 180\n# cutline at x = 180\n# move things to the left of the cutline by 360\n# then move everything left by 360\ncoasts180 &lt;- st_wrap_x(coasts360, 180, 360)\nst_geometry(coasts180) &lt;- st_geometry(coasts180) - c(360, 0)\nplot(st_geometry(coasts180))\n\n\n\n## bonus bonus: I think these are also supposed to work, but I couldn't figure it out. -----------\n\n# coasts180 &lt;- st_wrap_dateline(coasts360, options = c(\"WRAPDATELINE=YES\", \"DATELINEOFFSET=180\"))\n# coasts180 &lt;- st_shift_longitude(coasts360)\n\n\n\n\n# 360 to 180\ncesm_180 = cesm_mf.copy()\ncesm_180.coords['lon'] = (cesm_180.coords['lon'] + 180) % 360 - 180\ncesm_180 = cesm_180.sortby(cesm_180.lon)\n\n# 180 to 360\nlon360 = np.mod(cesm_180[\"lon\"], 360)\ncesm_360 = cesm180.assign_coords(lon=lon360).sortby(\"lon\")",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#sec-detrending",
+    "href": "nc_tutorial.html#sec-detrending",
+    "title": "How to work with netcdf?",
+    "section": "Detrending",
+    "text": "Detrending\nDetrending commonly refers to removing a linear time trend.\n\nRPython\n\n\n\n# terra\n\n## method 1\npoly_coef &lt;- regress(cesm_terra, 1:nlyr(cesm_terra), formula = y~x)$x\ntime_predictor_rast &lt;- rast(cesm_terra) # empty rast with the right dims\nfor (i in 1:nlyr(cesm_terra)) {\n  time_predictor_rast[[i]] &lt;- as.numeric(time(cesm_terra)[i])\n}\nfitted_vals &lt;- poly_coef[['(Intercept)']] +\n  poly_coef[['x']] * time_predictor_rast\n\nno_trend &lt;- cesm_terra - fitted_vals\n\n\n## method 2: I think slower, but I'm not sure\n\n#' x and y are both vectors of equal length, representing time series\ndetrend_cell &lt;- function(rast_cell, x){\n  # for masked areas, just return NA\n  if (sum(!is.na(y_values)) &lt; 2) {\n    return(NA)\n  }\n  \n  mod &lt;- lm(y,x)\n  fitted_vals &lt;- predict(mod)  \n  fitted_vals\n}\n\nno_trend &lt;- app(cesm_terra, \\(y) detrend_cell(y, x = 1:nlyrs(cesm_terra)))\n\n\n# eg_trend &lt;- x * poly_coef # does this work?\n# eg_trend &lt;- predict(poly_coef) # i doubt this works, but worth a shot.\n\n\n\n\npoly_coef = eg_xr.polyfit(dim='time', deg=1)['polyfit_coefficients']\neg_trend = xr.polyval(eg_xr.time, poly_coef)\neg_anoms = eg_xr - eg_trend",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#removing-the-seasonal-cycle",
+    "href": "nc_tutorial.html#removing-the-seasonal-cycle",
+    "title": "How to work with netcdf?",
+    "section": "Removing the seasonal cycle",
+    "text": "Removing the seasonal cycle\nMethod 1: by removing climatological means\nShown here for monthly data, but similar code works for different timescales\n\nRPython\n\n\n\n# terra\n\nmonthly_climatology = tapp(eg_xr, 'months', \"mean\")\n\n\n\n\nmonthly_climatology = eg_xr.groupby(\"time.month\").mean()\n    eg_xr_anom = (\n        eg_xr.groupby(\"time.month\") - monthly_climatology\n    )",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#sec-regridding",
+    "href": "nc_tutorial.html#sec-regridding",
+    "title": "How to work with netcdf?",
+    "section": "Regridding",
+    "text": "Regridding\nGoing coarser, e.g going from 1 degree (CESM LENS) to 2 degree (NASA GISTEMP)\n\nRPython\n\n\n\n# terra\n\ncoarse_terra &lt;- resample(cesm_terra, gistemp_terra, method = 'average')\n# aggregate() good if the lower resolution is a multiple of the larger\n\n\n# stars\ncoarse_stars &lt;- st_warp(src = cesm_stars, dest = gistemp_stars)\n\n\n\n\n# using interp_like(), which is suitable for \"easier\" problems\n# i.e. going between similar grids\n\n# make sure that the only dimensions in gistemp_xr are \"lon\" and \"lat\"\ncoarse_xr = cesm_xr.interp_like(gistemp_xr, method=\"bilinear\")\n\n\n# using xesmf ------------\n# this works even for going from curvilinear tracer grids (like cesm sst) &lt;-&gt; to rectangular grids (like cesm tas)\n\ngistemp_regridder = xe.Regridder(cesm_xr, gistemp_xr, \"bilinear\") \ncoarse_xr = gistemp_regridder(cesm_xr[\"tas\"])\n\n\n\n\ngoing finer, e.g. going from 2 degree (GISTEMP) to 1 degree (CESM)\n\nRPython\n\n\n\n# terra\nfine_terra &lt;- resample(gistemp_terra, cesm_terra, method = 'bilinear')\n\n# stars\nfine_stars &lt;- st_warp(src = gistemp_stars, dest = cesm_stars, use_gdal = T, method = 'bilinear')\n\n\n\n\n# xesgf has some other really cool regridding options\ncesm_regridder = xe.Regridder(gistemp_xr, cesm_xr, \"bilinear\") \nfine_xr = cesm_regridder(gistemp_xr[\"tas\"])",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#sec-reprojection",
+    "href": "nc_tutorial.html#sec-reprojection",
+    "title": "A field guide to netCDF (for climate model output)",
+    "section": "Reprojection to different coordinates",
+    "text": "Reprojection to different coordinates\nSuppose you want to combine two rasters, but they’re in different coordinate systems. Reprojection lets you change the coordinate system.\n\nRPython\n\n\n\n# terra\nst_transform(terra::crs(rast))\n# or resample?\n\n\n\n\n# todo",
+    "crumbs": [
+      "Resources",
+      "A field guide to netCDF (for climate model output)"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#area-weighting",
+    "href": "nc_tutorial.html#area-weighting",
+    "title": "How to work with netcdf?",
+    "section": "Area weighting",
+    "text": "Area weighting\n\nRPython\n\n\n\n# terra\n\nexpanse(unit = 'km') #\n\n# old raster method  https://stackoverflow.com/a/55233039\n# try to adapt this to terrra\nr &lt;- abs(init(raster(), 'y'))\ns &lt;- stack(r, r, r)\na &lt;- area(s) / 10000\ny &lt;- sm * a\nweighted_average &lt;- cellStats(y, sum) / cellStats(a, sum)\n\n\n\n\n# stars\n\n# st_area() # \n\n\n\n\n# todo: make sure this works with the actual example.\n\nweights_cos = np.cos(np.deg2rad(cesm_eg['lat']))\ncesm_eg_weighted = cesm_eg.weighted(weights_cos)",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#pulling-out-a-single-pixel",
+    "href": "nc_tutorial.html#pulling-out-a-single-pixel",
+    "title": "How to work with netcdf?",
+    "section": "Pulling out a single pixel",
+    "text": "Pulling out a single pixel\n\nRPython\n\n\n\nla_lonlat &lt;- c(-118.24368, 34.05223)\n\n# tidync\nla_tnc &lt;- cesm_tnc %&gt;%\n  hyper_filter(lat = index == which.min(abs(lat - la_lonlat[2])),\n               lon = index == which.min(abs(lon_to_180(lon) - la_lonlat[1])))\n\n# stars\n\n# a &lt;- tibble(lon = la_lonlat[1], lat = la_lonlat[2])\n# la_sf &lt;- st_as_sf(a, coords = c('lon', 'lat'))\n\nla_sfc &lt;- st_point(la_lonlat) %&gt;%\n  st_sfc(crs = st_crs(cesm_stars))\n\n# bilinear = F does nearest neighbor\nla_stars &lt;- cesm_stars %&gt;%\n  st_extract(la_sfc, bilinear = F) \n\n\n# terra\n\nterra::extract(raster, points) # maybe points needs to be a spatVector? (via vect(points))\n\n# cesm_terra[1] # pull outs the first gridcell\n\n\n\n\nla_lonlat = [-118.24368, 34.05223]\n\neg_xr.sel(lon=la_lonlat[0], lat=la_lonlat[1], method='nearest')",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#pulling-out-a-single-year",
+    "href": "nc_tutorial.html#pulling-out-a-single-year",
+    "title": "How to work with netcdf?",
+    "section": "Pulling out a single year",
+    "text": "Pulling out a single year\n\nRPython\n\n\n\n# tidync\n\ncesm_tnc %&gt;%\n  hyper_filter(\n    time = year(time) == 2010\n  )\n\n# stars\n\n# dplyr way (requires cubelyr)\nyear_stars1 &lt;- cesm_stars %&gt;%\n  filter(year(time) == 2010)\n\n# \"base r\" way\ntime_vals &lt;- st_get_dimension_values(cesm_stars, 'time') %&gt;%\n  ymd()\nind_2010 &lt;- which(year(time_vals) == 2010)\nyear_stars2 &lt;- cesm_stars[,,,ind_2010]\n\n\n# terra\n\ncesm_terra %&gt;%\n  subset(year(time(.)) == 2010)\n\ncesm_terra[[year(time(cesm_terra)) == 2010]] # alt\n\n\n# cesm_terra[[1]] # pulls out the first month\n\n\n\n\neg_xr.sel(time=eg_xr['time.year'] == 2010)\n# eg_xr.sel(time=slice(\"2000\", \"2010\")) # a subset of years",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#region-masking",
+    "href": "nc_tutorial.html#region-masking",
+    "title": "How to work with netcdf?",
+    "section": "Region masking",
+    "text": "Region masking\nSuppose you have a polygon (or shapefile, ect) that you want to subset by.\n\nRPython\n\n\n\n# using the US as an example.\nusa &lt;- ne_countries(country = 'United States of America')\nusa360 &lt;- st_wrap_x(usa, 0, 360)\n\n\n\n# stars\nusa_stars &lt;- cesm_stars %&gt;%\n  st_crop(usa360)\n\n# terra\n\nterra::crop(SpatRaster, sf)\n\n# or extract?\n\n# or mask?\n\ncountries &lt;- geodata::world(resolution = 5, path = \"maps\") # get land map\nterra::mask(cesm_terra, countries)\n\n\n\n\n# todo: replace code with the actual example\nimport regionmask\n\n# create a landmask\nland = regionmask.defined_regions.natural_earth_v5_0_0.land_110\nlandmask = land.mask(eg_xr)  # ocean is nan, land is 0\nis_land = landmask == 0\n\n\n\n# we also generally wanna get rid of greenland and arctic\ngreenland = regionmask.defined_regions.natural_earth_v5_0_0.countries_110[[\"Greenland\"]]\ngreenland_mask = greenland.mask(eg_xr)\nis_not_greenland = greenland_mask.isnull() # greenland is 0, everything else is nan\n\n\n# can get rid of arctic just by subsetting to above 60S\n\n# apply all masks\neg_xr_land = eg_xr.where(is_land & is_not_greenland)",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#subsetting-based-on-a-lonlat-box",
+    "href": "nc_tutorial.html#subsetting-based-on-a-lonlat-box",
+    "title": "How to work with netcdf?",
+    "section": "Subsetting based on a lon/lat box",
+    "text": "Subsetting based on a lon/lat box\nSuppose we’re interested in the southwestern US, maybe defined as the box between 124-105E and 32-45N\n\nRPython\n\n\n\n# tidync\nsw_tnc &lt;- cesm_tnc %&gt;%\n  hyper_filter(\n    lon = lon &gt;= 105 & lon &lt;= 124,\n    lat = lat &gt;= 32 & lat &lt;= 45\n  )\n\n# stars\n\nsw_box &lt;- c(xmin= 105, xmax = 124, ymin = 32, ymax = 45)\nsw_bbox &lt;- st_bbox(sw_box, crs = st_crs(cesm_stars))\n\nsw_stars &lt;- st_crop(cesm_stars, sw_bbox)\n## check our work\n# st_get_dimension_values(sw_stars, 'lon')\n# st_get_dimension_values(sw_stars, 'lat')\n\n# terra\n\nr1 &lt;- crop(cesm_terra, ext(-50,0,0,30))\n\n# cesm_terra[,1], pulls out a single latitude (a lon x time matrix)\n# cesm_terra[1,] pulls out a single longitude (a lat x time matrix)\n\n\n\n\nis_in_lat = eg_xr['lat'] &gt;= 32 & eg_xr['lat'] &lt;= 45\nis_in_lon = eg_xr['lon'] &gt;= 105 & eg_xr['lon'] &lt;= 124\n\nis_in_box = is_in_lat & is_in_lon\n\n# apply landmask\ncesm_box = eg_xr.where(is_in_box)",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#averaging-over-time",
+    "href": "nc_tutorial.html#averaging-over-time",
+    "title": "How to work with netcdf?",
+    "section": "Averaging over time",
+    "text": "Averaging over time\n(i.e. get one map with the temporal average)\n\nRPython\n\n\n\n# stars\n\ntimeavg_stars &lt;- cesm_stars %&gt;%\n  st_apply(c('lon', 'lat'), mean, na.rm = T)\n\n\n# terra\n\n# each time point is a LAYER\n# and terra by default takes the layer-wise mean\nmean(eg_aod)\n\n\n# cesm_terra %&gt;%\n#   app()\n\n# tidync (i.e. with the raw data cube, which would also work with stars)\ncesm_tnc %&gt;%\n  hyper_tbl_cube() %&gt;%\n  group_by(lat, lon) %&gt;%\n  summarize(avg_map = mean(TREFHT))\n\n\n\n\neg_xr.mean('time')",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#averaging-over-space",
+    "href": "nc_tutorial.html#averaging-over-space",
+    "title": "How to work with netcdf?",
+    "section": "Averaging over space",
+    "text": "Averaging over space\n(i.e. get a single time series with the spatial average)\n\nRPython\n\n\n\n# stars\n\nspaceavg_stars &lt;- cesm_stars %&gt;%\n  st_apply('time', mean, na.rm = T)\n\n\n# terra\ncesm_terra %&gt;%\n  global('mean', na.rm = T) %&gt;%\n  mutate(time = ymd(time(cesm_terra))) \n\n\n# tidync (i.e. with the raw data cube, which stars also supports in backend)\ncesm_tnc %&gt;%\n  hyper_tbl_cube() %&gt;%\n  group_by(time) %&gt;%\n  summarize(avg_ts = mean(TREFHT))\n\n\n\n\neg_xr.mean(dim=['lat', 'lon'])",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#monthly-data---seasonal-average",
+    "href": "nc_tutorial.html#monthly-data---seasonal-average",
+    "title": "How to work with netcdf?",
+    "section": "Monthly data -> Seasonal average",
+    "text": "Monthly data -&gt; Seasonal average\nSay, we want one value per year – the June - August mean.\n\nRPython\n\n\n\njja_months &lt;- c(6,7,8)\n\n# stars\n\nspaceavg_stars &lt;- cesm_stars %&gt;%\n  filter(month(time) %in% jja_months) %&gt;%\n  st_apply('time', mean, na.rm = T)\n\n\n# terra\n\n# https://stackoverflow.com/questions/73035913/r-computing-seasonal-raster-based-on-specified-months-in-r\n# tapp()\n\nspaceavg_terra &lt;- cesm_terra %&gt;%\n  subset(month(time(.)) %in% jja_months) %&gt;%\n  mean()\n\n\n# tidync (i.e. with the raw data cube, which stars also supports in backend)\n\n\n# might need to self-implement mutate for this... or check out stars mutate.\ncesm_tnc %&gt;%\n  hyper_tbl_cube() %&gt;%\n  filter(month(time) %in% jja_months) %&gt;%\n  group_by(year(time)) %&gt;%\n  summarize(avg_jja = mean(TREFHT))\n\n\n\n\nfrom xarray.groupers import SeasonGrouper\n\nds.groupby(time=SeasonGrouper([\"DJF\", \"MAMJ\", \"JJA\", \"SON\"])).mean() # calculates each seasonal mean.",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#plotting-a-single-map",
+    "href": "nc_tutorial.html#plotting-a-single-map",
+    "title": "How to work with netcdf?",
+    "section": "Plotting a single map",
+    "text": "Plotting a single map\n\nRPython\n\n\nI’m extremely partial to ggplot for plotting, so all of these examples are ggplot based.\n\n# terra\nlibrary(tidyterra)\nggplot() + \n  geom_spatraster(data = timeavg_terra) + \n  scale_fill_viridis_c() +\n  # + coord_sf(xlim = c(105, 124), ylim = c(32, 45), expand = FALSE) # bonus: zoom into a latlon box\n\n\n\n# stars\n\nggplot() +\n  geom_stars(data = timeavg_stars) +\n  scale_fill_viridis_c() + \n  geom_sf(data = x360) + \n  coord_sf()  \n  \n\n## Bonus! How to zoom into a lon-lat box:\n\n\n\n\n# also worth looking at hvplot!\neg_xr.mean('time').plot()",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#separate-regressions-for-each-gridcell",
+    "href": "nc_tutorial.html#separate-regressions-for-each-gridcell",
+    "title": "How to work with netcdf?",
+    "section": "Separate regressions for each gridcell",
+    "text": "Separate regressions for each gridcell\nIn Section 3.2, we saw how to regress a variable against time. Here, we consider regressing one variable against another.\nFor our example, we’re going to regress CESM temperature against GISTEMP temperature. Note that we’re using the re-gridded GISTEMP data, so that the two rasters are on the same grid",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#r-21",
+    "href": "nc_tutorial.html#r-21",
+    "title": "A field guide to netCDF (for climate model output)",
+    "section": "R",
+    "text": "R\nIf all we’re interested in is the slope, then the regress function works well and is fast. But… if we want anything else (e.g. p-values, out of sample predictions), then the regress function isn’t very useful.\n\n##  terra\n\n# method 1: if all we care about is the slope\ncesm_gistemp &lt;- regress(cesm_terra, gistemp_terra, formula = y ~ x)\ncesm_gistemp$x # a map with the regression slope\n\n# method 2: if we need other regression output (or a different type of regression)\nx &lt;- lapp(sds(p, r), \\(x, y) {\n    sapply(1:nrow(x), \\(i) {\n        coefficients(lm(b~a, data=data.frame(a=x[i,], b=y[i,])))\n        }) |&gt; t()\n    })",
+    "crumbs": [
+      "Resources",
+      "A field guide to netCDF (for climate model output)"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#python-21",
+    "href": "nc_tutorial.html#python-21",
+    "title": "A field guide to netCDF (for climate model output)",
+    "section": "Python",
+    "text": "Python\n\n# todo: clean up with example. this is from karen\n\ndef regression_slope(x, y):\n    \"\"\"\n    Get the slope dy/dx, removing missing data points\n    \"\"\"\n    # Mask pairs where either x or y is NaN\n    mask = np.isfinite(x) & np.isfinite(y)\n    if mask.sum() &gt; 1:  # Need at least two points to fit\n        fit = linregress(x[mask], y[mask])\n        return fit.slope\n    else:\n        return np.nan  # Return NaN if there are not enough valid data points\n    \n    \n\nslopes = xr.apply_ufunc(\n    regression_slope,\n    x,\n    y,\n    input_core_dims=[['year'], ['year']],\n    vectorize=True,\n    dask='parallelized',  # Use parallelization if data is large and dask-backed\n    output_dtypes=[float]\n)",
+    "crumbs": [
+      "Resources",
+      "A field guide to netCDF (for climate model output)"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#footnotes",
+    "href": "nc_tutorial.html#footnotes",
+    "title": "How to work with netcdf?",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nThis is frequently extended to higher dimensions, e.g., if our climate variable is recorded at different elevations. We’re not going to worry about those right now↩︎",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#r-19",
+    "href": "nc_tutorial.html#r-19",
+    "title": "How to work with netcdf?",
+    "section": "R",
+    "text": "R\nIf all we’re interested in is the slope, then the regress function works well and is fast. But… if we want anything else (e.g. p-values, out of sample predictions), then the regress function isn’t very useful.\n\n##  terra\n\n# method 1: if all we care about is the slope\ncesm_gistemp &lt;- regress(cesm_terra, gistemp_terra, formula = y ~ x)\ncesm_gistemp$x # a map with the regression slope\n\n# method 2: if we need other regression output (or a different type of regression)\nx &lt;- lapp(sds(p, r), \\(x, y) {\n    sapply(1:nrow(x), \\(i) {\n        coefficients(lm(b~a, data=data.frame(a=x[i,], b=y[i,])))\n        }) |&gt; t()\n    })",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#python-19",
+    "href": "nc_tutorial.html#python-19",
+    "title": "How to work with netcdf?",
+    "section": "Python",
+    "text": "Python\n\n# todo: clean up with example. code gist belongs to karen!\n\ndef regression_slope(x, y):\n    \"\"\"\n    Get the slope dy/dx, removing missing data points\n    \"\"\"\n    # Mask pairs where either x or y is NaN\n    mask = np.isfinite(x) & np.isfinite(y)\n    if mask.sum() &gt; 1:  # Need at least two points to fit\n        fit = linregress(x[mask], y[mask])\n        return fit.slope\n    else:\n        return np.nan  # Return NaN if there are not enough valid data points\n    \n    \n\nslopes = xr.apply_ufunc(\n    regression_slope,\n    x,\n    y,\n    input_core_dims=[['year'], ['year']],\n    vectorize=True,\n    dask='parallelized',  # Use parallelization if data is large and dask-backed\n    output_dtypes=[float]\n)\n\n\n\n\nBonus! in R, how do we convert between different spatial packages?\n# terra -&gt; stars\nterra_to_stars &lt;- st_as_stars(stars_to_terra)\n\n\n# stars -&gt; terra\n\n# note: this only works if cesm_stars is *not* a stars proxy object!\nstars_to_terra &lt;- as(cesm_stars, 'SpatRaster')\n\n# tidync -&gt; stars\n\n\n  st_as_stars.tidync &lt;- function(x, ...) {\n  ## x is a tidync\n  \n  ## ignore unit details for the moment\n  data &lt;- lapply(tidync::hyper_array(x, drop = FALSE), \n                 units::as_units)\n  ## this needs to be a bit easier ...\n  transforms &lt;- tidync:::active_axis_transforms(x)\n  dims &lt;- lapply(names(transforms), function(trname) {\n    transform &lt;- transforms[[trname]] %&gt;% dplyr::filter(selected)\n    values &lt;- transform[[trname]]\n    if (length(values) &gt; 1) {\n      stars:::create_dimension(\n        values = values)\n    } else {\n      ## a hack for now when there's only one value\n      structure(list(from = values, to = values, \n                     offset = values, delta = NA_real_, \n                     geotransform = rep(NA_real_, 6), \n                     refsys = NA_character_, \n                     point = NA, \n                     values = NULL), \n                class = \"dimension\")\n    }\n  })\n  names(dims) &lt;- names(transforms)\n  if (length(transforms)&gt;= 2L) {\n    r &lt;- structure(list(affine = c(0, 0), \n                 dimensions = names(dims)[1:2], \n                 curvilinear = FALSE, class = \"stars_raster\"))\n  \n    attr(dims, \"raster\") &lt;- r\n}  \n  geotransform_xy &lt;- c(dims[[1]]$offset, dims[[1]]$delta, 0, dims[[2]]$offset, 0, dims[[2]]$delta)\n  dims[[1]]$geotransform &lt;- dims[[2]]$geotransform &lt;- geotransform_xy\n  structure(data, dimensions =   structure(dims, class = \"dimensions\"), \n            class = \"stars\")\n  \n}\n\n# tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))\ntnc_stars &lt;- st_as_stars.tidync(cesm_tnc)\n\n\n## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.\n\n# stars to df\nstars_df &lt;- stars:::to_df(cesm_stars) \n\n# df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)\ndf_stars &lt;- stars_df %&gt;%\n  set_dim(dim(cesm_stars)) %&gt;%\n  st_as_stars(dimensions = st_dimensions(cesm_stars))\n\n# terra -&gt; df\n\ntidyterra::as_tibble(cesm_terra, xy = T)",
+    "crumbs": [
+      "Notes",
+      "How to work with netcdf?"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#r-12",
+    "href": "nc_tutorial.html#r-12",
+    "title": "A field guide to netCDF (for climate model output)",
+    "section": "R",
+    "text": "R\nIf all we’re interested in is the slope, then the regress function works well and is fast. But… if we want anything else (e.g. p-values, out of sample predictions), then the regress function isn’t very useful.\n\n##  terra\n\n# method 1: if all we care about is the slope\ncesm_gistemp &lt;- regress(cesm_terra, gistemp_terra, formula = y ~ x)\ncesm_gistemp$x # a map with the regression slope\n\n# method 2: if we need other regression output (or a different type of regression)\nx &lt;- lapp(sds(p, r), \\(x, y) {\n    sapply(1:nrow(x), \\(i) {\n        coefficients(lm(b~a, data=data.frame(a=x[i,], b=y[i,])))\n        }) |&gt; t()\n    })",
+    "crumbs": [
+      "Resources",
+      "A field guide to netCDF (for climate model output)"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#python-12",
+    "href": "nc_tutorial.html#python-12",
+    "title": "A field guide to netCDF (for climate model output)",
+    "section": "Python",
+    "text": "Python\n\n# todo: clean up with example. code gist belongs to karen!\n\ndef regression_slope(x, y):\n    \"\"\"\n    Get the slope dy/dx, removing missing data points\n    \"\"\"\n    # Mask pairs where either x or y is NaN\n    mask = np.isfinite(x) & np.isfinite(y)\n    if mask.sum() &gt; 1:  # Need at least two points to fit\n        fit = linregress(x[mask], y[mask])\n        return fit.slope\n    else:\n        return np.nan  # Return NaN if there are not enough valid data points\n    \n    \n\nslopes = xr.apply_ufunc(\n    regression_slope,\n    x,\n    y,\n    input_core_dims=[['year'], ['year']],\n    vectorize=True,\n    dask='parallelized',  # Use parallelization if data is large and dask-backed\n    output_dtypes=[float]\n)\n\n\n\n\nBonus! in R, how do we convert between different spatial packages?\n# terra -&gt; stars\nterra_to_stars &lt;- st_as_stars(stars_to_terra)\n\n\n# stars -&gt; terra\n\n# note: this only works if cesm_stars is *not* a stars proxy object!\nstars_to_terra &lt;- as(cesm_stars, 'SpatRaster')\n\n# tidync -&gt; stars\n\n\n  st_as_stars.tidync &lt;- function(x, ...) {\n  ## x is a tidync\n  \n  ## ignore unit details for the moment\n  data &lt;- lapply(tidync::hyper_array(x, drop = FALSE), \n                 units::as_units)\n  ## this needs to be a bit easier ...\n  transforms &lt;- tidync:::active_axis_transforms(x)\n  dims &lt;- lapply(names(transforms), function(trname) {\n    transform &lt;- transforms[[trname]] %&gt;% dplyr::filter(selected)\n    values &lt;- transform[[trname]]\n    if (length(values) &gt; 1) {\n      stars:::create_dimension(\n        values = values)\n    } else {\n      ## a hack for now when there's only one value\n      structure(list(from = values, to = values, \n                     offset = values, delta = NA_real_, \n                     geotransform = rep(NA_real_, 6), \n                     refsys = NA_character_, \n                     point = NA, \n                     values = NULL), \n                class = \"dimension\")\n    }\n  })\n  names(dims) &lt;- names(transforms)\n  if (length(transforms)&gt;= 2L) {\n    r &lt;- structure(list(affine = c(0, 0), \n                 dimensions = names(dims)[1:2], \n                 curvilinear = FALSE, class = \"stars_raster\"))\n  \n    attr(dims, \"raster\") &lt;- r\n}  \n  geotransform_xy &lt;- c(dims[[1]]$offset, dims[[1]]$delta, 0, dims[[2]]$offset, 0, dims[[2]]$delta)\n  dims[[1]]$geotransform &lt;- dims[[2]]$geotransform &lt;- geotransform_xy\n  structure(data, dimensions =   structure(dims, class = \"dimensions\"), \n            class = \"stars\")\n  \n}\n\n# tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))\ntnc_stars &lt;- st_as_stars.tidync(cesm_tnc)\n\n\n## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.\n\n# stars to df\nstars_df &lt;- stars:::to_df(cesm_stars) \n\n# df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)\ndf_stars &lt;- stars_df %&gt;%\n  set_dim(dim(cesm_stars)) %&gt;%\n  st_as_stars(dimensions = st_dimensions(cesm_stars))\n\n# terra -&gt; df\n\ntidyterra::as_tibble(cesm_terra, xy = T)\n\n\n–&gt;",
+    "crumbs": [
+      "Resources",
+      "A field guide to netCDF (for climate model output)"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#r-11",
+    "href": "nc_tutorial.html#r-11",
+    "title": "A field guide to netCDF (for climate model output)",
+    "section": "R",
+    "text": "R\nIf all we’re interested in is the slope, then the regress function works well and is fast. But… if we want anything else (e.g. p-values, out of sample predictions), then the regress function isn’t very useful.\n\n##  terra\n\n# method 1: if all we care about is the slope\ncesm_gistemp &lt;- regress(cesm_terra, gistemp_terra, formula = y ~ x)\ncesm_gistemp$x # a map with the regression slope\n\n# method 2: if we need other regression output (or a different type of regression)\nx &lt;- lapp(sds(p, r), \\(x, y) {\n    sapply(1:nrow(x), \\(i) {\n        coefficients(lm(b~a, data=data.frame(a=x[i,], b=y[i,])))\n        }) |&gt; t()\n    })",
+    "crumbs": [
+      "Resources",
+      "A field guide to netCDF (for climate model output)"
+    ]
+  },
+  {
+    "objectID": "nc_tutorial.html#python-11",
+    "href": "nc_tutorial.html#python-11",
+    "title": "A field guide to netCDF (for climate model output)",
+    "section": "Python",
+    "text": "Python\n\n# todo: clean up with example. code gist belongs to karen!\n\ndef regression_slope(x, y):\n    \"\"\"\n    Get the slope dy/dx, removing missing data points\n    \"\"\"\n    # Mask pairs where either x or y is NaN\n    mask = np.isfinite(x) & np.isfinite(y)\n    if mask.sum() &gt; 1:  # Need at least two points to fit\n        fit = linregress(x[mask], y[mask])\n        return fit.slope\n    else:\n        return np.nan  # Return NaN if there are not enough valid data points\n    \n    \n\nslopes = xr.apply_ufunc(\n    regression_slope,\n    x,\n    y,\n    input_core_dims=[['year'], ['year']],\n    vectorize=True,\n    dask='parallelized',  # Use parallelization if data is large and dask-backed\n    output_dtypes=[float]\n)\n\n\n\n\nBonus! in R, how do we convert between different spatial packages?\n# terra -&gt; stars\nterra_to_stars &lt;- st_as_stars(stars_to_terra)\n\n\n# stars -&gt; terra\n\n# note: this only works if cesm_stars is *not* a stars proxy object!\nstars_to_terra &lt;- as(cesm_stars, 'SpatRaster')\n\n# tidync -&gt; stars\n\n\n  st_as_stars.tidync &lt;- function(x, ...) {\n  ## x is a tidync\n  \n  ## ignore unit details for the moment\n  data &lt;- lapply(tidync::hyper_array(x, drop = FALSE), \n                 units::as_units)\n  ## this needs to be a bit easier ...\n  transforms &lt;- tidync:::active_axis_transforms(x)\n  dims &lt;- lapply(names(transforms), function(trname) {\n    transform &lt;- transforms[[trname]] %&gt;% dplyr::filter(selected)\n    values &lt;- transform[[trname]]\n    if (length(values) &gt; 1) {\n      stars:::create_dimension(\n        values = values)\n    } else {\n      ## a hack for now when there's only one value\n      structure(list(from = values, to = values, \n                     offset = values, delta = NA_real_, \n                     geotransform = rep(NA_real_, 6), \n                     refsys = NA_character_, \n                     point = NA, \n                     values = NULL), \n                class = \"dimension\")\n    }\n  })\n  names(dims) &lt;- names(transforms)\n  if (length(transforms)&gt;= 2L) {\n    r &lt;- structure(list(affine = c(0, 0), \n                 dimensions = names(dims)[1:2], \n                 curvilinear = FALSE, class = \"stars_raster\"))\n  \n    attr(dims, \"raster\") &lt;- r\n}  \n  geotransform_xy &lt;- c(dims[[1]]$offset, dims[[1]]$delta, 0, dims[[2]]$offset, 0, dims[[2]]$delta)\n  dims[[1]]$geotransform &lt;- dims[[2]]$geotransform &lt;- geotransform_xy\n  structure(data, dimensions =   structure(dims, class = \"dimensions\"), \n            class = \"stars\")\n  \n}\n\n# tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))\ntnc_stars &lt;- st_as_stars.tidync(cesm_tnc)\n\n\n## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.\n\n# stars to df\nstars_df &lt;- stars:::to_df(cesm_stars) \n\n# df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)\ndf_stars &lt;- stars_df %&gt;%\n  set_dim(dim(cesm_stars)) %&gt;%\n  st_as_stars(dimensions = st_dimensions(cesm_stars))\n\n# terra -&gt; df\n\ntidyterra::as_tibble(cesm_terra, xy = T)\n\n\n–&gt;",
+    "crumbs": [
+      "Resources",
+      "A field guide to netCDF (for climate model output)"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html",
+    "href": "when_to_average.html",
+    "title": "When to average a climate model ensemble?",
+    "section": "",
+    "text": "Single model initial condition large ensembles (SMILEs) are useful tools in climate statistics.1. At what point in the analysis should we average over the ensemble?\nHow should we decide which to use?",
+    "crumbs": [
+      "Notes",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html#motivating-example-1",
+    "href": "when_to_average.html#motivating-example-1",
+    "title": "When to average a climate model ensemble?",
+    "section": "Motivating example 1",
+    "text": "Motivating example 1\nSuppose our goal is to understand how CESM characterizes ENSO. Let’s define ENSO using EOFs of SSTs in a particular region. Let’s consider which of the three options makes most sense\n\nOption 1: average over all ensemble members first, then calculate a statistic on the ensemble mean\n\nIn this example, Option 1 entails calculating the ensemble mean (which, in this case, is a matrix indexed by (time, space)) and calculating EOFs.\nThis is probably a terrible idea, because the phases of ENSO happen at different times for different ensemble members. If ensemble member 1 is in an La Nina phase in year 2000 and ensemble member 2 is in a El Nino phase in year 2000, then averaging between them will lose the spatial pattern\n\nOption 2: analyze each ensemble member separately, then average the statistic\n\nIn this example, Option 2 entails calculating EOFs on each ensemble member separately, then averaging the EOFs.\nThe downside of this approach is that we need to be really careful. In this example, we have to be worried about EOFs doing different things in different ensemble members – e.g. the EOFs might be sign-flipped, or maybe the ordering of EOFs might be different between models. With some work, some version of this approach is feasible.\nThe benefit of this approach, if we can get it to work, is that it gives us a picture into the “sampling variability” of ENSO across ensemble members.\n\nOption 3: stack all ensemble members together and analyze the combined ouptut\n\nIn this example, Option 3 entails stacking ensemble members along the time dimension and calculating EOFs on this (\\(n_members * n_timepoints \\times n_gridcells\\)) matrix.\nThis is the preferred option in this case. Our analysis is already treating time point as replicated data samples, so by stacking ensemble members along the time dimension, the EOFs won’t have any trouble with the mismatch in ENSO timing across the ensemble.",
+    "crumbs": [
+      "Side Quests",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html#motivating-example-2",
+    "href": "when_to_average.html#motivating-example-2",
+    "title": "When to average a climate model ensemble?",
+    "section": "Motivating example 2",
+    "text": "Motivating example 2\nSuppose I want to know the relationship between temperature and CO2 emissions.\n\nlibrary(tidyverse)\nlibrary(tidymodels)\n\n\nmy_sim &lt;- function(ens_member) {\n  x &lt;- rnorm(1e3)\n  eps &lt;- rnorm(1e3)\n  y &lt;- x + eps\n\n  df &lt;- tibble(t = 1:1e3, x = x, y = y, m = ens_member)\n\n  lm_summary &lt;- tidy(lm(y ~ x)) %&gt;%\n    filter(term == 'x') %&gt;%\n    transmute(estimate, std.error, m = ens_member)\n\n  list(\n    df = df,\n    lm_summary = lm_summary\n  )\n}\n\nn_ens &lt;- 100\nsims &lt;- purrr::map(1:n_ens, ~ my_sim(.x))\n\n\n# approach 1: get 100 slopes, then average. look at ensemble spread\nslopes_list &lt;- sims %&gt;%\n  map_dfr(~ .x$lm_summary) %&gt;%\n  summarize(\n    beta_mean = mean(estimate),\n    beta_sd = sd(estimate) / sqrt(n_ens), # assuming ens members are indep, this will estimate sd(beta_mean)\n    std_err_mean = mean(std.error) / sqrt(n_ens) # assuming ens members are indep, this will estimate sd(beta_mean)\n  )\n\n\n# approach 2: average ensemble members at each time point, then do a single regression\nsims %&gt;%\n  map_dfr(~ .x$df) %&gt;%\n  group_by(t) %&gt;%\n  summarize(x_avg = mean(x), y_avg = mean(y), .groups = 'drop') %&gt;%\n  lm(y_avg ~ x_avg, data = .) %&gt;%\n  tidy()\n\n# approach 3: combine all 100 sims, then do a single regression\nsims %&gt;%\n  map_df(~ .x$df) %&gt;%\n  lm(y ~ x, data = .) %&gt;%\n  tidy() %&gt;%\n  filter(term == 'x') %&gt;%\n  select(estimate, std.error)\n\n# if ensemble members are sysematically different\n\n## say, bm with drift, where the drift is different per model\n\n# if the wald sd is wrong, or if sqrt scaling doens't get us there\n\n## say, super high autocorrelation\n\n############################\n\n### EOFs\n\n############################",
+    "crumbs": [
+      "Side Quests",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html#takeaway-general-principles",
+    "href": "when_to_average.html#takeaway-general-principles",
+    "title": "When to average a climate model ensemble?",
+    "section": "Takeaway / general principles",
+    "text": "Takeaway / general principles\n\nIf the single model large ensemble is being used as a methodological testbed for use with observations, then option 2 is a no-brainer (i.e. analyzing each ensemble member separately, then looking at the distribution of the output over the ensemble). Practically, this is probably the best approach most of the time (for SMILEs and MIPs).\nIf computation is not a concern, then stacking ensemble members along the time dimension (option 3) is a flexible approach, which provides the option for modeling the ensemble member dimension directly. In theory, this is probably the best approach most of the time for SMILEs.\nCalculating the ensemble mean first then analyzing the output is ok as long as the statistic that we’re interested does not involve the spatio-temporal characteristics of the internal variability. TODO write this out more concretely, probably needs to add forcings into the parametrization)",
+    "crumbs": [
+      "Notes",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html#footnotes",
+    "href": "when_to_average.html#footnotes",
+    "title": "When to average a climate model ensemble?",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nsome of these ideas extend to the analysis of multi-model ensembles (ie. MIPs), but single-model ensembles are strictly easier to think about, so we’re going to restrict our attention↩︎",
+    "crumbs": [
+      "Notes",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "eof_terminology.html",
+    "href": "eof_terminology.html",
+    "title": "What’s an EOF?",
+    "section": "",
+    "text": "Empirical Orthogonal Functions (EOFs) and Principle Component Analysis (PCA) describe the same mathematical operations, but use different terminology. How do we translate between the two vocabularies?",
+    "crumbs": [
+      "Notes",
+      "What's an EOF?"
+    ]
+  },
+  {
+    "objectID": "eof_terminology.html#preliminaries",
+    "href": "eof_terminology.html#preliminaries",
+    "title": "What’s an EOF?",
+    "section": "Preliminaries",
+    "text": "Preliminaries\nLet’s start with a time by space matrix \\(X\\) with dimensions \\(n \\times p\\).1. \\(X\\) can represent any climate variable that varies over space and time.\nWe’re interested in summarizing \\(X\\). Summaries need to serve two purposes: they need to be (1) compact and (2) a meaningful description of \\(X\\).\nOur first attempt might be to calculate the spatial mean at each time point (i.e. a time series), or the temporal mean at each location (i.e. a map). This is a good start, but it might be too compact. This averaging can lose a lot of interesting information, especially if there are spatial patterns that change over time.\nOn the other side, we could fit a model that explicity models the conditional distribution of \\(X\\) given space and time. But this can get really complicated really quickly and it’s hard to know where to start. Balancing parsimony and model skill is really tough, and probably depends on the specifics of the dataset on hand.\nEOF/PCA achieves this balance by finding low-dimensional representations of \\(X\\) which captures the most spatial variance. Unfortunately, the two fields use different notation to denote spatial variance.\nThe real problem is that the EOF terminology is based on the use of a space by time matrix, while the PCA terminology is based on the use of a time by space matrix. I think that the (time, space) formatting makes way more sense, but that’s my bias showing. The mathematical notation below uses (time, space) formatting, but if you prefer to go the other way,then just replace every instance of \\(X\\) with \\(X^\\top\\) and swap every instance of \\(U\\) and \\(V\\).",
+    "crumbs": [
+      "Notes",
+      "What's an EOF?"
+    ]
+  },
+  {
+    "objectID": "eof_terminology.html#notation-mapping",
+    "href": "eof_terminology.html#notation-mapping",
+    "title": "What’s an EOF?",
+    "section": "Notation mapping",
+    "text": "Notation mapping\n\nThe SVD of \\(X\\) is written \\(X = U\\Sigma V^\\top\\). (\\(X\\) is dimension \\(n \\times p\\))\n\nIn general, \\(U\\) has dimension \\(n \\times n\\), \\(V\\) has dimension \\(p \\times p\\), and \\(\\Sigma\\) has dimension \\(n \\times p\\) (although \\(\\Sigma\\) is really a square matrix with added rows/columns of zeros added to make the matrix multiplication work)\n\\(\\Sigma\\) is effectively diagonal, and the diagonal elements are known as singular values.\n\nThe covariance matrix of \\(X\\) is \\(Cov(X) = \\frac{1}{n-1} X^\\top X\\) (dimension \\(p \\times p\\))\n\nit’s worth pointing out that although \\(\\Sigma\\) is commonly used in statistics as the notation for the covariance matrix, that isn’t quite true here. If you plug in the SVD for \\(X\\), then you get \\(Cov(X) = \\frac{1}{n-1} V \\Sigma^2 V^\\top\\).\n\nThe columns of \\(V\\) are known as EOFs in the EOF literature and known as Loadings or Principal Components in the PCA literature (each column is a vector of dimension \\(p\\), i.e. a map)\n\nthese are also the eigenvectors of \\(Cov(X)\\).\n\nThe columns of \\(U\\Sigma\\) are known as the Principal Components in the EOF literature and known as the scores in the PCA literature. (each column is a vector of dimension \\(n\\), i.e. a time series)\n\nNote that \\(\\Sigma\\) is diagonal, so that this is really just the column of \\(U\\), scaled by the corresponding singular value (i.e. the diagonal element of \\(\\Sigma\\)).\nPCA people sometimes refer to the first \\(k\\) columns of \\(U\\Sigma\\) as the “projection of \\(X\\) onto the first \\(k\\) PCs”\n\nThe variance explained by the \\(k\\)-th EOF/PC is denoted \\(\\sigma_k^2\\).\n\nrelatedly, the \\(k\\)-th eigenvalue of \\(Cov(X)\\) is \\(\\frac{1}{n-1}\\sigma_k^2\\).\n\nThe rank-k approximation of \\(X\\) is given by \\(U_k \\Sigma_k V_k^\\top\\), where the \\(k\\) subscript refers to the taking the first \\(k\\) columns of \\(U, \\Sigma\\), and \\(V\\).\n\ni.e. this is written equivalently as \\(\\sum_{i=1}^k \\sigma_i u_i v_i^\\top\\), where \\(u_i\\) and \\(v_i\\) are columns of \\(U\\) and \\(V\\), respectively. This is also sometimes called the “reconstruction” of \\(X\\) using the first \\(k\\) principal components.",
+    "crumbs": [
+      "Notes",
+      "What's an EOF?"
+    ]
+  },
+  {
+    "objectID": "eof_terminology.html#recommendations",
+    "href": "eof_terminology.html#recommendations",
+    "title": "What’s an EOF?",
+    "section": "Recommendations",
+    "text": "Recommendations\nWhen talking about EOFs / PCA in the spatiotemporal context, I have the following recommendations (which are ordered as easiest -&gt; hardest to implement for people trained in EOFs)\n\nAlways mention the dimension (i.e. map or time series)\n\ne.g. say “principal component time series” or “EOF map”\n\nUse the PCA terminology, “scores” and “loadings” along with the dimension!!! This is not just because that’s how I was trained – it’s also practical because these terms can’t really get confused with anything in the climate literature, so there isn’t much chance of overloading the terms.\n\ni.e. say “PC score time series” and “map of EOF loadings”\n\nDon’t be afraid to use the SVD notation! Luckily, notation for SVD is super standard across all disciplines, so this works as long as you specify whether \\(X\\) is (time, space) or (space, time).",
+    "crumbs": [
+      "Notes",
+      "What's an EOF?"
+    ]
+  },
+  {
+    "objectID": "eof_terminology.html#footnotes",
+    "href": "eof_terminology.html#footnotes",
+    "title": "What’s an EOF?",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nnote that this means that lon-lat must be collapsed into a single variable↩︎",
+    "crumbs": [
+      "Notes",
+      "What's an EOF?"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html#motivating-example",
+    "href": "when_to_average.html#motivating-example",
+    "title": "When to average a climate model ensemble?",
+    "section": "Motivating example",
+    "text": "Motivating example\nSuppose our goal is to understand how CESM characterizes ENSO. Let’s define ENSO using EOFs of SSTs in a particular region. Let’s consider which of the three options makes most sense\n\nOption 1: average over all ensemble members first, then calculate a statistic on the ensemble mean\n\nIn this example, Option 1 entails calculating the ensemble mean (which, in this case, is a matrix indexed by (time, space)) and calculating EOFs.\nThis is probably a terrible idea, because the phases of ENSO happen at different times for different ensemble members. If ensemble member 1 is in an La Nina phase in year 2000 and ensemble member 2 is in a El Nino phase in year 2000, then averaging between them will lose the spatial pattern\n\nOption 2: analyze each ensemble member separately, then average the statistic\n\nIn this example, Option 2 entails calculating EOFs on each ensemble member separately, then averaging the EOFs.\nThe downside of this approach is that we need to be really careful. In this example, we have to be worried about EOFs doing different things in different ensemble members – e.g. the EOFs might be sign-flipped, or maybe the ordering of EOFs might be different between models. With some work, some version of this approach is feasible.\nThe benefit of this approach, if we can get it to work, is that it gives us a picture into the “sampling variability” of ENSO across ensemble members.\n\nOption 3: stack all ensemble members together and analyze the combined ouptut\n\nIn this example, Option 3 entails stacking ensemble members along the time dimension and calculating EOFs on this (\\(n_members * n_timepoints \\times n_gridcells\\)) matrix.\nThis is the preferred option in this case. Our analysis is already treating time point as replicated data samples, so by stacking ensemble members along the time dimension, the EOFs won’t have any trouble with the mismatch in ENSO timing across the ensemble.",
+    "crumbs": [
+      "Notes",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html#in-general",
+    "href": "when_to_average.html#in-general",
+    "title": "When to average a climate model ensemble?",
+    "section": "In general",
+    "text": "In general\nIn a perfect world, we would be able to treat each ensemble member as an i.i.d sample from some underlying climate model distribution, i.e.\n\\[\n\\begin{aligned}\nX_{i,t,s} &= \\mu_{t,s} + \\epsilon_{i,t,s}\\\\\n\\epsilon_{i,t,s} &\\sim N(0, \\sigma^2_{s,t})\n\\end{aligned}\n\\]\nwhere \\(X_{i,t,s}\\) is some climate model output from ensemble member \\(i\\) at time \\(t\\) and location \\(s\\), \\(\\mu\\) is the “true” output representing the underlying climate model physics, and \\(\\epsilon\\) is some zero mean spatiotemorally varying noise field.\nOption 1, taking the ensemble mean first, amounts to calculating \\(\\overline{X_{t,s}}\\), with the hopes that averaging over ensemble members will remove internal variability \\(\\epsilon\\) and leave us with just the signal \\(\\mu_{t,s}\\)\nThis can sometimes be reasonable, but the reason this doesn’t work with our motivating example is that characterizations of ENSO don’t fall neatly into this parameterization.\nTo write ENSO into this example, let \\(X_i\\) denote the spatiotemporal SST field in an ENSO box for ensemble member \\(i\\). The goal of our analysis, then, is to estimate the eigenvectors of the covariance matrix. The problem is that with the way we’ve written things, \\(Cov(X_i)\\), in general, will have very different spatiotemporal characteristics than \\(Cov(\\bar X)\\), because \\(\\epsilon\\) contains a lot of the interesting covariance information.",
+    "crumbs": [
+      "Notes",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "when_to_average.html#code-examples",
+    "href": "when_to_average.html#code-examples",
+    "title": "When to average a climate model ensemble?",
+    "section": "code examples",
+    "text": "code examples\nTODO\n\n\nCode\nlibrary(tidyverse)\nlibrary(tidymodels)\n\n\nmy_sim &lt;- function(ens_member) {\n  x &lt;- rnorm(1e3)\n  eps &lt;- rnorm(1e3)\n  y &lt;- x + eps\n\n  df &lt;- tibble(t = 1:1e3, x = x, y = y, m = ens_member)\n\n  lm_summary &lt;- tidy(lm(y ~ x)) %&gt;%\n    filter(term == 'x') %&gt;%\n    transmute(estimate, std.error, m = ens_member)\n\n  list(\n    df = df,\n    lm_summary = lm_summary\n  )\n}\n\nn_ens &lt;- 100\nsims &lt;- purrr::map(1:n_ens, ~ my_sim(.x))\n\n\n# approach 1: get 100 slopes, then average. look at ensemble spread\nslopes_list &lt;- sims %&gt;%\n  map_dfr(~ .x$lm_summary) %&gt;%\n  summarize(\n    beta_mean = mean(estimate),\n    beta_sd = sd(estimate) / sqrt(n_ens), # assuming ens members are indep, this will estimate sd(beta_mean)\n    std_err_mean = mean(std.error) / sqrt(n_ens) # assuming ens members are indep, this will estimate sd(beta_mean)\n  )\n\n\n# approach 2: average ensemble members at each time point, then do a single regression\nsims %&gt;%\n  map_dfr(~ .x$df) %&gt;%\n  group_by(t) %&gt;%\n  summarize(x_avg = mean(x), y_avg = mean(y), .groups = 'drop') %&gt;%\n  lm(y_avg ~ x_avg, data = .) %&gt;%\n  tidy()\n\n# approach 3: combine all 100 sims, then do a single regression\nsims %&gt;%\n  map_df(~ .x$df) %&gt;%\n  lm(y ~ x, data = .) %&gt;%\n  tidy() %&gt;%\n  filter(term == 'x') %&gt;%\n  select(estimate, std.error)\n\n# if ensemble members are sysematically different\n\n## say, bm with drift, where the drift is different per model\n\n# if the wald sd is wrong, or if sqrt scaling doens't get us there\n\n## say, super high autocorrelation\n\n############################\n\n### EOFs\n\n############################",
+    "crumbs": [
+      "Notes",
+      "When to average a climate model ensemble?"
+    ]
+  },
+  {
+    "objectID": "nc_explorer.html",
+    "href": "nc_explorer.html",
+    "title": "netCDF Explorer",
+    "section": "",
+    "text": "#| '!! shinylive warning !!': |\n#|   shinylive does not work in self-contained HTML documents.\n#|   Please set `embed-resources: false` in your metadata.\n#| standalone: true\n\nfrom shiny import *\n\nimport xarray as xr\nimport matplotlib.pyplot as plt\nimport cartopy.crs as ccrs\nimport io\n\n# Define the application's user interface (UI)\napp_ui = ui.page_fluid(\n    ui.layout_sidebar(\n        # --- Sidebar for user controls ---\n        ui.sidebar(\n            ui.h3(\"NetCDF Map Viewer\"),\n            ui.input_file(\"netcdf_file\", \"Upload NetCDF File\", accept=\".nc\", multiple=False),\n            # Dynamic UI elements will be inserted here\n            ui.output_ui(\"variable_selector_ui\"),\n            ui.output_ui(\"time_selector_ui\"),\n            width=3\n        ),\n        # --- Main panel for displaying the plot ---\n        # The main content goes directly here, not inside a ui.main() call\n        ui.h4(\"Output Map\"),\n        ui.p(\"Upload a NetCDF file to see the data plotted on a map.\"),\n        # The plot will be rendered here\n        ui.output_plot(\"map_plot\", height=\"600px\"),\n    )\n)\n\n# Define the server logic\ndef server(input, output, session):\n    # A reactive value to hold the loaded xarray Dataset\n    dataset = reactive.Value(None)\n\n    @reactive.Effect\n    def _():\n        \"\"\"\n        Observer that triggers when a file is uploaded. It reads the file\n        and stores the xarray.Dataset in a reactive value.\n        \"\"\"\n        file_info = input.netcdf_file()\n        if file_info is None:\n            return\n\n        # Use the temporary path of the uploaded file\n        file_path = file_info[0][\"datapath\"]\n        try:\n            ds = xr.open_dataset(file_path)\n            dataset.set(ds)\n        except Exception as e:\n            # Display an error notification if the file can't be read\n            ui.notification_show(f\"Error reading NetCDF file: {e}\", duration=10, type=\"error\")\n            dataset.set(None)\n\n    @output\n    @render.ui\n    def variable_selector_ui():\n        \"\"\"\n        Dynamically generates a dropdown menu for variable selection\n        once a dataset has been successfully loaded.\n        \"\"\"\n        ds = dataset.get()\n        if ds is None:\n            return ui.p(\"Please upload a valid NetCDF file.\")\n\n        # Get a list of 2D or higher-dimensional variables\n        plottable_vars = [var for var in ds.data_vars if ds[var].ndim &gt;= 2]\n        if not plottable_vars:\n            return ui.p(\"No plottable (2D+) variables found in the file.\")\n        \n        return ui.input_select(\"variable\", \"Select Variable:\", choices=plottable_vars)\n\n    @output\n    @render.ui\n    def time_selector_ui():\n        \"\"\"\n        Dynamically generates a slider for time step selection if the\n        chosen variable has a 'time' dimension.\n        \"\"\"\n        ds = dataset.get()\n        req(ds, input.variable()) # Ensure ds and variable are available\n\n        selected_var = input.variable()\n        if 'time' in ds[selected_var].dims:\n            time_size = len(ds['time'])\n            if time_size &gt; 1:\n                return ui.input_slider(\"time_step\", \"Select Time Step:\", min=0, max=time_size - 1, value=0)\n        return None # Return nothing if there's no time dimension\n\n    @output\n    @render.plot(alt=\"Map of NetCDF data\")\n    def map_plot():\n        \"\"\"\n        Renders the map plot based on user selections.\n        Requires a dataset, a variable, and potentially a time step.\n        \"\"\"\n        ds = dataset.get()\n        # Require that a dataset and variable have been selected\n        req(ds, input.variable())\n\n        selected_var = input.variable()\n        data_array = ds[selected_var]\n\n        # Select the time step if the slider is present and the dimension exists\n        if 'time' in data_array.dims and input.time_step() is not None:\n            data_array = data_array.isel(time=input.time_step())\n\n        # Ensure the data is at least 2D before plotting\n        if data_array.ndim &lt; 2:\n            ui.notification_show(\"Selected variable must be at least 2D to plot.\", type=\"warning\")\n            return\n\n        # --- Create the plot ---\n        fig = plt.figure(figsize=(10, 8))\n        # Use PlateCarree projection for lat/lon data\n        ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())\n        \n        # Plot the data using xarray's built-in plotting\n        data_array.plot(\n            ax=ax,\n            transform=ccrs.PlateCarree(),\n            cbar_kwargs={'shrink': 0.6}\n        )\n        \n        ax.coastlines()\n        ax.gridlines(draw_labels=True, linestyle='--', alpha=0.5)\n        ax.set_title(f\"Map of {selected_var}\")\n        \n        return fig\n\n# Create the Shiny app object\napp = App(app_ui, server)",
+    "crumbs": [
+      "Tools",
+      "netCDF Explorer"
+    ]
+  }
+]

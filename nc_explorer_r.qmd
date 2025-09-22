@@ -1,0 +1,125 @@
+---
+title: "netCDF Explorer"
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+filters:
+  - shinylive
+---
+
+```{shinylive-r}
+#| standalone: true
+
+library(ggplot2)
+library(dplyr)
+library(shiny)
+library(terra)
+library(tidyterra)
+library(scales)
+library(ncmeta)
+theme_set(theme_bw())
+
+ui <- fluidPage(
+  titlePanel(
+    "netcdf explorer"
+  ),
+
+  sidebarLayout(
+    sidebarPanel(
+      fileInput("file1", "Choose netCDF File", accept = c(".nc", ".nc4")),
+      tags$hr(),
+      uiOutput("layer_selection_ui"),
+      uiOutput("time_slice_ui") # New UI for time slice selection
+    ),
+    mainPanel(
+      plotOutput("map", click = "plot_click"),
+      verbatimTextOutput("info"),
+      plotOutput("ts")
+    )
+  )
+)
+
+
+# set size limit to 1000 mb
+options(shiny.maxRequestSize = 1000 * 1024^2)
+server <- function(input, output, session) {
+  # Reactive expression to read the uploaded netCDF file and get layer names
+  varnames_terra <- reactive({
+    req(input$file1)
+    ncmeta::nc_vars(input$file1$datapath) %>%
+      arrange(desc(ndims)) %>%
+      filter(ndims > 2) %>%
+      pull(name)
+  })
+
+  data_terra <- reactive({
+    req(varnames_terra, input$selected_layer)
+    rast(input$file1$datapath, subds = input$selected_layer)
+  })
+
+  # Render UI for selecting the netCDF layer
+  output$layer_selection_ui <- renderUI({
+    req(varnames_terra())
+    selectInput("selected_layer", "Select a layer:", choices = varnames_terra())
+  })
+
+  # Render UI for selecting a time slice
+  output$time_slice_ui <- renderUI({
+    req(data_terra())
+    time_choices <- time(data_terra())
+    selectInput("selected_time", "Select a time:", choices = time_choices)
+  })
+
+  # Generate the histogram plot
+  output$map <- renderPlot({
+    req(input$selected_layer, input$selected_time)
+
+    r <- data_terra() %>%
+      subset(time(.) == input$selected_time)
+
+    ggplot() +
+      geom_spatraster(data = r) +
+      #geom_sf(data = rnaturalearth::ne_coastline()) +
+      scale_fill_viridis_b(breaks = pretty_breaks(10)) +
+      theme(
+        legend.key.height = unit(1, "null"),
+        legend.margin = margin(0, 0, 0, 0)
+      ) +
+      labs(
+        title = paste("Map of", input$selected_layer),
+        subtitle = input$selected_time
+      )
+  })
+
+  output$info <- renderPrint({
+    req(input$plot_click)
+    x <- round(input$plot_click$x, 2)
+    y <- round(input$plot_click$y, 2)
+    cat("lonlat is [", x, ", ", y, "]", sep = "")
+  })
+
+  # make a time series plot of the selected point
+  output$ts <- renderPlot({
+    req(input$plot_click)
+    lonlat <- tibble(
+      lon = input$plot_click$x,
+      lat = input$plot_click$y
+    )
+    loc_ts <- extract(data_terra(), lonlat) %>%
+      pivot_longer(-ID) %>%
+      select(-all_of(c('ID', 'name'))) %>%
+      mutate(time = time(data_terra()))
+
+    ggplot(loc_ts) +
+      geom_line(aes(time, value, group = 1)) +
+      theme_bw() +
+      labs(y = input$selected_layer)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+
+

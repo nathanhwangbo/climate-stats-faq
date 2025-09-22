@@ -1,0 +1,142 @@
+---
+title: "When to average a climate model ensemble?"
+execute:
+  eval: false
+---
+
+Single model initial condition large ensembles (SMILEs) are useful tools in climate statistics.^[some of these ideas extend to the analysis of multi-model ensembles (ie. MIPs), but single-model ensembles are strictly easier to think about, so we're going to restrict our attention]. At what point in the analysis should we average over the ensemble?
+
+- Option 1: average over all ensemble members first, then calculate a statistic on the ensemble mean
+- Option 2: analyze each ensemble member separately, then average the statistic
+- Option 3: stack all ensemble members together and analyze the combined ouptut
+
+How should we decide which to use?
+
+## Motivating example
+
+Suppose our goal is to understand how CESM characterizes ENSO. Let's define ENSO using EOFs of SSTs in a particular region. Let's consider which of the three options makes most sense
+
+> Option 1: average over all ensemble members first, then calculate a statistic on the ensemble mean
+
+In this example, Option 1 entails calculating the ensemble mean (which, in this case, is a matrix indexed by (time, space)) and calculating EOFs.
+
+This is probably a terrible idea, because the phases of ENSO happen at different times for different ensemble members. If ensemble member 1 is in an La Nina phase in year 2000 and ensemble member 2 is in a El Nino phase in year 2000, then averaging between them will lose the spatial pattern
+
+
+> Option 2: analyze each ensemble member separately, then average the statistic
+
+In this example, Option 2 entails calculating EOFs on each ensemble member separately, then averaging the EOFs.
+
+The downside of this approach is that we need to be really careful. In this example, we have to be worried about EOFs doing different things in different ensemble members -- e.g. the EOFs might be sign-flipped, or maybe the ordering of EOFs might be different between models. With some work, some version of this approach is feasible.
+
+The benefit of this approach, if we can get it to work, is that it gives us a picture into the "sampling variability" of ENSO across ensemble members.
+
+
+> Option 3: stack all ensemble members together and analyze the combined ouptut
+
+In this example, Option 3 entails stacking ensemble members along the time dimension and calculating EOFs on this ($n_members * n_timepoints \times n_gridcells$) matrix.
+
+This is the preferred option in this case. Our analysis is already treating time point as replicated data samples, so by stacking ensemble members along the time dimension, the EOFs won't have any trouble with the mismatch in ENSO timing across the ensemble.
+
+
+## In general
+
+In a perfect world, we would be able to treat each ensemble member as an i.i.d sample from some underlying climate model distribution, i.e.
+
+$$
+\begin{aligned}
+X_{i,t,s} &= \mu_{t,s} + \epsilon_{i,t,s}\\
+\epsilon_{i,t,s} &\sim N(0, \sigma^2_{s,t})
+\end{aligned}
+$$
+
+where $X_{i,t,s}$ is some climate model output from ensemble member $i$ at time $t$ and location $s$, $\mu$ is the "true" output representing the underlying climate model physics, and $\epsilon$ is some zero mean spatiotemorally varying noise field.
+
+Option 1, taking the ensemble mean first, amounts to calculating $\overline{X_{t,s}}$, with the hopes that averaging over ensemble members will remove internal variability $\epsilon$ and leave us with just the signal $\mu_{t,s}$
+
+This can sometimes be reasonable, but the reason this doesn't work with our motivating example is that characterizations of ENSO don't fall neatly into this parameterization. 
+
+To write ENSO into this example, let $X_i$ denote the spatiotemporal SST field in an ENSO box for ensemble member $i$. The goal of our analysis, then, is to estimate the eigenvectors of the covariance matrix. The problem is that with the way we've written things, $Cov(X_i)$, in general, will have very different spatiotemporal characteristics than $Cov(\bar X)$, because $\epsilon$ contains a lot of the interesting covariance information.
+
+## code examples
+
+TODO
+
+```{r}
+#| code-fold: true
+library(tidyverse)
+library(tidymodels)
+
+
+my_sim <- function(ens_member) {
+  x <- rnorm(1e3)
+  eps <- rnorm(1e3)
+  y <- x + eps
+
+  df <- tibble(t = 1:1e3, x = x, y = y, m = ens_member)
+
+  lm_summary <- tidy(lm(y ~ x)) %>%
+    filter(term == 'x') %>%
+    transmute(estimate, std.error, m = ens_member)
+
+  list(
+    df = df,
+    lm_summary = lm_summary
+  )
+}
+
+n_ens <- 100
+sims <- purrr::map(1:n_ens, ~ my_sim(.x))
+
+
+# approach 1: get 100 slopes, then average. look at ensemble spread
+slopes_list <- sims %>%
+  map_dfr(~ .x$lm_summary) %>%
+  summarize(
+    beta_mean = mean(estimate),
+    beta_sd = sd(estimate) / sqrt(n_ens), # assuming ens members are indep, this will estimate sd(beta_mean)
+    std_err_mean = mean(std.error) / sqrt(n_ens) # assuming ens members are indep, this will estimate sd(beta_mean)
+  )
+
+
+# approach 2: average ensemble members at each time point, then do a single regression
+sims %>%
+  map_dfr(~ .x$df) %>%
+  group_by(t) %>%
+  summarize(x_avg = mean(x), y_avg = mean(y), .groups = 'drop') %>%
+  lm(y_avg ~ x_avg, data = .) %>%
+  tidy()
+
+# approach 3: combine all 100 sims, then do a single regression
+sims %>%
+  map_df(~ .x$df) %>%
+  lm(y ~ x, data = .) %>%
+  tidy() %>%
+  filter(term == 'x') %>%
+  select(estimate, std.error)
+
+# if ensemble members are sysematically different
+
+## say, bm with drift, where the drift is different per model
+
+# if the wald sd is wrong, or if sqrt scaling doens't get us there
+
+## say, super high autocorrelation
+
+############################
+
+### EOFs
+
+############################
+
+```
+
+
+
+## Takeaway  / general principles
+
+1. If the single model large ensemble is being used as a methodological testbed for use with observations, then option 2 is a no-brainer (i.e. analyzing each ensemble member separately, then looking at the distribution of the output over the ensemble). Practically, this is probably the best approach most of the time (for SMILEs and MIPs).
+
+2. If computation is not a concern, then stacking ensemble members along the time dimension (option 3) is a flexible approach, which provides the option for modeling the ensemble member dimension directly. In theory, this is probably the best approach most of the time for SMILEs.
+
+3. Calculating the ensemble mean first then analyzing the output is ok as long as the statistic that we're interested does not involve the spatio-temporal characteristics of the internal variability. TODO write this out more concretely, probably needs to add forcings into the parametrization)

@@ -1,0 +1,182 @@
+---
+title: "netCDF Explorer"
+format:
+  html:
+    resources: 
+      - shinylive-sw.js
+filters:
+  - shinylive
+---
+
+```{shinylive-python}
+#| standalone: true
+#| viewerHeight: 800
+
+from shiny import *
+import xarray as xr
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import io
+
+app_ui = ui.page_fluid(
+    ui.layout_sidebar(
+        ui.sidebar(
+            ui.input_file(
+                "netcdf_file", "Upload NetCDF File", accept=".nc", multiple=False
+            ),
+            # dynamic UI elements
+            ui.output_ui("variable_selector_ui"),
+            ui.output_ui("time_selector_ui"),
+            width=3,
+        ),
+        ui.h4("Output Map"),
+        ui.p(
+            "Upload a NetCDF file"
+        ),
+        
+        ui.output_plot("map_plot", height="600px", click=True),
+        
+        # UI elements for displaying click info and the new time series plot
+        ui.h5("Clicked Coordinates"),
+        ui.output_text_verbatim("clicked_coords_output"),
+        ui.output_plot("timeseries_plot", height="400px"),
+    )
+)
+
+def server(input, output, session):
+    
+    dataset = reactive.Value(None)
+    clicked_point = reactive.Value(None)
+
+    @reactive.Effect
+    def _read_netcdf():
+        file_info = input.netcdf_file()
+        if file_info is None:
+            return
+        file_path = file_info[0]["datapath"]
+        try:
+            ds = xr.open_dataset(file_path)
+            dataset.set(ds)
+            # reset clicked point when a new file is uploaded
+            clicked_point.set(None)
+        except Exception as e:
+            ui.notification_show(
+                f"Error reading NetCDF file: {e}", duration=10, type="error"
+            )
+            dataset.set(None)
+
+    @reactive.Effect
+    def _store_click():
+        click_event = input.map_plot_click()
+        if click_event is None:
+            return
+        clicked_point.set({"lon": click_event["x"], "lat": click_event["y"]})
+
+    @output
+    @render.ui
+    def variable_selector_ui():
+        ds = dataset.get()
+        if ds is None:
+            return ui.p("Please upload a valid NetCDF file.")
+        plottable_vars = [var for var in ds.data_vars if ds[var].ndim >= 2]
+        if not plottable_vars:
+            return ui.p("No plottable (2D+) variables found in the file.")
+        return ui.input_select("variable", "Select Variable:", choices=plottable_vars)
+
+    @output
+    @render.ui
+    def time_selector_ui():
+        ds = dataset.get()
+        req(ds, input.variable())
+        selected_var = input.variable()
+        if "time" in ds[selected_var].dims:
+            time_size = len(ds["time"])
+            if time_size > 1:
+                return ui.input_slider(
+                    "time_step", "Select Time Step:", min=0, max=time_size - 1, value=0
+                )
+        return None
+
+    @output
+    @render.plot(alt="")
+    def map_plot():
+        ds = dataset.get()
+        req(ds, input.variable())
+        selected_var = input.variable()
+        data_array = ds[selected_var]
+        if "time" in data_array.dims and input.time_step() is not None:
+            data_array = data_array.isel(time=input.time_step())
+        if data_array.ndim < 2:
+            ui.notification_show(
+                "Selected variable must be at least 2D to plot.", type="warning"
+            )
+            return
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(1, 1, 1, projection=ccrs.PlateCarree())
+        data_array.plot(
+            ax=ax, transform=ccrs.PlateCarree(), cbar_kwargs={"shrink": 0.6}
+        )
+        ax.coastlines()
+        ax.gridlines(draw_labels=True, linestyle="--", alpha=0.5)
+        ax.set_title(f"Map of {selected_var}")
+        return fig
+
+    @output
+    @render.text
+    def clicked_coords_output():
+        """
+        Displays the longitude and latitude of the last point clicked.
+        """
+        point = clicked_point.get()
+        if point is None:
+            return "Click on the map to see coordinates."
+        return f"Lon: {point['lon']:.2f}, Lat: {point['lat']:.2f}"
+
+    @output
+    @render.plot(alt="Time series plot")
+    def timeseries_plot():
+        """
+        Renders a time series plot for the clicked coordinates.
+        """
+        ds = dataset.get()
+        point = clicked_point.get()
+        req(ds, input.variable(), point)
+
+        selected_var = input.variable()
+        data_array = ds[selected_var]
+
+        # check if there is a time dimension to plot
+        if "time" not in data_array.dims:
+            fig, ax = plt.subplots()
+            ax.text(
+                0.5,
+                0.5,
+                "The selected variable has no time dimension.",
+                horizontalalignment="center",
+                verticalalignment="center",
+                transform=ax.transAxes,
+            )
+            return fig
+
+        # select nearest grid point to the click
+        time_series = data_array.sel(
+            lon=point["lon"], lat=point["lat"], method="nearest"
+        )
+
+        # add time series
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_subplot(1, 1, 1)
+        time_series.plot(ax=ax)
+        ax.set_title(f"Time Series for {selected_var}")
+        ax.set_xlabel("Time")
+        ax.set_ylabel(data_array.attrs.get("units", "Value"))
+        ax.grid(True)
+        plt.tight_layout()
+        return fig
+
+
+# Create the Shiny app object
+app = App(app_ui, server)
+
+```
+
