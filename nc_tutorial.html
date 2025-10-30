@@ -233,33 +233,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#preprocessing" id="toc-preprocessing" class="nav-link" data-scroll-target="#preprocessing">Preprocessing</a>
   <ul class="collapse">
   <li><a href="#switching-between--180-180-and-0-360-lon" id="toc-switching-between--180-180-and-0-360-lon" class="nav-link" data-scroll-target="#switching-between--180-180-and-0-360-lon">Switching between (-180, 180) and (0, 360) lon</a></li>
-  <li><a href="#sec-detrending" id="toc-sec-detrending" class="nav-link" data-scroll-target="#sec-detrending">Detrending</a></li>
-  <li><a href="#removing-the-seasonal-cycle" id="toc-removing-the-seasonal-cycle" class="nav-link" data-scroll-target="#removing-the-seasonal-cycle">Removing the seasonal cycle</a></li>
-  <li><a href="#sec-regridding" id="toc-sec-regridding" class="nav-link" data-scroll-target="#sec-regridding">Regridding</a></li>
-  <li><a href="#area-weighting" id="toc-area-weighting" class="nav-link" data-scroll-target="#area-weighting">Area weighting</a></li>
-  </ul></li>
-  <li><a href="#subsetting" id="toc-subsetting" class="nav-link" data-scroll-target="#subsetting">Subsetting</a>
-  <ul class="collapse">
-  <li><a href="#pulling-out-a-single-pixel" id="toc-pulling-out-a-single-pixel" class="nav-link" data-scroll-target="#pulling-out-a-single-pixel">Pulling out a single pixel</a></li>
-  <li><a href="#pulling-out-a-single-year" id="toc-pulling-out-a-single-year" class="nav-link" data-scroll-target="#pulling-out-a-single-year">Pulling out a single year</a></li>
-  <li><a href="#region-masking" id="toc-region-masking" class="nav-link" data-scroll-target="#region-masking">Region masking</a></li>
-  <li><a href="#subsetting-based-on-a-lonlat-box" id="toc-subsetting-based-on-a-lonlat-box" class="nav-link" data-scroll-target="#subsetting-based-on-a-lonlat-box">Subsetting based on a lon/lat box</a></li>
-  </ul></li>
-  <li><a href="#averaging" id="toc-averaging" class="nav-link" data-scroll-target="#averaging">Averaging</a>
-  <ul class="collapse">
-  <li><a href="#averaging-over-time" id="toc-averaging-over-time" class="nav-link" data-scroll-target="#averaging-over-time">Averaging over time</a></li>
-  <li><a href="#averaging-over-space" id="toc-averaging-over-space" class="nav-link" data-scroll-target="#averaging-over-space">Averaging over space</a></li>
-  <li><a href="#monthly-data---seasonal-average" id="toc-monthly-data---seasonal-average" class="nav-link" data-scroll-target="#monthly-data---seasonal-average">Monthly data -&gt; Seasonal average</a></li>
-  </ul></li>
-  <li><a href="#plotting" id="toc-plotting" class="nav-link" data-scroll-target="#plotting">Plotting</a>
-  <ul class="collapse">
-  <li><a href="#plotting-a-single-map" id="toc-plotting-a-single-map" class="nav-link" data-scroll-target="#plotting-a-single-map">Plotting a single map</a></li>
-  </ul></li>
-  <li><a href="#regression" id="toc-regression" class="nav-link" data-scroll-target="#regression">Regression</a>
-  <ul class="collapse">
-  <li><a href="#separate-regressions-for-each-gridcell" id="toc-separate-regressions-for-each-gridcell" class="nav-link" data-scroll-target="#separate-regressions-for-each-gridcell">Separate regressions for each gridcell</a></li>
-  <li><a href="#r-19" id="toc-r-19" class="nav-link" data-scroll-target="#r-19">R</a></li>
-  <li><a href="#python-19" id="toc-python-19" class="nav-link" data-scroll-target="#python-19">Python</a></li>
+  <li><a href="#datetime-manipulation" id="toc-datetime-manipulation" class="nav-link" data-scroll-target="#datetime-manipulation">Datetime manipulation</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -445,7 +419,7 @@ Click here for optional background
 </section>
 <section id="reading-multiple-netcdf" class="level2">
 <h2 class="anchored" data-anchor-id="reading-multiple-netcdf">Reading multiple netcdf</h2>
-<p>Large netCDFs are often split up into multiple files, with each file representing a time chunk. For example, in the CESM files downloaded above, one file represents monthly output for 2000-2010, and the other file represents monthly output for 2010-2014. The two files live on identical grids, so it makes sense to combine them into a single object. (if the two files live on different grids, <a href="#sec-regridding" class="quarto-xref">Section&nbsp;3.4</a> might be useful)</p>
+<p>Large netCDFs are often split up into multiple files, with each file representing a time chunk. For example, in the CESM files downloaded above, one file represents monthly output for 2000-2010, and the other file represents monthly output for 2010-2014. The two files live on identical grids, so it makes sense to combine them into a single object. (if the two files live on different grids, <strong>?@sec-regridding</strong> might be useful)</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
@@ -580,172 +554,283 @@ Click here for optional background
 </div>
 </div>
 </section>
-<section id="sec-detrending" class="level2">
-<h2 class="anchored" data-anchor-id="sec-detrending">Detrending</h2>
+<section id="datetime-manipulation" class="level2">
+<h2 class="anchored" data-anchor-id="datetime-manipulation">Datetime manipulation</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-21-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-1" role="tab" aria-controls="tabset-21-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-2" role="tab" aria-controls="tabset-21-2" aria-selected="false">Python</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-3" role="tab" aria-controls="tabset-21-3" aria-selected="false">Shifting Southern Hemisphere by 6 months</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-4" role="tab" aria-controls="tabset-21-4" aria-selected="false">Detrending</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-5" role="tab" aria-controls="tabset-21-5" aria-selected="false">Removing the seasonal cycle</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-6" role="tab" aria-controls="tabset-21-6" aria-selected="false">Regridding</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-7-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-7" role="tab" aria-controls="tabset-21-7" aria-selected="false">Area weighting</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-8-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-8" role="tab" aria-controls="tabset-21-8" aria-selected="false">Pulling out a single pixel</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-9-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-9" role="tab" aria-controls="tabset-21-9" aria-selected="false">Pulling out a single year</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-10-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-10" role="tab" aria-controls="tabset-21-10" aria-selected="false">Region masking</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-11-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-11" role="tab" aria-controls="tabset-21-11" aria-selected="false">Subsetting based on a lon/lat box</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-12-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-12" role="tab" aria-controls="tabset-21-12" aria-selected="false">Averaging over time</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-13-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-13" role="tab" aria-controls="tabset-21-13" aria-selected="false">Averaging over space</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-14-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-14" role="tab" aria-controls="tabset-21-14" aria-selected="false">Monthly data -&gt; Seasonal average</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-15-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-15" role="tab" aria-controls="tabset-21-15" aria-selected="false">Plotting a single map</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-16-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-16" role="tab" aria-controls="tabset-21-16" aria-selected="false">Separate regressions for each gridcell</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-17-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-17" role="tab" aria-controls="tabset-21-17" aria-selected="false">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-21-18-tab" data-bs-toggle="tab" data-bs-target="#tabset-21-18" role="tab" aria-controls="tabset-21-18" aria-selected="false">Python</a></li></ul>
+<div class="tab-content" data-group="language">
+<div id="tabset-21-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-21-1-tab">
+<p>In R, lubridate makes this dead simple, so I don’t think this needs to be included</p>
+</div>
+<div id="tabset-21-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-2-tab">
+<p>I find working with datetimes in python/xarray really confusing. I’m never really sure when to use cftime vs pandas vs numpy.</p>
+<p>One difference between R and python that I’ve found a bit annoying is that it’s difficult to specify just year-month in a monthly xarray – we always need to specify the full date, at least down to the day. The function below transforms a monthly dataarray by resetting the day index to 1, and resetting the time index to 00</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> clean_monthly_da(da):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">  takes a monthly-indexed xarray object and resets the day-time component</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">  da should have dimension "time". The day and time should be meaningless.</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">  returns a dataarray of the same dimension, just with the time coordinate changed.</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  years <span class="op">=</span> da.time.dt.year</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  months <span class="op">=</span> da.time.dt.month</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  new_times <span class="op">=</span> [pd.Timestamp(<span class="ss">f'</span><span class="sc">{</span>y<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>m<span class="sc">}</span><span class="ss">-01'</span>) <span class="cf">for</span> y, m <span class="kw">in</span> <span class="bu">zip</span>(years, months)]</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  da[<span class="st">'time'</span>] <span class="op">=</span> new_times</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> da</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div id="tabset-21-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-3-tab">
+<p>Scenario: we have a global xarray object and we want to obtain a global “summer” average. Summer in the Northern and Southern hemispheres are offset by 6 months. The chunk below shifts all the southern hemisphere data back by 6 months.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">## if the data is monthly resolution, then this trick works</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># this doesn't work for different temporal resoltuions bc shift only works by index and not by time</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>xr.where(eg_xr.lat <span class="op">&gt;</span> <span class="dv">0</span>, era_temp, eg_xr.shift(time <span class="op">=</span> <span class="op">-</span><span class="dv">6</span>))</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co">## a first pass solution which works for data at all temporal resolutions</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">NOTE</span><span class="co">: wait this might not work sometimes bc of the dependence on np.timedelta. </span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">:I should revisit this</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>eg_nh <span class="op">=</span> eg_xr.where(lat<span class="op">&gt;=</span><span class="dv">0</span>, drop <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>eg_sh <span class="op">=</span> eg_xr.where(lat<span class="op">&lt;</span><span class="dv">0</span>, drop <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>eg_sh[<span class="st">'time'</span>] <span class="op">=</span> eg_sh[<span class="st">'time'</span>] <span class="op">-</span> np.timedelta64(<span class="dv">6</span>,<span class="st">'M'</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>eg_shifted <span class="op">=</span> xr.combine_by_coords([eg_nh, eg_sh])</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="co">## Annother attempt at a solution.</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co">## I think this is a more foolproof approach?</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> shift_sh(x):</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="co">    shift time in the southern hemisphere by 6 months, to match seasonality with nh</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="co">    x is an xarray object with dimension "time" and "lat", whose temporal resolution is monthly or finer</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    is_nh <span class="op">=</span> x.lat <span class="op">&gt;=</span> <span class="dv">0</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    x_nh <span class="op">=</span> x.where(is_nh, drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    x_sh <span class="op">=</span> x.where(<span class="op">~</span>is_nh, drop<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    new_sh_time <span class="op">=</span> [</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>        cftime.DatetimeNoLeap(</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>            t.year <span class="op">+</span> (<span class="dv">6</span> <span class="op">-</span> <span class="dv">1</span>) <span class="op">//</span> <span class="dv">12</span>,</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>            (t.month <span class="op">+</span> <span class="dv">6</span> <span class="op">-</span> <span class="dv">1</span>) <span class="op">%</span> <span class="dv">12</span> <span class="op">+</span> <span class="dv">1</span>,</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>            t.day,</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>            calendar<span class="op">=</span>t.calendar,</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> t <span class="kw">in</span> x_sh.time.values</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    x_sh[<span class="st">"time"</span>] <span class="op">=</span> new_sh_time</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    x_sh <span class="op">=</span> x_sh.sortby(<span class="st">'time'</span>)</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>    x_shifted <span class="op">=</span> xr.combine_by_coords([x_nh, x_sh], join<span class="op">=</span><span class="st">'inner'</span>)</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x_shifted</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div id="tabset-21-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-4-tab">
 <p>Detrending commonly refers to removing a linear time trend.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="do">## method 1</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>poly_coef <span class="ot">&lt;-</span> <span class="fu">regress</span>(cesm_terra, <span class="dv">1</span><span class="sc">:</span><span class="fu">nlyr</span>(cesm_terra), <span class="at">formula =</span> y<span class="sc">~</span>x)<span class="sc">$</span>x</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>time_predictor_rast <span class="ot">&lt;-</span> <span class="fu">rast</span>(cesm_terra) <span class="co"># empty rast with the right dims</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nlyr</span>(cesm_terra)) {</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  time_predictor_rast[[i]] <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">time</span>(cesm_terra)[i])</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>fitted_vals <span class="ot">&lt;-</span> poly_coef[[<span class="st">'(Intercept)'</span>]] <span class="sc">+</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  poly_coef[[<span class="st">'x'</span>]] <span class="sc">*</span> time_predictor_rast</span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>no_trend <span class="ot">&lt;-</span> cesm_terra <span class="sc">-</span> fitted_vals</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="do">## method 2: I think slower, but I'm not sure</span></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co">#' x and y are both vectors of equal length, representing time series</span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>detrend_cell <span class="ot">&lt;-</span> <span class="cf">function</span>(rast_cell, x){</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># for masked areas, just return NA</span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(y_values)) <span class="sc">&lt;</span> <span class="dv">2</span>) {</span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NA</span>)</span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(y,x)</span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  fitted_vals <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod)  </span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  fitted_vals</span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>no_trend <span class="ot">&lt;-</span> <span class="fu">app</span>(cesm_terra, \(y) <span class="fu">detrend_cell</span>(y, <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nlyrs</span>(cesm_terra)))</span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a><span class="co"># eg_trend &lt;- x * poly_coef # does this work?</span></span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a><span class="co"># eg_trend &lt;- predict(poly_coef) # i doubt this works, but worth a shot.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="do">## method 1</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>poly_coef <span class="ot">&lt;-</span> <span class="fu">regress</span>(cesm_terra, <span class="dv">1</span><span class="sc">:</span><span class="fu">nlyr</span>(cesm_terra), <span class="at">formula =</span> y<span class="sc">~</span>x)<span class="sc">$</span>x</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>time_predictor_rast <span class="ot">&lt;-</span> <span class="fu">rast</span>(cesm_terra) <span class="co"># empty rast with the right dims</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nlyr</span>(cesm_terra)) {</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  time_predictor_rast[[i]] <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="fu">time</span>(cesm_terra)[i])</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>fitted_vals <span class="ot">&lt;-</span> poly_coef[[<span class="st">'(Intercept)'</span>]] <span class="sc">+</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  poly_coef[[<span class="st">'x'</span>]] <span class="sc">*</span> time_predictor_rast</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>no_trend <span class="ot">&lt;-</span> cesm_terra <span class="sc">-</span> fitted_vals</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="do">## method 2: I think slower, but I'm not sure</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co">#' x and y are both vectors of equal length, representing time series</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>detrend_cell <span class="ot">&lt;-</span> <span class="cf">function</span>(rast_cell, x){</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># for masked areas, just return NA</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(y_values)) <span class="sc">&lt;</span> <span class="dv">2</span>) {</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NA</span>)</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>  mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(y,x)</span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>  fitted_vals <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod)  </span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>  fitted_vals</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>no_trend <span class="ot">&lt;-</span> <span class="fu">app</span>(cesm_terra, \(y) <span class="fu">detrend_cell</span>(y, <span class="at">x =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nlyrs</span>(cesm_terra)))</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a><span class="co"># eg_trend &lt;- x * poly_coef # does this work?</span></span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a><span class="co"># eg_trend &lt;- predict(poly_coef) # i doubt this works, but worth a shot.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>poly_coef <span class="op">=</span> eg_xr.polyfit(dim<span class="op">=</span><span class="st">'time'</span>, deg<span class="op">=</span><span class="dv">1</span>)[<span class="st">'polyfit_coefficients'</span>]</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>eg_trend <span class="op">=</span> xr.polyval(eg_xr.time, poly_coef)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>eg_anoms <span class="op">=</span> eg_xr <span class="op">-</span> eg_trend</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>poly_coef <span class="op">=</span> eg_xr.polyfit(dim<span class="op">=</span><span class="st">'time'</span>, deg<span class="op">=</span><span class="dv">1</span>)[<span class="st">'polyfit_coefficients'</span>]</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>eg_trend <span class="op">=</span> xr.polyval(eg_xr.time, poly_coef)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>eg_anoms <span class="op">=</span> eg_xr <span class="op">-</span> eg_trend</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
-</section>
-<section id="removing-the-seasonal-cycle" class="level2">
-<h2 class="anchored" data-anchor-id="removing-the-seasonal-cycle">Removing the seasonal cycle</h2>
-<p>Method 1: by removing climatological means</p>
+</div>
+<div id="tabset-21-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-5-tab">
+<section id="method-1-by-removing-climatological-means" class="level3">
+<h3 class="anchored" data-anchor-id="method-1-by-removing-climatological-means">Method 1: by removing climatological means</h3>
 <p>Shown here for monthly data, but similar code works for different timescales</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-8-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-1" role="tab" aria-controls="tabset-8-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-8-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-8-2" role="tab" aria-controls="tabset-8-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-8-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-8-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>monthly_climatology <span class="ot">=</span> <span class="fu">tapp</span>(eg_xr, <span class="st">'months'</span>, <span class="st">"mean"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>monthly_climatology <span class="ot">=</span> <span class="fu">tapp</span>(eg_xr, <span class="st">'months'</span>, <span class="st">"mean"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-8-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-8-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>monthly_climatology <span class="op">=</span> eg_xr.groupby(<span class="st">"time.month"</span>).mean()</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    eg_xr_anom <span class="op">=</span> (</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>        eg_xr.groupby(<span class="st">"time.month"</span>) <span class="op">-</span> monthly_climatology</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>monthly_climatology <span class="op">=</span> eg_xr.groupby(<span class="st">"time.month"</span>).mean()</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>eg_xr_anom <span class="op">=</span> (</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    eg_xr.groupby(<span class="st">"time.month"</span>) <span class="op">-</span> monthly_climatology</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
-<!-- Method 2: by fourier basis
-
-::: {.panel-tabset group="language"}
-
-## R
-
-
-
-
-::: {.cell}
-
-```{.r .cell-code}
-# todo
-```
-:::
-
-
-
-
-## Python
-
-
-
-
-::: {.cell}
-
-```{.python .cell-code}
-# todo
-```
-:::
-
-
-
-::: -->
 </section>
-<section id="sec-regridding" class="level2">
-<h2 class="anchored" data-anchor-id="sec-regridding">Regridding</h2>
-<p>Going coarser, e.g going from 1 degree (CESM LENS) to 2 degree (NASA GISTEMP)</p>
+<section id="method-2-by-fourier-basis" class="level3">
+<h3 class="anchored" data-anchor-id="method-2-by-fourier-basis">Method 2: by fourier basis</h3>
+<p>The climatology estimated by Method 1 will not be a smooth curve, because it’s based on the sample mean. The code below adds a step to method 1, smoothing out the climatology via fourier transform. We then compute anomalies by subtracting out the smoothed climatology.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-9-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-1" role="tab" aria-controls="tabset-9-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-9-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-9-2" role="tab" aria-controls="tabset-9-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-9-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-9-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>coarse_terra <span class="ot">&lt;-</span> <span class="fu">resample</span>(cesm_terra, gistemp_terra, <span class="at">method =</span> <span class="st">'average'</span>)</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># aggregate() good if the lower resolution is a multiple of the larger</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>coarse_stars <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(<span class="at">src =</span> cesm_stars, <span class="at">dest =</span> gistemp_stars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-9-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-9-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># using interp_like(), which is suitable for "easier" problems</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># i.e. going between similar grids</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># make sure that the only dimensions in gistemp_xr are "lon" and "lat"</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>coarse_xr <span class="op">=</span> cesm_xr.interp_like(gistemp_xr, method<span class="op">=</span><span class="st">"bilinear"</span>)</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># using xesmf ------------</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co"># this works even for going from curvilinear tracer grids (like cesm sst) &lt;-&gt; to rectangular grids (like cesm tas)</span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>gistemp_regridder <span class="op">=</span> xe.Regridder(cesm_xr, gistemp_xr, <span class="st">"bilinear"</span>) </span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>coarse_xr <span class="op">=</span> gistemp_regridder(cesm_xr[<span class="st">"tas"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fourier_climatology_smoother(da, n_time, n_bases<span class="op">=</span><span class="dv">5</span>):</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co">    taken from karen's code</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co">    calculates a fourier-smoothed climatology at each gridcell, using n_bases components</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="co">    output is an xarray data array with climatologies, with dimension (n_time, lon, lat)</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="co">    da is a data array, with dimensions (time, lon, lat)</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="co">    n_time is 365 if removing the doy climatology or 12 if removing the monthly climatology</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co">    nbases is the number of fourier components we want to use</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create basis functions to remove seasonal cycle</span></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    time <span class="op">=</span> np.arange(<span class="dv">1</span>, n_time <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    t_basis <span class="op">=</span> time <span class="op">/</span> n_time</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># list of the first n_bases fourier components</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>    bases <span class="op">=</span> np.empty((n_bases, n_time), dtype<span class="op">=</span><span class="bu">complex</span>)</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> counter <span class="kw">in</span> <span class="bu">range</span>(n_bases):</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>        bases[counter, :] <span class="op">=</span> np.exp(<span class="dv">2</span> <span class="op">*</span> (counter <span class="op">+</span> <span class="dv">1</span>) <span class="op">*</span> np.pi <span class="op">*</span> <span class="ot">1j</span> <span class="op">*</span> t_basis)</span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_time <span class="op">==</span> <span class="dv">365</span>:</span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get empirical average for the doy</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>        empirical_sc <span class="op">=</span> da.groupby(<span class="st">"time.dayofyear"</span>).mean()  <span class="co"># dim (doy, lat, lon)</span></span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> empirical_sc.mean(</span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>            dim<span class="op">=</span><span class="st">"dayofyear"</span></span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a>        )  <span class="co"># map of average across all days. dim (lat, lon)</span></span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> n_time <span class="op">==</span> <span class="dv">12</span>:</span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get empirical average for the month</span></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>        empirical_sc <span class="op">=</span> da.groupby(<span class="st">"time.month"</span>).mean()  <span class="co"># dim (month, lat, lon)</span></span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a>        mu <span class="op">=</span> empirical_sc.mean(</span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a>            dim<span class="op">=</span><span class="st">"month"</span></span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a>        )  <span class="co"># map of average across all days. dim (lat, lon)</span></span>
+<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">"only n_time = 12 or 365 are handled"</span>)</span>
+<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a>    nt, nlat, nlon <span class="op">=</span> empirical_sc.shape</span>
+<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a>    loc_len <span class="op">=</span> nlat <span class="op">*</span> nlon</span>
+<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># project zero-mean data onto basis functions</span></span>
+<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> (empirical_sc <span class="op">-</span> mu).data</span>
+<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a>    coeff <span class="op">=</span> <span class="dv">2</span> <span class="op">/</span> n_time <span class="op">*</span> (np.dot(bases, data.reshape((nt, loc_len))))</span>
+<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a>    <span class="co"># reconstruct seasonal cycle</span></span>
+<span id="cb20-45"><a href="#cb20-45" aria-hidden="true" tabindex="-1"></a>    rec <span class="op">=</span> np.real(np.dot(bases.T, np.conj(coeff)))</span>
+<span id="cb20-46"><a href="#cb20-46" aria-hidden="true" tabindex="-1"></a>    rec <span class="op">=</span> rec.reshape((nt, nlat, nlon))</span>
+<span id="cb20-47"><a href="#cb20-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-48"><a href="#cb20-48" aria-hidden="true" tabindex="-1"></a>    <span class="co"># add back the mean</span></span>
+<span id="cb20-49"><a href="#cb20-49" aria-hidden="true" tabindex="-1"></a>    da_rec <span class="op">=</span> empirical_sc.copy(data<span class="op">=</span>rec) <span class="op">+</span> mu</span>
+<span id="cb20-50"><a href="#cb20-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> da_rec</span>
+<span id="cb20-51"><a href="#cb20-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-52"><a href="#cb20-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-53"><a href="#cb20-53" aria-hidden="true" tabindex="-1"></a><span class="co"># example usage</span></span>
+<span id="cb20-54"><a href="#cb20-54" aria-hidden="true" tabindex="-1"></a>eg_climatology <span class="op">=</span> fourier_climatology_smoother(eg_xr, n_time <span class="op">=</span> <span class="dv">12</span>, n_bases <span class="op">=</span> <span class="dv">5</span>)</span>
+<span id="cb20-55"><a href="#cb20-55" aria-hidden="true" tabindex="-1"></a>eg_xr_anom <span class="op">=</span> eg_xr.groupby(<span class="st">'time.month'</span>) <span class="op">-</span> eg_climatology</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<div id="tabset-21-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-6-tab">
+<p>Going coarser, e.g going from 1 degree (CESM LENS) to 2 degree (NASA GISTEMP)</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-10-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-1" role="tab" aria-controls="tabset-10-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-2" role="tab" aria-controls="tabset-10-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content" data-group="language">
+<div id="tabset-10-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-10-1-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>coarse_terra <span class="ot">&lt;-</span> <span class="fu">resample</span>(cesm_terra, gistemp_terra, <span class="at">method =</span> <span class="st">'average'</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># aggregate() good if the lower resolution is a multiple of the larger</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>coarse_stars <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(<span class="at">src =</span> cesm_stars, <span class="at">dest =</span> gistemp_stars)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div id="tabset-10-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># using interp_like(), which is suitable for "easier" problems</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># i.e. going between similar grids</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># make sure that the only dimensions in gistemp_xr are "lon" and "lat"</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>coarse_xr <span class="op">=</span> cesm_xr.interp_like(gistemp_xr, method<span class="op">=</span><span class="st">"bilinear"</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># using xesmf ------------</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="co"># this works even for going from curvilinear tracer grids (like cesm sst) &lt;-&gt; to rectangular grids (like cesm tas)</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>gistemp_regridder <span class="op">=</span> xe.Regridder(cesm_xr, gistemp_xr, <span class="st">"bilinear"</span>) </span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>coarse_xr <span class="op">=</span> gistemp_regridder(cesm_xr[<span class="st">"tas"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
 <p>going finer, e.g.&nbsp;going from 2 degree (GISTEMP) to 1 degree (CESM)</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-10-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-1" role="tab" aria-controls="tabset-10-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-10-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-10-2" role="tab" aria-controls="tabset-10-2" aria-selected="false">Python</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-11-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-1" role="tab" aria-controls="tabset-11-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-11-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-2" role="tab" aria-controls="tabset-11-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
-<div id="tabset-10-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-10-1-tab">
+<div id="tabset-11-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-11-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>fine_terra <span class="ot">&lt;-</span> <span class="fu">resample</span>(gistemp_terra, cesm_terra, <span class="at">method =</span> <span class="st">'bilinear'</span>)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>fine_stars <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(<span class="at">src =</span> gistemp_stars, <span class="at">dest =</span> cesm_stars, <span class="at">use_gdal =</span> T, <span class="at">method =</span> <span class="st">'bilinear'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>fine_terra <span class="ot">&lt;-</span> <span class="fu">resample</span>(gistemp_terra, cesm_terra, <span class="at">method =</span> <span class="st">'bilinear'</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>fine_stars <span class="ot">&lt;-</span> <span class="fu">st_warp</span>(<span class="at">src =</span> gistemp_stars, <span class="at">dest =</span> cesm_stars, <span class="at">use_gdal =</span> T, <span class="at">method =</span> <span class="st">'bilinear'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
-<div id="tabset-10-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-10-2-tab">
+<div id="tabset-11-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-11-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># xesgf has some other really cool regridding options</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>cesm_regridder <span class="op">=</span> xe.Regridder(gistemp_xr, cesm_xr, <span class="st">"bilinear"</span>) </span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>fine_xr <span class="op">=</span> cesm_regridder(gistemp_xr[<span class="st">"tas"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># xesgf has some other really cool regridding options</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>cesm_regridder <span class="op">=</span> xe.Regridder(gistemp_xr, cesm_xr, <span class="st">"bilinear"</span>) </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>fine_xr <span class="op">=</span> cesm_regridder(gistemp_xr[<span class="st">"tas"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -761,6 +846,7 @@ Suppose you want to combine two rasters, but they're in different coordinate sys
 
 
 
+
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -772,7 +858,9 @@ st_transform(terra::crs(rast))
 
 
 
+
 ## Python
+
 
 
 
@@ -785,464 +873,465 @@ st_transform(terra::crs(rast))
 
 
 
+
 ::: -->
-</section>
-<section id="area-weighting" class="level2">
-<h2 class="anchored" data-anchor-id="area-weighting">Area weighting</h2>
-<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-11-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-1" role="tab" aria-controls="tabset-11-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-11-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-11-2" role="tab" aria-controls="tabset-11-2" aria-selected="false">Python</a></li></ul>
-<div class="tab-content" data-group="language">
-<div id="tabset-11-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-11-1-tab">
-<div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">expanse</span>(<span class="at">unit =</span> <span class="st">'km'</span>) <span class="co">#</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="co"># old raster method  https://stackoverflow.com/a/55233039</span></span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a><span class="co"># try to adapt this to terrra</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">abs</span>(<span class="fu">init</span>(<span class="fu">raster</span>(), <span class="st">'y'</span>))</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">stack</span>(r, r, r)</span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">area</span>(s) <span class="sc">/</span> <span class="dv">10000</span></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> sm <span class="sc">*</span> a</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>weighted_average <span class="ot">&lt;-</span> <span class="fu">cellStats</span>(y, sum) <span class="sc">/</span> <span class="fu">cellStats</span>(a, sum)</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a><span class="co"># st_area() # </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</div>
-<div id="tabset-11-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-11-2-tab">
-<div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo: make sure this works with the actual example.</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>weights_cos <span class="op">=</span> np.cos(np.deg2rad(cesm_eg[<span class="st">'lat'</span>]))</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>cesm_eg_weighted <span class="op">=</span> cesm_eg.weighted(weights_cos)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="subsetting" class="level1">
-<h1>Subsetting</h1>
-<section id="pulling-out-a-single-pixel" class="level2">
-<h2 class="anchored" data-anchor-id="pulling-out-a-single-pixel">Pulling out a single pixel</h2>
+<div id="tabset-21-7" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-7-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-12-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-12-1" role="tab" aria-controls="tabset-12-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-12-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-12-2" role="tab" aria-controls="tabset-12-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-12-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-12-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>la_lonlat <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">118.24368</span>, <span class="fl">34.05223</span>)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync</span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>la_tnc <span class="ot">&lt;-</span> cesm_tnc <span class="sc">%&gt;%</span></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_filter</span>(<span class="at">lat =</span> index <span class="sc">==</span> <span class="fu">which.min</span>(<span class="fu">abs</span>(lat <span class="sc">-</span> la_lonlat[<span class="dv">2</span>])),</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">lon =</span> index <span class="sc">==</span> <span class="fu">which.min</span>(<span class="fu">abs</span>(<span class="fu">lon_to_180</span>(lon) <span class="sc">-</span> la_lonlat[<span class="dv">1</span>])))</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="co"># a &lt;- tibble(lon = la_lonlat[1], lat = la_lonlat[2])</span></span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="co"># la_sf &lt;- st_as_sf(a, coords = c('lon', 'lat'))</span></span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>la_sfc <span class="ot">&lt;-</span> <span class="fu">st_point</span>(la_lonlat) <span class="sc">%&gt;%</span></span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_sfc</span>(<span class="at">crs =</span> <span class="fu">st_crs</span>(cesm_stars))</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="co"># bilinear = F does nearest neighbor</span></span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>la_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_extract</span>(la_sfc, <span class="at">bilinear =</span> F) </span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>terra<span class="sc">::</span><span class="fu">extract</span>(raster, points) <span class="co"># maybe points needs to be a spatVector? (via vect(points))</span></span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[1] # pull outs the first gridcell</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">expanse</span>(<span class="at">unit =</span> <span class="st">'km'</span>) <span class="co">#</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="co"># old raster method  https://stackoverflow.com/a/55233039</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="co"># try to adapt this to terrra</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">abs</span>(<span class="fu">init</span>(<span class="fu">raster</span>(), <span class="st">'y'</span>))</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>s <span class="ot">&lt;-</span> <span class="fu">stack</span>(r, r, r)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">area</span>(s) <span class="sc">/</span> <span class="dv">10000</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> sm <span class="sc">*</span> a</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>weighted_average <span class="ot">&lt;-</span> <span class="fu">cellStats</span>(y, sum) <span class="sc">/</span> <span class="fu">cellStats</span>(a, sum)</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="co"># st_area() # </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-12-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-12-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>la_lonlat <span class="op">=</span> [<span class="op">-</span><span class="fl">118.24368</span>, <span class="fl">34.05223</span>]</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>eg_xr.sel(lon<span class="op">=</span>la_lonlat[<span class="dv">0</span>], lat<span class="op">=</span>la_lonlat[<span class="dv">1</span>], method<span class="op">=</span><span class="st">'nearest'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo: make sure this works with the actual example.</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>weights_cos <span class="op">=</span> np.cos(np.deg2rad(cesm_eg[<span class="st">'lat'</span>]))</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>cesm_eg_weighted <span class="op">=</span> cesm_eg.weighted(weights_cos)</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>cesm_eg_weighted.mean((<span class="st">"lon"</span>, <span class="st">"lat"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
+<section id="subsetting" class="level1">
+<h1>Subsetting</h1>
 </section>
-<section id="pulling-out-a-single-year" class="level2">
-<h2 class="anchored" data-anchor-id="pulling-out-a-single-year">Pulling out a single year</h2>
+</div>
+<div id="tabset-21-8" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-8-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-13-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-13-1" role="tab" aria-controls="tabset-13-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-13-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-13-2" role="tab" aria-controls="tabset-13-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-13-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-13-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_filter</span>(</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">time =</span> <span class="fu">year</span>(time) <span class="sc">==</span> <span class="dv">2010</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a><span class="co"># dplyr way (requires cubelyr)</span></span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>year_stars1 <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">year</span>(time) <span class="sc">==</span> <span class="dv">2010</span>)</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="co"># "base r" way</span></span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>time_vals <span class="ot">&lt;-</span> <span class="fu">st_get_dimension_values</span>(cesm_stars, <span class="st">'time'</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ymd</span>()</span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>ind_2010 <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">year</span>(time_vals) <span class="sc">==</span> <span class="dv">2010</span>)</span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>year_stars2 <span class="ot">&lt;-</span> cesm_stars[,,,ind_2010]</span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>cesm_terra <span class="sc">%&gt;%</span></span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="fu">year</span>(<span class="fu">time</span>(.)) <span class="sc">==</span> <span class="dv">2010</span>)</span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>cesm_terra[[<span class="fu">year</span>(<span class="fu">time</span>(cesm_terra)) <span class="sc">==</span> <span class="dv">2010</span>]] <span class="co"># alt</span></span>
-<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[[1]] # pulls out the first month</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>la_lonlat <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">118.24368</span>, <span class="fl">34.05223</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>la_tnc <span class="ot">&lt;-</span> cesm_tnc <span class="sc">%&gt;%</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_filter</span>(<span class="at">lat =</span> index <span class="sc">==</span> <span class="fu">which.min</span>(<span class="fu">abs</span>(lat <span class="sc">-</span> la_lonlat[<span class="dv">2</span>])),</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">lon =</span> index <span class="sc">==</span> <span class="fu">which.min</span>(<span class="fu">abs</span>(<span class="fu">lon_to_180</span>(lon) <span class="sc">-</span> la_lonlat[<span class="dv">1</span>])))</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="co"># a &lt;- tibble(lon = la_lonlat[1], lat = la_lonlat[2])</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co"># la_sf &lt;- st_as_sf(a, coords = c('lon', 'lat'))</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>la_sfc <span class="ot">&lt;-</span> <span class="fu">st_point</span>(la_lonlat) <span class="sc">%&gt;%</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_sfc</span>(<span class="at">crs =</span> <span class="fu">st_crs</span>(cesm_stars))</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="co"># bilinear = F does nearest neighbor</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>la_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_extract</span>(la_sfc, <span class="at">bilinear =</span> F) </span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>terra<span class="sc">::</span><span class="fu">extract</span>(raster, points) <span class="co"># maybe points needs to be a spatVector? (via vect(points))</span></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[1] # pull outs the first gridcell</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-13-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-13-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>eg_xr.sel(time<span class="op">=</span>eg_xr[<span class="st">'time.year'</span>] <span class="op">==</span> <span class="dv">2010</span>)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co"># eg_xr.sel(time=slice("2000", "2010")) # a subset of years</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>la_lonlat <span class="op">=</span> [<span class="op">-</span><span class="fl">118.24368</span>, <span class="fl">34.05223</span>]</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>eg_xr.sel(lon<span class="op">=</span>la_lonlat[<span class="dv">0</span>], lat<span class="op">=</span>la_lonlat[<span class="dv">1</span>], method<span class="op">=</span><span class="st">'nearest'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
-</section>
-<section id="region-masking" class="level2">
-<h2 class="anchored" data-anchor-id="region-masking">Region masking</h2>
-<p>Suppose you have a polygon (or shapefile, ect) that you want to subset by.</p>
+</div>
+<div id="tabset-21-9" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-9-tab">
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-14-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-14-1" role="tab" aria-controls="tabset-14-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-14-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-14-2" role="tab" aria-controls="tabset-14-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-14-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-14-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># using the US as an example.</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>usa <span class="ot">&lt;-</span> <span class="fu">ne_countries</span>(<span class="at">country =</span> <span class="st">'United States of America'</span>)</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>usa360 <span class="ot">&lt;-</span> <span class="fu">st_wrap_x</span>(usa, <span class="dv">0</span>, <span class="dv">360</span>)</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>usa_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_crop</span>(usa360)</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>terra<span class="sc">::</span><span class="fu">crop</span>(SpatRaster, sf)</span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="co"># or extract?</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a><span class="co"># or mask?</span></span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>countries <span class="ot">&lt;-</span> geodata<span class="sc">::</span><span class="fu">world</span>(<span class="at">resolution =</span> <span class="dv">5</span>, <span class="at">path =</span> <span class="st">"maps"</span>) <span class="co"># get land map</span></span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>terra<span class="sc">::</span><span class="fu">mask</span>(cesm_terra, countries)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_filter</span>(</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">time =</span> <span class="fu">year</span>(time) <span class="sc">==</span> <span class="dv">2010</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="co"># dplyr way (requires cubelyr)</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>year_stars1 <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">year</span>(time) <span class="sc">==</span> <span class="dv">2010</span>)</span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="co"># "base r" way</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>time_vals <span class="ot">&lt;-</span> <span class="fu">st_get_dimension_values</span>(cesm_stars, <span class="st">'time'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ymd</span>()</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>ind_2010 <span class="ot">&lt;-</span> <span class="fu">which</span>(<span class="fu">year</span>(time_vals) <span class="sc">==</span> <span class="dv">2010</span>)</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>year_stars2 <span class="ot">&lt;-</span> cesm_stars[,,,ind_2010]</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>cesm_terra <span class="sc">%&gt;%</span></span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="fu">year</span>(<span class="fu">time</span>(.)) <span class="sc">==</span> <span class="dv">2010</span>)</span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a>cesm_terra[[<span class="fu">year</span>(<span class="fu">time</span>(cesm_terra)) <span class="sc">==</span> <span class="dv">2010</span>]] <span class="co"># alt</span></span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-29"><a href="#cb29-29" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[[1]] # pulls out the first month</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-14-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-14-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo: replace code with the actual example</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> regionmask</span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create a landmask</span></span>
-<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>land <span class="op">=</span> regionmask.defined_regions.natural_earth_v5_0_0.land_110</span>
-<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>landmask <span class="op">=</span> land.mask(eg_xr)  <span class="co"># ocean is nan, land is 0</span></span>
-<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>is_land <span class="op">=</span> landmask <span class="op">==</span> <span class="dv">0</span></span>
-<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co"># we also generally wanna get rid of greenland and arctic</span></span>
-<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>greenland <span class="op">=</span> regionmask.defined_regions.natural_earth_v5_0_0.countries_110[[<span class="st">"Greenland"</span>]]</span>
-<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>greenland_mask <span class="op">=</span> greenland.mask(eg_xr)</span>
-<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>is_not_greenland <span class="op">=</span> greenland_mask.isnull() <span class="co"># greenland is 0, everything else is nan</span></span>
-<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a><span class="co"># can get rid of arctic just by subsetting to above 60S</span></span>
-<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="co"># apply all masks</span></span>
-<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>eg_xr_land <span class="op">=</span> eg_xr.where(is_land <span class="op">&amp;</span> is_not_greenland)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>eg_xr.sel(time<span class="op">=</span>eg_xr[<span class="st">'time.year'</span>] <span class="op">==</span> <span class="dv">2010</span>)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="co"># eg_xr.sel(time=slice("2000", "2010")) # a subset of years</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
-</section>
-<section id="subsetting-based-on-a-lonlat-box" class="level2">
-<h2 class="anchored" data-anchor-id="subsetting-based-on-a-lonlat-box">Subsetting based on a lon/lat box</h2>
-<p>Suppose we’re interested in the southwestern US, maybe defined as the box between 124-105E and 32-45N</p>
+</div>
+<div id="tabset-21-10" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-10-tab">
+<p>Suppose you have a polygon (or shapefile, ect) that you want to subset by.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-15-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-15-1" role="tab" aria-controls="tabset-15-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-15-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-15-2" role="tab" aria-controls="tabset-15-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-15-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-15-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>sw_tnc <span class="ot">&lt;-</span> cesm_tnc <span class="sc">%&gt;%</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_filter</span>(</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">lon =</span> lon <span class="sc">&gt;=</span> <span class="dv">105</span> <span class="sc">&amp;</span> lon <span class="sc">&lt;=</span> <span class="dv">124</span>,</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">lat =</span> lat <span class="sc">&gt;=</span> <span class="dv">32</span> <span class="sc">&amp;</span> lat <span class="sc">&lt;=</span> <span class="dv">45</span></span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>sw_box <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">xmin=</span> <span class="dv">105</span>, <span class="at">xmax =</span> <span class="dv">124</span>, <span class="at">ymin =</span> <span class="dv">32</span>, <span class="at">ymax =</span> <span class="dv">45</span>)</span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>sw_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(sw_box, <span class="at">crs =</span> <span class="fu">st_crs</span>(cesm_stars))</span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>sw_stars <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(cesm_stars, sw_bbox)</span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="do">## check our work</span></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a><span class="co"># st_get_dimension_values(sw_stars, 'lon')</span></span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="co"># st_get_dimension_values(sw_stars, 'lat')</span></span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>r1 <span class="ot">&lt;-</span> <span class="fu">crop</span>(cesm_terra, <span class="fu">ext</span>(<span class="sc">-</span><span class="dv">50</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">30</span>))</span>
-<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[,1], pulls out a single latitude (a lon x time matrix)</span></span>
-<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[1,] pulls out a single longitude (a lat x time matrix)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># using the US as an example.</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>usa <span class="ot">&lt;-</span> <span class="fu">ne_countries</span>(<span class="at">country =</span> <span class="st">'United States of America'</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>usa360 <span class="ot">&lt;-</span> <span class="fu">st_wrap_x</span>(usa, <span class="dv">0</span>, <span class="dv">360</span>)</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>usa_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_crop</span>(usa360)</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>terra<span class="sc">::</span><span class="fu">crop</span>(SpatRaster, sf)</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a><span class="co"># or extract?</span></span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a><span class="co"># or mask?</span></span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>countries <span class="ot">&lt;-</span> geodata<span class="sc">::</span><span class="fu">world</span>(<span class="at">resolution =</span> <span class="dv">5</span>, <span class="at">path =</span> <span class="st">"maps"</span>) <span class="co"># get land map</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>terra<span class="sc">::</span><span class="fu">mask</span>(cesm_terra, countries)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-15-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-15-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>is_in_lat <span class="op">=</span> eg_xr[<span class="st">'lat'</span>] <span class="op">&gt;=</span> <span class="dv">32</span> <span class="op">&amp;</span> eg_xr[<span class="st">'lat'</span>] <span class="op">&lt;=</span> <span class="dv">45</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>is_in_lon <span class="op">=</span> eg_xr[<span class="st">'lon'</span>] <span class="op">&gt;=</span> <span class="dv">105</span> <span class="op">&amp;</span> eg_xr[<span class="st">'lon'</span>] <span class="op">&lt;=</span> <span class="dv">124</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>is_in_box <span class="op">=</span> is_in_lat <span class="op">&amp;</span> is_in_lon</span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a><span class="co"># apply landmask</span></span>
-<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>cesm_box <span class="op">=</span> eg_xr.where(is_in_box)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> regionmask</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_landmask(x):</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># create a landmask, which still includes antactica and greenland</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  land <span class="op">=</span> regionmask.defined_regions.natural_earth_v5_0_0.land_110</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  landmask <span class="op">=</span> land.mask(eg_xr)  <span class="co"># ocean is nan, land is 0</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>  is_land <span class="op">=</span> landmask <span class="op">==</span> <span class="dv">0</span></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># we also generally wanna get rid of greenland</span></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>  greenland <span class="op">=</span> regionmask.defined_regions.natural_earth_v5_0_0.countries_110[[<span class="st">"Greenland"</span>]]</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  greenland_mask <span class="op">=</span> greenland.mask(eg_xr)</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  is_not_greenland <span class="op">=</span> greenland_mask.isnull() <span class="co"># greenland is 0, everything else is nan</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># we also generally wanna get rid of antarctica</span></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>  is_not_antarctic <span class="op">=</span> eg_xr[<span class="st">"lat"</span>] <span class="op">&gt;</span> <span class="op">-</span><span class="dv">60</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># apply all masks</span></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>  eg_xr_land <span class="op">=</span> eg_xr.where(is_land <span class="op">&amp;</span> is_not_greenland <span class="op">&amp;</span> is_not_antarctic)</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> eg_xr_land</span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a>eg_xr_land <span class="op">=</span> get_landmask(eg_xr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
-</section>
-</section>
-<section id="averaging" class="level1">
-<h1>Averaging</h1>
-<section id="averaging-over-time" class="level2">
-<h2 class="anchored" data-anchor-id="averaging-over-time">Averaging over time</h2>
-<p>(i.e.&nbsp;get one map with the temporal average)</p>
+</div>
+<div id="tabset-21-11" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-11-tab">
+<p>Suppose we’re interested in the southwestern US, maybe defined as the box between 124-105E and 32-45N</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-16-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-16-1" role="tab" aria-controls="tabset-16-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-16-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-16-2" role="tab" aria-controls="tabset-16-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-16-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-16-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>timeavg_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_apply</span>(<span class="fu">c</span>(<span class="st">'lon'</span>, <span class="st">'lat'</span>), mean, <span class="at">na.rm =</span> T)</span>
-<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="co"># each time point is a LAYER</span></span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="co"># and terra by default takes the layer-wise mean</span></span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(eg_aod)</span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra %&gt;%</span></span>
-<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   app()</span></span>
-<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync (i.e. with the raw data cube, which would also work with stars)</span></span>
-<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
-<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_tbl_cube</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(lat, lon) <span class="sc">%&gt;%</span></span>
-<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_map =</span> <span class="fu">mean</span>(TREFHT))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>sw_tnc <span class="ot">&lt;-</span> cesm_tnc <span class="sc">%&gt;%</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_filter</span>(</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">lon =</span> lon <span class="sc">&gt;=</span> <span class="dv">105</span> <span class="sc">&amp;</span> lon <span class="sc">&lt;=</span> <span class="dv">124</span>,</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">lat =</span> lat <span class="sc">&gt;=</span> <span class="dv">32</span> <span class="sc">&amp;</span> lat <span class="sc">&lt;=</span> <span class="dv">45</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>sw_box <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">xmin=</span> <span class="dv">105</span>, <span class="at">xmax =</span> <span class="dv">124</span>, <span class="at">ymin =</span> <span class="dv">32</span>, <span class="at">ymax =</span> <span class="dv">45</span>)</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>sw_bbox <span class="ot">&lt;-</span> <span class="fu">st_bbox</span>(sw_box, <span class="at">crs =</span> <span class="fu">st_crs</span>(cesm_stars))</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>sw_stars <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(cesm_stars, sw_bbox)</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a><span class="do">## check our work</span></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="co"># st_get_dimension_values(sw_stars, 'lon')</span></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a><span class="co"># st_get_dimension_values(sw_stars, 'lat')</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>r1 <span class="ot">&lt;-</span> <span class="fu">crop</span>(cesm_terra, <span class="fu">ext</span>(<span class="sc">-</span><span class="dv">50</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">30</span>))</span>
+<span id="cb33-21"><a href="#cb33-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-22"><a href="#cb33-22" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[,1], pulls out a single latitude (a lon x time matrix)</span></span>
+<span id="cb33-23"><a href="#cb33-23" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra[1,] pulls out a single longitude (a lat x time matrix)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-16-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-16-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>eg_xr.mean(<span class="st">'time'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>is_in_lat <span class="op">=</span> eg_xr[<span class="st">'lat'</span>] <span class="op">&gt;=</span> <span class="dv">32</span> <span class="op">&amp;</span> eg_xr[<span class="st">'lat'</span>] <span class="op">&lt;=</span> <span class="dv">45</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>is_in_lon <span class="op">=</span> eg_xr[<span class="st">'lon'</span>] <span class="op">&gt;=</span> <span class="dv">105</span> <span class="op">&amp;</span> eg_xr[<span class="st">'lon'</span>] <span class="op">&lt;=</span> <span class="dv">124</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>is_in_box <span class="op">=</span> is_in_lat <span class="op">&amp;</span> is_in_lon</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co"># apply landmask</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>cesm_box <span class="op">=</span> eg_xr.where(is_in_box)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
+<section id="averaging" class="level1">
+<h1>Averaging</h1>
 </section>
-<section id="averaging-over-space" class="level2">
-<h2 class="anchored" data-anchor-id="averaging-over-space">Averaging over space</h2>
-<p>(i.e.&nbsp;get a single time series with the spatial average)</p>
+</div>
+<div id="tabset-21-12" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-12-tab">
+<p>(i.e.&nbsp;get one map with the temporal average)</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-17-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-17-1" role="tab" aria-controls="tabset-17-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-17-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-17-2" role="tab" aria-controls="tabset-17-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-17-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-17-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>spaceavg_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_apply</span>(<span class="st">'time'</span>, mean, <span class="at">na.rm =</span> T)</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>cesm_terra <span class="sc">%&gt;%</span></span>
-<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">global</span>(<span class="st">'mean'</span>, <span class="at">na.rm =</span> T) <span class="sc">%&gt;%</span></span>
-<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">time =</span> <span class="fu">ymd</span>(<span class="fu">time</span>(cesm_terra))) </span>
-<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync (i.e. with the raw data cube, which stars also supports in backend)</span></span>
-<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
-<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_tbl_cube</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(time) <span class="sc">%&gt;%</span></span>
-<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_ts =</span> <span class="fu">mean</span>(TREFHT))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>timeavg_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_apply</span>(<span class="fu">c</span>(<span class="st">'lon'</span>, <span class="st">'lat'</span>), mean, <span class="at">na.rm =</span> T)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="co"># each time point is a LAYER</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="co"># and terra by default takes the layer-wise mean</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(eg_aod)</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="co"># cesm_terra %&gt;%</span></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a><span class="co">#   app()</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync (i.e. with the raw data cube, which would also work with stars)</span></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_tbl_cube</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(lat, lon) <span class="sc">%&gt;%</span></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_map =</span> <span class="fu">mean</span>(TREFHT))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-17-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-17-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>eg_xr.mean(dim<span class="op">=</span>[<span class="st">'lat'</span>, <span class="st">'lon'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>eg_xr.mean(<span class="st">'time'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
-</section>
-<section id="monthly-data---seasonal-average" class="level2">
-<h2 class="anchored" data-anchor-id="monthly-data---seasonal-average">Monthly data -&gt; Seasonal average</h2>
-<p>Say, we want one value per year – the June - August mean.</p>
+</div>
+<div id="tabset-21-13" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-13-tab">
+<p>(i.e.&nbsp;get a single time series with the spatial average)</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-18-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-18-1" role="tab" aria-controls="tabset-18-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-18-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-18-2" role="tab" aria-controls="tabset-18-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-18-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-18-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>jja_months <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>)</span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>spaceavg_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">month</span>(time) <span class="sc">%in%</span> jja_months) <span class="sc">%&gt;%</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_apply</span>(<span class="st">'time'</span>, mean, <span class="at">na.rm =</span> T)</span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co"># https://stackoverflow.com/questions/73035913/r-computing-seasonal-raster-based-on-specified-months-in-r</span></span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="co"># tapp()</span></span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>spaceavg_terra <span class="ot">&lt;-</span> cesm_terra <span class="sc">%&gt;%</span></span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="fu">month</span>(<span class="fu">time</span>(.)) <span class="sc">%in%</span> jja_months) <span class="sc">%&gt;%</span></span>
-<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>()</span>
-<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync (i.e. with the raw data cube, which stars also supports in backend)</span></span>
-<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a><span class="co"># might need to self-implement mutate for this... or check out stars mutate.</span></span>
-<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
-<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_tbl_cube</span>() <span class="sc">%&gt;%</span></span>
-<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">month</span>(time) <span class="sc">%in%</span> jja_months) <span class="sc">%&gt;%</span></span>
-<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="fu">year</span>(time)) <span class="sc">%&gt;%</span></span>
-<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_jja =</span> <span class="fu">mean</span>(TREFHT))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>spaceavg_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_apply</span>(<span class="st">'time'</span>, mean, <span class="at">na.rm =</span> T)</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>cesm_terra <span class="sc">%&gt;%</span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">global</span>(<span class="st">'mean'</span>, <span class="at">na.rm =</span> T) <span class="sc">%&gt;%</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">time =</span> <span class="fu">ymd</span>(<span class="fu">time</span>(cesm_terra))) </span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync (i.e. with the raw data cube, which stars also supports in backend)</span></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_tbl_cube</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(time) <span class="sc">%&gt;%</span></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_ts =</span> <span class="fu">mean</span>(TREFHT))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-18-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-18-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>from xarray.groupers import SeasonGrouper</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ds.groupby</span>(<span class="at">time=</span><span class="fu">SeasonGrouper</span>([<span class="st">"DJF"</span>, <span class="st">"MAMJ"</span>, <span class="st">"JJA"</span>, <span class="st">"SON"</span>]))<span class="fu">.mean</span>() <span class="co"># calculates each seasonal mean.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>eg_xr.mean(dim<span class="op">=</span>[<span class="st">'lat'</span>, <span class="st">'lon'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
-</section>
-</section>
-<section id="plotting" class="level1">
-<h1>Plotting</h1>
-<section id="plotting-a-single-map" class="level2">
-<h2 class="anchored" data-anchor-id="plotting-a-single-map">Plotting a single map</h2>
+</div>
+<div id="tabset-21-14" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-14-tab">
+<p>Say, we want one value per year – the June - August mean.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-19-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-19-1" role="tab" aria-controls="tabset-19-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-19-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-19-2" role="tab" aria-controls="tabset-19-2" aria-selected="false">Python</a></li></ul>
 <div class="tab-content" data-group="language">
 <div id="tabset-19-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-19-1-tab">
-<p>I’m extremely partial to <code>ggplot</code> for plotting, so all of these examples are ggplot based.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyterra)</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data =</span> timeavg_terra) <span class="sc">+</span> </span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># + coord_sf(xlim = c(105, 124), ylim = c(32, 45), expand = FALSE) # bonus: zoom into a latlon box</span></span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
-<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_stars</span>(<span class="at">data =</span> timeavg_stars) <span class="sc">+</span></span>
-<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span> </span>
-<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> x360) <span class="sc">+</span> </span>
-<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>()  </span>
-<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a><span class="do">## Bonus! How to zoom into a lon-lat box:</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>jja_months <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>spaceavg_stars <span class="ot">&lt;-</span> cesm_stars <span class="sc">%&gt;%</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">month</span>(time) <span class="sc">%in%</span> jja_months) <span class="sc">%&gt;%</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_apply</span>(<span class="st">'time'</span>, mean, <span class="at">na.rm =</span> T)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="co"># https://stackoverflow.com/questions/73035913/r-computing-seasonal-raster-based-on-specified-months-in-r</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="co"># tapp()</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>spaceavg_terra <span class="ot">&lt;-</span> cesm_terra <span class="sc">%&gt;%</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">subset</span>(<span class="fu">month</span>(<span class="fu">time</span>(.)) <span class="sc">%in%</span> jja_months) <span class="sc">%&gt;%</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>()</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync (i.e. with the raw data cube, which stars also supports in backend)</span></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a><span class="co"># might need to self-implement mutate for this... or check out stars mutate.</span></span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>cesm_tnc <span class="sc">%&gt;%</span></span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hyper_tbl_cube</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">month</span>(time) <span class="sc">%in%</span> jja_months) <span class="sc">%&gt;%</span></span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="fu">year</span>(time)) <span class="sc">%&gt;%</span></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_jja =</span> <span class="fu">mean</span>(TREFHT))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-19-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-19-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># also worth looking at hvplot!</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>eg_xr.mean(<span class="st">'time'</span>).plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>from xarray.groupers import SeasonGrouper</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ds.groupby</span>(<span class="at">time=</span><span class="fu">SeasonGrouper</span>([<span class="st">"DJF"</span>, <span class="st">"MAMJ"</span>, <span class="st">"JJA"</span>, <span class="st">"SON"</span>]))<span class="fu">.mean</span>() <span class="co"># calculates each seasonal mean.</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="co"># This works a little better, by accounting for the number of days in the month. This needs to be tested.</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>month_length <span class="ot">=</span> ds.time.dt.days_in_month</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>season_grouper <span class="ot">=</span> <span class="fu">xr.groupers.SeasonGrouper</span>([<span class="st">"DJF"</span>, <span class="st">"MAMJ"</span>, <span class="st">"JJA"</span>, <span class="st">"SON"</span>])</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>weighted_sum <span class="ot">=</span> (ds <span class="sc">*</span> month_length)<span class="fu">.groupby</span>(<span class="at">time=</span>season_grouper)<span class="fu">.sum</span>()</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>sum_of_weights <span class="ot">=</span> <span class="fu">month_length.groupby</span>(<span class="at">time=</span>season_grouper)<span class="fu">.sum</span>()</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>weighted_avg <span class="ot">=</span> weighted_sum <span class="sc">/</span> sum_of_weights</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
 </div>
+<section id="plotting" class="level1">
+<h1>Plotting</h1>
 </section>
-</section>
+</div>
+<div id="tabset-21-15" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-15-tab">
+<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-20-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-20-1" role="tab" aria-controls="tabset-20-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-20-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-20-2" role="tab" aria-controls="tabset-20-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content" data-group="language">
+<div id="tabset-20-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-20-1-tab">
+<p>I’m extremely partial to <code>ggplot</code> for plotting, so all of these examples are ggplot based.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyterra)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data =</span> timeavg_terra) <span class="sc">+</span> </span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># + coord_sf(xlim = c(105, 124), ylim = c(32, 45), expand = FALSE) # bonus: zoom into a latlon box</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="co"># stars</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_stars</span>(<span class="at">data =</span> timeavg_stars) <span class="sc">+</span></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>() <span class="sc">+</span> </span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> x360) <span class="sc">+</span> </span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>()  </span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a><span class="do">## Bonus! How to zoom into a lon-lat box:</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+<div id="tabset-20-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-20-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># also worth looking at hvplot!</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>eg_xr.mean(<span class="st">'time'</span>).plot()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</div>
 <section id="regression" class="level1">
 <h1>Regression</h1>
-<section id="separate-regressions-for-each-gridcell" class="level2">
-<h2 class="anchored" data-anchor-id="separate-regressions-for-each-gridcell">Separate regressions for each gridcell</h2>
-<p>In <a href="#sec-detrending" class="quarto-xref">Section&nbsp;3.2</a>, we saw how to regress a variable against time. Here, we consider regressing one variable against another.</p>
-<p>For our example, we’re going to regress CESM temperature against GISTEMP temperature. Note that we’re using the re-gridded GISTEMP data, so that the two rasters are on the same grid</p>
 </section>
-<section id="r-19" class="level2">
-<h2 class="anchored" data-anchor-id="r-19">R</h2>
+</div>
+<div id="tabset-21-16" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-16-tab">
+<p>In <strong>?@sec-detrending</strong>, we saw how to regress a variable against time. Here, we consider regressing one variable against another.</p>
+<p>For our example, we’re going to regress CESM temperature against GISTEMP temperature. Note that we’re using the re-gridded GISTEMP data, so that the two rasters are on the same grid</p>
+</div>
+<div id="tabset-21-17" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-17-tab">
 <p>If all we’re interested in is the slope, then the <code>regress</code> function works well and is fast. But… if we want anything else (e.g.&nbsp;p-values, out of sample predictions), then the <code>regress</code> function isn’t very useful.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="do">##  terra</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># method 1: if all we care about is the slope</span></span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>cesm_gistemp <span class="ot">&lt;-</span> <span class="fu">regress</span>(cesm_terra, gistemp_terra, <span class="at">formula =</span> y <span class="sc">~</span> x)</span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>cesm_gistemp<span class="sc">$</span>x <span class="co"># a map with the regression slope</span></span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="co"># method 2: if we need other regression output (or a different type of regression)</span></span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">lapp</span>(<span class="fu">sds</span>(p, r), \(x, y) {</span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(x), \(i) {</span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">coefficients</span>(<span class="fu">lm</span>(b<span class="sc">~</span>a, <span class="at">data=</span><span class="fu">data.frame</span>(<span class="at">a=</span>x[i,], <span class="at">b=</span>y[i,])))</span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>        }) <span class="sc">|&gt;</span> <span class="fu">t</span>()</span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>    })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="do">##  terra</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="co"># method 1: if all we care about is the slope</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>cesm_gistemp <span class="ot">&lt;-</span> <span class="fu">regress</span>(cesm_terra, gistemp_terra, <span class="at">formula =</span> y <span class="sc">~</span> x)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>cesm_gistemp<span class="sc">$</span>x <span class="co"># a map with the regression slope</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="co"># method 2: if we need other regression output (or a different type of regression)</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">lapp</span>(<span class="fu">sds</span>(p, r), \(x, y) {</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(x), \(i) {</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">coefficients</span>(<span class="fu">lm</span>(b<span class="sc">~</span>a, <span class="at">data=</span><span class="fu">data.frame</span>(<span class="at">a=</span>x[i,], <span class="at">b=</span>y[i,])))</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>        }) <span class="sc">|&gt;</span> <span class="fu">t</span>()</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>    })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="python-19" class="level2">
-<h2 class="anchored" data-anchor-id="python-19">Python</h2>
+</div>
+<div id="tabset-21-18" class="tab-pane" role="tabpanel" aria-labelledby="tabset-21-18-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo: clean up with example. code gist belongs to karen!</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> regression_slope(x, y):</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Get the slope dy/dx, removing missing data points</span></span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mask pairs where either x or y is NaN</span></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> np.isfinite(x) <span class="op">&amp;</span> np.isfinite(y)</span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> mask.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">1</span>:  <span class="co"># Need at least two points to fit</span></span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>        fit <span class="op">=</span> linregress(x[mask], y[mask])</span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> fit.slope</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.nan  <span class="co"># Return NaN if there are not enough valid data points</span></span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> xr.apply_ufunc(</span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>    regression_slope,</span>
-<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>    x,</span>
-<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>    y,</span>
-<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>    input_core_dims<span class="op">=</span>[[<span class="st">'year'</span>], [<span class="st">'year'</span>]],</span>
-<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a>    vectorize<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>    dask<span class="op">=</span><span class="st">'parallelized'</span>,  <span class="co"># Use parallelization if data is large and dask-backed</span></span>
-<span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a>    output_dtypes<span class="op">=</span>[<span class="bu">float</span>]</span>
-<span id="cb40-25"><a href="#cb40-25" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo: clean up with example. code gist belongs to karen!</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> regression_slope(x, y):</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Get the slope dy/dx, removing missing data points</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mask pairs where either x or y is NaN</span></span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> np.isfinite(x) <span class="op">&amp;</span> np.isfinite(y)</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> mask.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">1</span>:  <span class="co"># Need at least two points to fit</span></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>        fit <span class="op">=</span> linregress(x[mask], y[mask])</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> fit.slope</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.nan  <span class="co"># Return NaN if there are not enough valid data points</span></span>
+<span id="cb44-14"><a href="#cb44-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb44-15"><a href="#cb44-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb44-16"><a href="#cb44-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-17"><a href="#cb44-17" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> xr.apply_ufunc(</span>
+<span id="cb44-18"><a href="#cb44-18" aria-hidden="true" tabindex="-1"></a>    regression_slope,</span>
+<span id="cb44-19"><a href="#cb44-19" aria-hidden="true" tabindex="-1"></a>    x,</span>
+<span id="cb44-20"><a href="#cb44-20" aria-hidden="true" tabindex="-1"></a>    y,</span>
+<span id="cb44-21"><a href="#cb44-21" aria-hidden="true" tabindex="-1"></a>    input_core_dims<span class="op">=</span>[[<span class="st">'year'</span>], [<span class="st">'year'</span>]],</span>
+<span id="cb44-22"><a href="#cb44-22" aria-hidden="true" tabindex="-1"></a>    vectorize<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb44-23"><a href="#cb44-23" aria-hidden="true" tabindex="-1"></a>    dask<span class="op">=</span><span class="st">'parallelized'</span>,  <span class="co"># Use parallelization if data is large and dask-backed</span></span>
+<span id="cb44-24"><a href="#cb44-24" aria-hidden="true" tabindex="-1"></a>    output_dtypes<span class="op">=</span>[<span class="bu">float</span>]</span>
+<span id="cb44-25"><a href="#cb44-25" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <!-- # Conversion between data types
 
@@ -1251,6 +1340,7 @@ We commonly represent spatiotemporal data cubes as matrices: one row per time po
 ::: {.panel-tabset group="language"}
 
 ## R
+
 
 
 
@@ -1268,7 +1358,9 @@ t(mat_terra)  # n_time * n_gridcell representation
 
 
 
+
 ## Python
+
 
 
 
@@ -1282,84 +1374,88 @@ t(mat_terra)  # n_time * n_gridcell representation
 
 
 
+
 :::
  -->
 <div class="cell">
 <details class="code-fold">
 <summary>Bonus! in R, how do we convert between different spatial packages?</summary>
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; stars</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>terra_to_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars</span>(stars_to_terra)</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="co"># stars -&gt; terra</span></span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a><span class="co"># note: this only works if cesm_stars is *not* a stars proxy object!</span></span>
-<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>stars_to_terra <span class="ot">&lt;-</span> <span class="fu">as</span>(cesm_stars, <span class="st">'SpatRaster'</span>)</span>
-<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync -&gt; stars</span></span>
-<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>  st_as_stars.tidync <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
-<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>  <span class="do">## x is a tidync</span></span>
-<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">## ignore unit details for the moment</span></span>
-<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">lapply</span>(tidync<span class="sc">::</span><span class="fu">hyper_array</span>(x, <span class="at">drop =</span> <span class="cn">FALSE</span>), </span>
-<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a>                 units<span class="sc">::</span>as_units)</span>
-<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a>  <span class="do">## this needs to be a bit easier ...</span></span>
-<span id="cb41-20"><a href="#cb41-20" aria-hidden="true" tabindex="-1"></a>  transforms <span class="ot">&lt;-</span> tidync<span class="sc">:::</span><span class="fu">active_axis_transforms</span>(x)</span>
-<span id="cb41-21"><a href="#cb41-21" aria-hidden="true" tabindex="-1"></a>  dims <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">names</span>(transforms), <span class="cf">function</span>(trname) {</span>
-<span id="cb41-22"><a href="#cb41-22" aria-hidden="true" tabindex="-1"></a>    transform <span class="ot">&lt;-</span> transforms[[trname]] <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(selected)</span>
-<span id="cb41-23"><a href="#cb41-23" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> transform[[trname]]</span>
-<span id="cb41-24"><a href="#cb41-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb41-25"><a href="#cb41-25" aria-hidden="true" tabindex="-1"></a>      stars<span class="sc">:::</span><span class="fu">create_dimension</span>(</span>
-<span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> values)</span>
-<span id="cb41-27"><a href="#cb41-27" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb41-28"><a href="#cb41-28" aria-hidden="true" tabindex="-1"></a>      <span class="do">## a hack for now when there's only one value</span></span>
-<span id="cb41-29"><a href="#cb41-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">from =</span> values, <span class="at">to =</span> values, </span>
-<span id="cb41-30"><a href="#cb41-30" aria-hidden="true" tabindex="-1"></a>                     <span class="at">offset =</span> values, <span class="at">delta =</span> <span class="cn">NA_real_</span>, </span>
-<span id="cb41-31"><a href="#cb41-31" aria-hidden="true" tabindex="-1"></a>                     <span class="at">geotransform =</span> <span class="fu">rep</span>(<span class="cn">NA_real_</span>, <span class="dv">6</span>), </span>
-<span id="cb41-32"><a href="#cb41-32" aria-hidden="true" tabindex="-1"></a>                     <span class="at">refsys =</span> <span class="cn">NA_character_</span>, </span>
-<span id="cb41-33"><a href="#cb41-33" aria-hidden="true" tabindex="-1"></a>                     <span class="at">point =</span> <span class="cn">NA</span>, </span>
-<span id="cb41-34"><a href="#cb41-34" aria-hidden="true" tabindex="-1"></a>                     <span class="at">values =</span> <span class="cn">NULL</span>), </span>
-<span id="cb41-35"><a href="#cb41-35" aria-hidden="true" tabindex="-1"></a>                <span class="at">class =</span> <span class="st">"dimension"</span>)</span>
-<span id="cb41-36"><a href="#cb41-36" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb41-37"><a href="#cb41-37" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb41-38"><a href="#cb41-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(dims) <span class="ot">&lt;-</span> <span class="fu">names</span>(transforms)</span>
-<span id="cb41-39"><a href="#cb41-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(transforms)<span class="sc">&gt;=</span> <span class="dv">2</span>L) {</span>
-<span id="cb41-40"><a href="#cb41-40" aria-hidden="true" tabindex="-1"></a>    r <span class="ot">&lt;-</span> <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">affine =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
-<span id="cb41-41"><a href="#cb41-41" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dimensions =</span> <span class="fu">names</span>(dims)[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
-<span id="cb41-42"><a href="#cb41-42" aria-hidden="true" tabindex="-1"></a>                 <span class="at">curvilinear =</span> <span class="cn">FALSE</span>, <span class="at">class =</span> <span class="st">"stars_raster"</span>))</span>
-<span id="cb41-43"><a href="#cb41-43" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb41-44"><a href="#cb41-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">attr</span>(dims, <span class="st">"raster"</span>) <span class="ot">&lt;-</span> r</span>
-<span id="cb41-45"><a href="#cb41-45" aria-hidden="true" tabindex="-1"></a>}  </span>
-<span id="cb41-46"><a href="#cb41-46" aria-hidden="true" tabindex="-1"></a>  geotransform_xy <span class="ot">&lt;-</span> <span class="fu">c</span>(dims[[<span class="dv">1</span>]]<span class="sc">$</span>offset, dims[[<span class="dv">1</span>]]<span class="sc">$</span>delta, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>offset, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>delta)</span>
-<span id="cb41-47"><a href="#cb41-47" aria-hidden="true" tabindex="-1"></a>  dims[[<span class="dv">1</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> dims[[<span class="dv">2</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> geotransform_xy</span>
-<span id="cb41-48"><a href="#cb41-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">structure</span>(data, <span class="at">dimensions =</span>   <span class="fu">structure</span>(dims, <span class="at">class =</span> <span class="st">"dimensions"</span>), </span>
-<span id="cb41-49"><a href="#cb41-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> <span class="st">"stars"</span>)</span>
-<span id="cb41-50"><a href="#cb41-50" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb41-51"><a href="#cb41-51" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb41-52"><a href="#cb41-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-53"><a href="#cb41-53" aria-hidden="true" tabindex="-1"></a><span class="co"># tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))</span></span>
-<span id="cb41-54"><a href="#cb41-54" aria-hidden="true" tabindex="-1"></a>tnc_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars.tidync</span>(cesm_tnc)</span>
-<span id="cb41-55"><a href="#cb41-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-56"><a href="#cb41-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-57"><a href="#cb41-57" aria-hidden="true" tabindex="-1"></a><span class="do">## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.</span></span>
-<span id="cb41-58"><a href="#cb41-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-59"><a href="#cb41-59" aria-hidden="true" tabindex="-1"></a><span class="co"># stars to df</span></span>
-<span id="cb41-60"><a href="#cb41-60" aria-hidden="true" tabindex="-1"></a>stars_df <span class="ot">&lt;-</span> stars<span class="sc">:::</span><span class="fu">to_df</span>(cesm_stars) </span>
-<span id="cb41-61"><a href="#cb41-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-62"><a href="#cb41-62" aria-hidden="true" tabindex="-1"></a><span class="co"># df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)</span></span>
-<span id="cb41-63"><a href="#cb41-63" aria-hidden="true" tabindex="-1"></a>df_stars <span class="ot">&lt;-</span> stars_df <span class="sc">%&gt;%</span></span>
-<span id="cb41-64"><a href="#cb41-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_dim</span>(<span class="fu">dim</span>(cesm_stars)) <span class="sc">%&gt;%</span></span>
-<span id="cb41-65"><a href="#cb41-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_stars</span>(<span class="at">dimensions =</span> <span class="fu">st_dimensions</span>(cesm_stars))</span>
-<span id="cb41-66"><a href="#cb41-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-67"><a href="#cb41-67" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; df</span></span>
-<span id="cb41-68"><a href="#cb41-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-69"><a href="#cb41-69" aria-hidden="true" tabindex="-1"></a>tidyterra<span class="sc">::</span><span class="fu">as_tibble</span>(cesm_terra, <span class="at">xy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; stars</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>terra_to_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars</span>(stars_to_terra)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># stars -&gt; terra</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="co"># note: this only works if cesm_stars is *not* a stars proxy object!</span></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>stars_to_terra <span class="ot">&lt;-</span> <span class="fu">as</span>(cesm_stars, <span class="st">'SpatRaster'</span>)</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync -&gt; stars</span></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>  st_as_stars.tidync <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>  <span class="do">## x is a tidync</span></span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">## ignore unit details for the moment</span></span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">lapply</span>(tidync<span class="sc">::</span><span class="fu">hyper_array</span>(x, <span class="at">drop =</span> <span class="cn">FALSE</span>), </span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>                 units<span class="sc">::</span>as_units)</span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>  <span class="do">## this needs to be a bit easier ...</span></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>  transforms <span class="ot">&lt;-</span> tidync<span class="sc">:::</span><span class="fu">active_axis_transforms</span>(x)</span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>  dims <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">names</span>(transforms), <span class="cf">function</span>(trname) {</span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>    transform <span class="ot">&lt;-</span> transforms[[trname]] <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(selected)</span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> transform[[trname]]</span>
+<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>      stars<span class="sc">:::</span><span class="fu">create_dimension</span>(</span>
+<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> values)</span>
+<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>      <span class="do">## a hack for now when there's only one value</span></span>
+<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">from =</span> values, <span class="at">to =</span> values, </span>
+<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>                     <span class="at">offset =</span> values, <span class="at">delta =</span> <span class="cn">NA_real_</span>, </span>
+<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a>                     <span class="at">geotransform =</span> <span class="fu">rep</span>(<span class="cn">NA_real_</span>, <span class="dv">6</span>), </span>
+<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a>                     <span class="at">refsys =</span> <span class="cn">NA_character_</span>, </span>
+<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a>                     <span class="at">point =</span> <span class="cn">NA</span>, </span>
+<span id="cb45-34"><a href="#cb45-34" aria-hidden="true" tabindex="-1"></a>                     <span class="at">values =</span> <span class="cn">NULL</span>), </span>
+<span id="cb45-35"><a href="#cb45-35" aria-hidden="true" tabindex="-1"></a>                <span class="at">class =</span> <span class="st">"dimension"</span>)</span>
+<span id="cb45-36"><a href="#cb45-36" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb45-37"><a href="#cb45-37" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb45-38"><a href="#cb45-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(dims) <span class="ot">&lt;-</span> <span class="fu">names</span>(transforms)</span>
+<span id="cb45-39"><a href="#cb45-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(transforms)<span class="sc">&gt;=</span> <span class="dv">2</span>L) {</span>
+<span id="cb45-40"><a href="#cb45-40" aria-hidden="true" tabindex="-1"></a>    r <span class="ot">&lt;-</span> <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">affine =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
+<span id="cb45-41"><a href="#cb45-41" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dimensions =</span> <span class="fu">names</span>(dims)[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
+<span id="cb45-42"><a href="#cb45-42" aria-hidden="true" tabindex="-1"></a>                 <span class="at">curvilinear =</span> <span class="cn">FALSE</span>, <span class="at">class =</span> <span class="st">"stars_raster"</span>))</span>
+<span id="cb45-43"><a href="#cb45-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-44"><a href="#cb45-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">attr</span>(dims, <span class="st">"raster"</span>) <span class="ot">&lt;-</span> r</span>
+<span id="cb45-45"><a href="#cb45-45" aria-hidden="true" tabindex="-1"></a>}  </span>
+<span id="cb45-46"><a href="#cb45-46" aria-hidden="true" tabindex="-1"></a>  geotransform_xy <span class="ot">&lt;-</span> <span class="fu">c</span>(dims[[<span class="dv">1</span>]]<span class="sc">$</span>offset, dims[[<span class="dv">1</span>]]<span class="sc">$</span>delta, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>offset, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>delta)</span>
+<span id="cb45-47"><a href="#cb45-47" aria-hidden="true" tabindex="-1"></a>  dims[[<span class="dv">1</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> dims[[<span class="dv">2</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> geotransform_xy</span>
+<span id="cb45-48"><a href="#cb45-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">structure</span>(data, <span class="at">dimensions =</span>   <span class="fu">structure</span>(dims, <span class="at">class =</span> <span class="st">"dimensions"</span>), </span>
+<span id="cb45-49"><a href="#cb45-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> <span class="st">"stars"</span>)</span>
+<span id="cb45-50"><a href="#cb45-50" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb45-51"><a href="#cb45-51" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb45-52"><a href="#cb45-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-53"><a href="#cb45-53" aria-hidden="true" tabindex="-1"></a><span class="co"># tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))</span></span>
+<span id="cb45-54"><a href="#cb45-54" aria-hidden="true" tabindex="-1"></a>tnc_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars.tidync</span>(cesm_tnc)</span>
+<span id="cb45-55"><a href="#cb45-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-56"><a href="#cb45-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-57"><a href="#cb45-57" aria-hidden="true" tabindex="-1"></a><span class="do">## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.</span></span>
+<span id="cb45-58"><a href="#cb45-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-59"><a href="#cb45-59" aria-hidden="true" tabindex="-1"></a><span class="co"># stars to df</span></span>
+<span id="cb45-60"><a href="#cb45-60" aria-hidden="true" tabindex="-1"></a>stars_df <span class="ot">&lt;-</span> stars<span class="sc">:::</span><span class="fu">to_df</span>(cesm_stars) </span>
+<span id="cb45-61"><a href="#cb45-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-62"><a href="#cb45-62" aria-hidden="true" tabindex="-1"></a><span class="co"># df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)</span></span>
+<span id="cb45-63"><a href="#cb45-63" aria-hidden="true" tabindex="-1"></a>df_stars <span class="ot">&lt;-</span> stars_df <span class="sc">%&gt;%</span></span>
+<span id="cb45-64"><a href="#cb45-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_dim</span>(<span class="fu">dim</span>(cesm_stars)) <span class="sc">%&gt;%</span></span>
+<span id="cb45-65"><a href="#cb45-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_stars</span>(<span class="at">dimensions =</span> <span class="fu">st_dimensions</span>(cesm_stars))</span>
+<span id="cb45-66"><a href="#cb45-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-67"><a href="#cb45-67" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; df</span></span>
+<span id="cb45-68"><a href="#cb45-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-69"><a href="#cb45-69" aria-hidden="true" tabindex="-1"></a>tidyterra<span class="sc">::</span><span class="fu">as_tibble</span>(cesm_terra, <span class="at">xy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 
 
+</div>
+</div>
+</div>
 </section>
 </section>
 
