@@ -260,6 +260,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#plotting" id="toc-plotting" class="nav-link" data-scroll-target="#plotting">Plotting</a>
   <ul class="collapse">
   <li><a href="#plotting-a-single-map" id="toc-plotting-a-single-map" class="nav-link" data-scroll-target="#plotting-a-single-map">Plotting a single map</a></li>
+  <li><a href="#plotting-in-python-with-hvplot" id="toc-plotting-in-python-with-hvplot" class="nav-link" data-scroll-target="#plotting-in-python-with-hvplot">Plotting in python with hvplot</a></li>
   </ul></li>
   <li><a href="#regression" id="toc-regression" class="nav-link" data-scroll-target="#regression">Regression</a>
   <ul class="collapse">
@@ -325,7 +326,11 @@ Click here for optional background
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> urllib</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> xesmf <span class="im">as</span> xe <span class="co"># need to get this one from conda-forge. not pip!</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> xesmf <span class="im">as</span> xe <span class="co"># need to get this one from conda-forge. not pip!</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cartopy.crs <span class="im">as</span> ccrs</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tastymap <span class="co"># a way to quickly make discrete colorbars :)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>reds_discrete <span class="op">=</span> tastymap.cook_tmap(<span class="st">"cet_CET_L18"</span>, num_colors<span class="op">=</span><span class="dv">10</span>).cmap</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </div>
@@ -895,6 +900,7 @@ Suppose you want to combine two rasters, but they're in different coordinate sys
 
 
 
+
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -906,7 +912,9 @@ st_transform(terra::crs(rast))
 
 
 
+
 ## Python
+
 
 
 
@@ -916,6 +924,7 @@ st_transform(terra::crs(rast))
 # todo
 ```
 :::
+
 
 
 
@@ -1288,7 +1297,11 @@ st_transform(terra::crs(rast))
 <span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>season_grouper <span class="ot">=</span> <span class="fu">xr.groupers.SeasonGrouper</span>([<span class="st">"DJF"</span>, <span class="st">"MAMJ"</span>, <span class="st">"JJA"</span>, <span class="st">"SON"</span>])</span>
 <span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>weighted_sum <span class="ot">=</span> (ds <span class="sc">*</span> month_length)<span class="fu">.groupby</span>(<span class="at">time=</span>season_grouper)<span class="fu">.sum</span>()</span>
 <span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>sum_of_weights <span class="ot">=</span> <span class="fu">month_length.groupby</span>(<span class="at">time=</span>season_grouper)<span class="fu">.sum</span>()</span>
-<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>weighted_avg <span class="ot">=</span> weighted_sum <span class="sc">/</span> sum_of_weights</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>weighted_avg <span class="ot">=</span> weighted_sum <span class="sc">/</span> sum_of_weights</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a><span class="co"># More generally, if we want to subset to JJA:</span></span>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>ds_jja <span class="ot">=</span> <span class="fu">ds.where</span>(ds[<span class="st">'time.month'</span>]<span class="fu">.isin</span>([<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>]), <span class="at">drop =</span> True)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1335,6 +1348,60 @@ st_transform(terra::crs(rast))
 </div>
 </div>
 </section>
+<section id="plotting-in-python-with-hvplot" class="level2">
+<h2 class="anchored" data-anchor-id="plotting-in-python-with-hvplot">Plotting in python with hvplot</h2>
+<p>I’ve been playing around with <code>hvplot</code> (via the accessor <code>hvplot.xarray</code>), and I’ve really been enjoying it as a way to quickly prototype figures. I see two main advantages compared to using <code>matplotlib</code>. First, composing plots is wayyyyyy easier – if I have two figures, I can put them side by side just by typing <code>fig_a + fig_b</code>. I’ve come to love this type of plot composition from the <code>patchwork</code> package in <code>R</code>, so I’m glad that <code>hvplot</code> has similar functionality. The second advantage I’ve seen from <code>hvplot</code> is the use of interactive backends. <code>hvplot</code> uses <code>bokeh</code> as the default plotting engine, which has built in interactivity – in particular, it’s very helpful for me to hover over a map and see the exact values (lon, lat, and color) at the pixel that my cursor is hovering over.</p>
+<p>Here’s an example how the syntax looks.</p>
+<p>In the most simple case, we can just replace <code>.plot()</code> with <code>.hvplot()</code>!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> hvplot.xarray</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>fig_eg1 <span class="op">=</span> eg_xr.mean(<span class="st">'time'</span>).hvplot() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>If we want the same figure using <code>matplotlib</code>, then it’s a one-liner</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>hvplot.extension(<span class="st">'matplotlib'</span>)</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>fig_eg1 <span class="co"># now it should show as a matplotlib figure.</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="co"># changing back to bokeh (the default)</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>hvplot.extension(<span class="st">'bokeh'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here’s a more complicated plot that shows off a bunch of options</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>fig_eg2 <span class="op">=</span> eg_xr.hvplot(</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    projection<span class="op">=</span>ccrs.PlateCarree(),</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    coastline<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    cmap<span class="op">=</span>reds_discrete, <span class="co"># discrete colorbar</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>    clim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">15</span>), <span class="co"># colorbar limits</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"example title"</span>,</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>    clabel<span class="op">=</span><span class="st">""</span>, <span class="co"># colorbar title</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>    xlabel<span class="op">=</span><span class="st">""</span>,</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>    ylabel<span class="op">=</span><span class="st">""</span>,</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>).opts(fontscale<span class="op">=</span><span class="fl">2.5</span>, ylim<span class="op">=</span>(<span class="op">-</span><span class="dv">60</span>, <span class="va">None</span>)) <span class="co"># changing fontsize and removing antarctica</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now combining figures!</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>fig_eg1 <span class="op">+</span> fig_eg2 <span class="co"># side by side</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>(fig_eg1 <span class="op">+</span> fig_eg2).cols(<span class="dv">1</span>) <span class="co"># two rows, 1 column</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>For making paper-ready figures, sometimes it’s hard to get the figure to look the way you want it to look just using the <code>hvplot</code> options. Their documentation could definitely use some work. That’s why I mainly recommend hvplot for prototyping figures. For final figures, it might be better to start from scratch using matploblib.</p>
+<p>If you don’t want to start completely from scratch, it’s not too hard to get the underlying matplotlib objects from hvplot. Here’s what I mean:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># "convert" the plot from hvplot -&gt; matplotlib</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>renderer <span class="op">=</span> hv.renderer(<span class="st">'matplotlib'</span>)</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>hv_plot_obj <span class="op">=</span> renderer.get_plot(fig_eg2)</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="co"># get the usual matplotlib objects</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> hv_plot_obj.figure</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> hv_plot_obj.handles[<span class="st">'ax'</span>]</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>cax <span class="op">=</span> hv_plot_obj.handles[<span class="st">'cax'</span>] <span class="co"># colorbar</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a><span class="co"># and now we can do normal matplotlib things</span></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'new title using matplotlib'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
 </section>
 <section id="regression" class="level1">
 <h1>Regression</h1>
@@ -1348,47 +1415,47 @@ st_transform(terra::crs(rast))
 <div id="tabset-23-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-23-1-tab">
 <p>If all we’re interested in is the slope, then the <code>regress</code> function works well and is fast. But… if we want anything else (e.g.&nbsp;p-values, out of sample predictions), then the <code>regress</code> function isn’t very useful.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="do">##  terra</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="co"># method 1: if all we care about is the slope</span></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>cesm_gistemp <span class="ot">&lt;-</span> <span class="fu">regress</span>(cesm_terra, gistemp_terra, <span class="at">formula =</span> y <span class="sc">~</span> x)</span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>cesm_gistemp<span class="sc">$</span>x <span class="co"># a map with the regression slope</span></span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a><span class="co"># method 2: if we need other regression output (or a different type of regression)</span></span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">lapp</span>(<span class="fu">sds</span>(p, r), \(x, y) {</span>
-<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(x), \(i) {</span>
-<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">coefficients</span>(<span class="fu">lm</span>(b<span class="sc">~</span>a, <span class="at">data=</span><span class="fu">data.frame</span>(<span class="at">a=</span>x[i,], <span class="at">b=</span>y[i,])))</span>
-<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>        }) <span class="sc">|&gt;</span> <span class="fu">t</span>()</span>
-<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>    })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="do">##  terra</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="co"># method 1: if all we care about is the slope</span></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>cesm_gistemp <span class="ot">&lt;-</span> <span class="fu">regress</span>(cesm_terra, gistemp_terra, <span class="at">formula =</span> y <span class="sc">~</span> x)</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>cesm_gistemp<span class="sc">$</span>x <span class="co"># a map with the regression slope</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="co"># method 2: if we need other regression output (or a different type of regression)</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">lapp</span>(<span class="fu">sds</span>(p, r), \(x, y) {</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(x), \(i) {</span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">coefficients</span>(<span class="fu">lm</span>(b<span class="sc">~</span>a, <span class="at">data=</span><span class="fu">data.frame</span>(<span class="at">a=</span>x[i,], <span class="at">b=</span>y[i,])))</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>        }) <span class="sc">|&gt;</span> <span class="fu">t</span>()</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>    })</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 <div id="tabset-23-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-23-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo: clean up with example. code gist belongs to karen!</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> regression_slope(x, y):</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Get the slope dy/dx, removing missing data points</span></span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mask pairs where either x or y is NaN</span></span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> np.isfinite(x) <span class="op">&amp;</span> np.isfinite(y)</span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> mask.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">1</span>:  <span class="co"># Need at least two points to fit</span></span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>        fit <span class="op">=</span> linregress(x[mask], y[mask])</span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> fit.slope</span>
-<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.nan  <span class="co"># Return NaN if there are not enough valid data points</span></span>
-<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> xr.apply_ufunc(</span>
-<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>    regression_slope,</span>
-<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>    x,</span>
-<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>    y,</span>
-<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>    input_core_dims<span class="op">=</span>[[<span class="st">'year'</span>], [<span class="st">'year'</span>]],</span>
-<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>    vectorize<span class="op">=</span><span class="va">True</span>,</span>
-<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>    dask<span class="op">=</span><span class="st">'parallelized'</span>,  <span class="co"># Use parallelization if data is large and dask-backed</span></span>
-<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>    output_dtypes<span class="op">=</span>[<span class="bu">float</span>]</span>
-<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># todo: clean up with example. code gist belongs to karen!</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> regression_slope(x, y):</span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Get the slope dy/dx, removing missing data points</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Mask pairs where either x or y is NaN</span></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> np.isfinite(x) <span class="op">&amp;</span> np.isfinite(y)</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> mask.<span class="bu">sum</span>() <span class="op">&gt;</span> <span class="dv">1</span>:  <span class="co"># Need at least two points to fit</span></span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>        fit <span class="op">=</span> linregress(x[mask], y[mask])</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> fit.slope</span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.nan  <span class="co"># Return NaN if there are not enough valid data points</span></span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>slopes <span class="op">=</span> xr.apply_ufunc(</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>    regression_slope,</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>    x,</span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>    y,</span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a>    input_core_dims<span class="op">=</span>[[<span class="st">'year'</span>], [<span class="st">'year'</span>]],</span>
+<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a>    vectorize<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a>    dask<span class="op">=</span><span class="st">'parallelized'</span>,  <span class="co"># Use parallelization if data is large and dask-backed</span></span>
+<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a>    output_dtypes<span class="op">=</span>[<span class="bu">float</span>]</span>
+<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1400,6 +1467,7 @@ We commonly represent spatiotemporal data cubes as matrices: one row per time po
 ::: {.panel-tabset group="language"}
 
 ## R
+
 
 
 
@@ -1417,7 +1485,9 @@ t(mat_terra)  # n_time * n_gridcell representation
 
 
 
+
 ## Python
+
 
 
 
@@ -1431,80 +1501,81 @@ t(mat_terra)  # n_time * n_gridcell representation
 
 
 
+
 :::
  -->
 <div class="cell">
 <details class="code-fold">
 <summary>Bonus! in R, how do we convert between different spatial packages?</summary>
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; stars</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>terra_to_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars</span>(stars_to_terra)</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="co"># stars -&gt; terra</span></span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a><span class="co"># note: this only works if cesm_stars is *not* a stars proxy object!</span></span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>stars_to_terra <span class="ot">&lt;-</span> <span class="fu">as</span>(cesm_stars, <span class="st">'SpatRaster'</span>)</span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync -&gt; stars</span></span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  st_as_stars.tidync <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
-<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>  <span class="do">## x is a tidync</span></span>
-<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">## ignore unit details for the moment</span></span>
-<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">lapply</span>(tidync<span class="sc">::</span><span class="fu">hyper_array</span>(x, <span class="at">drop =</span> <span class="cn">FALSE</span>), </span>
-<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>                 units<span class="sc">::</span>as_units)</span>
-<span id="cb46-19"><a href="#cb46-19" aria-hidden="true" tabindex="-1"></a>  <span class="do">## this needs to be a bit easier ...</span></span>
-<span id="cb46-20"><a href="#cb46-20" aria-hidden="true" tabindex="-1"></a>  transforms <span class="ot">&lt;-</span> tidync<span class="sc">:::</span><span class="fu">active_axis_transforms</span>(x)</span>
-<span id="cb46-21"><a href="#cb46-21" aria-hidden="true" tabindex="-1"></a>  dims <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">names</span>(transforms), <span class="cf">function</span>(trname) {</span>
-<span id="cb46-22"><a href="#cb46-22" aria-hidden="true" tabindex="-1"></a>    transform <span class="ot">&lt;-</span> transforms[[trname]] <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(selected)</span>
-<span id="cb46-23"><a href="#cb46-23" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> transform[[trname]]</span>
-<span id="cb46-24"><a href="#cb46-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb46-25"><a href="#cb46-25" aria-hidden="true" tabindex="-1"></a>      stars<span class="sc">:::</span><span class="fu">create_dimension</span>(</span>
-<span id="cb46-26"><a href="#cb46-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> values)</span>
-<span id="cb46-27"><a href="#cb46-27" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb46-28"><a href="#cb46-28" aria-hidden="true" tabindex="-1"></a>      <span class="do">## a hack for now when there's only one value</span></span>
-<span id="cb46-29"><a href="#cb46-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">from =</span> values, <span class="at">to =</span> values, </span>
-<span id="cb46-30"><a href="#cb46-30" aria-hidden="true" tabindex="-1"></a>                     <span class="at">offset =</span> values, <span class="at">delta =</span> <span class="cn">NA_real_</span>, </span>
-<span id="cb46-31"><a href="#cb46-31" aria-hidden="true" tabindex="-1"></a>                     <span class="at">geotransform =</span> <span class="fu">rep</span>(<span class="cn">NA_real_</span>, <span class="dv">6</span>), </span>
-<span id="cb46-32"><a href="#cb46-32" aria-hidden="true" tabindex="-1"></a>                     <span class="at">refsys =</span> <span class="cn">NA_character_</span>, </span>
-<span id="cb46-33"><a href="#cb46-33" aria-hidden="true" tabindex="-1"></a>                     <span class="at">point =</span> <span class="cn">NA</span>, </span>
-<span id="cb46-34"><a href="#cb46-34" aria-hidden="true" tabindex="-1"></a>                     <span class="at">values =</span> <span class="cn">NULL</span>), </span>
-<span id="cb46-35"><a href="#cb46-35" aria-hidden="true" tabindex="-1"></a>                <span class="at">class =</span> <span class="st">"dimension"</span>)</span>
-<span id="cb46-36"><a href="#cb46-36" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb46-37"><a href="#cb46-37" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb46-38"><a href="#cb46-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(dims) <span class="ot">&lt;-</span> <span class="fu">names</span>(transforms)</span>
-<span id="cb46-39"><a href="#cb46-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(transforms)<span class="sc">&gt;=</span> <span class="dv">2</span>L) {</span>
-<span id="cb46-40"><a href="#cb46-40" aria-hidden="true" tabindex="-1"></a>    r <span class="ot">&lt;-</span> <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">affine =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
-<span id="cb46-41"><a href="#cb46-41" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dimensions =</span> <span class="fu">names</span>(dims)[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
-<span id="cb46-42"><a href="#cb46-42" aria-hidden="true" tabindex="-1"></a>                 <span class="at">curvilinear =</span> <span class="cn">FALSE</span>, <span class="at">class =</span> <span class="st">"stars_raster"</span>))</span>
-<span id="cb46-43"><a href="#cb46-43" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb46-44"><a href="#cb46-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">attr</span>(dims, <span class="st">"raster"</span>) <span class="ot">&lt;-</span> r</span>
-<span id="cb46-45"><a href="#cb46-45" aria-hidden="true" tabindex="-1"></a>}  </span>
-<span id="cb46-46"><a href="#cb46-46" aria-hidden="true" tabindex="-1"></a>  geotransform_xy <span class="ot">&lt;-</span> <span class="fu">c</span>(dims[[<span class="dv">1</span>]]<span class="sc">$</span>offset, dims[[<span class="dv">1</span>]]<span class="sc">$</span>delta, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>offset, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>delta)</span>
-<span id="cb46-47"><a href="#cb46-47" aria-hidden="true" tabindex="-1"></a>  dims[[<span class="dv">1</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> dims[[<span class="dv">2</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> geotransform_xy</span>
-<span id="cb46-48"><a href="#cb46-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">structure</span>(data, <span class="at">dimensions =</span>   <span class="fu">structure</span>(dims, <span class="at">class =</span> <span class="st">"dimensions"</span>), </span>
-<span id="cb46-49"><a href="#cb46-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> <span class="st">"stars"</span>)</span>
-<span id="cb46-50"><a href="#cb46-50" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb46-51"><a href="#cb46-51" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb46-52"><a href="#cb46-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-53"><a href="#cb46-53" aria-hidden="true" tabindex="-1"></a><span class="co"># tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))</span></span>
-<span id="cb46-54"><a href="#cb46-54" aria-hidden="true" tabindex="-1"></a>tnc_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars.tidync</span>(cesm_tnc)</span>
-<span id="cb46-55"><a href="#cb46-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-56"><a href="#cb46-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-57"><a href="#cb46-57" aria-hidden="true" tabindex="-1"></a><span class="do">## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.</span></span>
-<span id="cb46-58"><a href="#cb46-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-59"><a href="#cb46-59" aria-hidden="true" tabindex="-1"></a><span class="co"># stars to df</span></span>
-<span id="cb46-60"><a href="#cb46-60" aria-hidden="true" tabindex="-1"></a>stars_df <span class="ot">&lt;-</span> stars<span class="sc">:::</span><span class="fu">to_df</span>(cesm_stars) </span>
-<span id="cb46-61"><a href="#cb46-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-62"><a href="#cb46-62" aria-hidden="true" tabindex="-1"></a><span class="co"># df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)</span></span>
-<span id="cb46-63"><a href="#cb46-63" aria-hidden="true" tabindex="-1"></a>df_stars <span class="ot">&lt;-</span> stars_df <span class="sc">%&gt;%</span></span>
-<span id="cb46-64"><a href="#cb46-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_dim</span>(<span class="fu">dim</span>(cesm_stars)) <span class="sc">%&gt;%</span></span>
-<span id="cb46-65"><a href="#cb46-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_stars</span>(<span class="at">dimensions =</span> <span class="fu">st_dimensions</span>(cesm_stars))</span>
-<span id="cb46-66"><a href="#cb46-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-67"><a href="#cb46-67" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; df</span></span>
-<span id="cb46-68"><a href="#cb46-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-69"><a href="#cb46-69" aria-hidden="true" tabindex="-1"></a>tidyterra<span class="sc">::</span><span class="fu">as_tibble</span>(cesm_terra, <span class="at">xy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; stars</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>terra_to_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars</span>(stars_to_terra)</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a><span class="co"># stars -&gt; terra</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a><span class="co"># note: this only works if cesm_stars is *not* a stars proxy object!</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>stars_to_terra <span class="ot">&lt;-</span> <span class="fu">as</span>(cesm_stars, <span class="st">'SpatRaster'</span>)</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync -&gt; stars</span></span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>  st_as_stars.tidync <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>  <span class="do">## x is a tidync</span></span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">## ignore unit details for the moment</span></span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">lapply</span>(tidync<span class="sc">::</span><span class="fu">hyper_array</span>(x, <span class="at">drop =</span> <span class="cn">FALSE</span>), </span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>                 units<span class="sc">::</span>as_units)</span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a>  <span class="do">## this needs to be a bit easier ...</span></span>
+<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>  transforms <span class="ot">&lt;-</span> tidync<span class="sc">:::</span><span class="fu">active_axis_transforms</span>(x)</span>
+<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>  dims <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">names</span>(transforms), <span class="cf">function</span>(trname) {</span>
+<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a>    transform <span class="ot">&lt;-</span> transforms[[trname]] <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(selected)</span>
+<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> transform[[trname]]</span>
+<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a>      stars<span class="sc">:::</span><span class="fu">create_dimension</span>(</span>
+<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> values)</span>
+<span id="cb51-27"><a href="#cb51-27" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb51-28"><a href="#cb51-28" aria-hidden="true" tabindex="-1"></a>      <span class="do">## a hack for now when there's only one value</span></span>
+<span id="cb51-29"><a href="#cb51-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">from =</span> values, <span class="at">to =</span> values, </span>
+<span id="cb51-30"><a href="#cb51-30" aria-hidden="true" tabindex="-1"></a>                     <span class="at">offset =</span> values, <span class="at">delta =</span> <span class="cn">NA_real_</span>, </span>
+<span id="cb51-31"><a href="#cb51-31" aria-hidden="true" tabindex="-1"></a>                     <span class="at">geotransform =</span> <span class="fu">rep</span>(<span class="cn">NA_real_</span>, <span class="dv">6</span>), </span>
+<span id="cb51-32"><a href="#cb51-32" aria-hidden="true" tabindex="-1"></a>                     <span class="at">refsys =</span> <span class="cn">NA_character_</span>, </span>
+<span id="cb51-33"><a href="#cb51-33" aria-hidden="true" tabindex="-1"></a>                     <span class="at">point =</span> <span class="cn">NA</span>, </span>
+<span id="cb51-34"><a href="#cb51-34" aria-hidden="true" tabindex="-1"></a>                     <span class="at">values =</span> <span class="cn">NULL</span>), </span>
+<span id="cb51-35"><a href="#cb51-35" aria-hidden="true" tabindex="-1"></a>                <span class="at">class =</span> <span class="st">"dimension"</span>)</span>
+<span id="cb51-36"><a href="#cb51-36" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb51-37"><a href="#cb51-37" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb51-38"><a href="#cb51-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(dims) <span class="ot">&lt;-</span> <span class="fu">names</span>(transforms)</span>
+<span id="cb51-39"><a href="#cb51-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(transforms)<span class="sc">&gt;=</span> <span class="dv">2</span>L) {</span>
+<span id="cb51-40"><a href="#cb51-40" aria-hidden="true" tabindex="-1"></a>    r <span class="ot">&lt;-</span> <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">affine =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
+<span id="cb51-41"><a href="#cb51-41" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dimensions =</span> <span class="fu">names</span>(dims)[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
+<span id="cb51-42"><a href="#cb51-42" aria-hidden="true" tabindex="-1"></a>                 <span class="at">curvilinear =</span> <span class="cn">FALSE</span>, <span class="at">class =</span> <span class="st">"stars_raster"</span>))</span>
+<span id="cb51-43"><a href="#cb51-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb51-44"><a href="#cb51-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">attr</span>(dims, <span class="st">"raster"</span>) <span class="ot">&lt;-</span> r</span>
+<span id="cb51-45"><a href="#cb51-45" aria-hidden="true" tabindex="-1"></a>}  </span>
+<span id="cb51-46"><a href="#cb51-46" aria-hidden="true" tabindex="-1"></a>  geotransform_xy <span class="ot">&lt;-</span> <span class="fu">c</span>(dims[[<span class="dv">1</span>]]<span class="sc">$</span>offset, dims[[<span class="dv">1</span>]]<span class="sc">$</span>delta, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>offset, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>delta)</span>
+<span id="cb51-47"><a href="#cb51-47" aria-hidden="true" tabindex="-1"></a>  dims[[<span class="dv">1</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> dims[[<span class="dv">2</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> geotransform_xy</span>
+<span id="cb51-48"><a href="#cb51-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">structure</span>(data, <span class="at">dimensions =</span>   <span class="fu">structure</span>(dims, <span class="at">class =</span> <span class="st">"dimensions"</span>), </span>
+<span id="cb51-49"><a href="#cb51-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> <span class="st">"stars"</span>)</span>
+<span id="cb51-50"><a href="#cb51-50" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb51-51"><a href="#cb51-51" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb51-52"><a href="#cb51-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-53"><a href="#cb51-53" aria-hidden="true" tabindex="-1"></a><span class="co"># tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))</span></span>
+<span id="cb51-54"><a href="#cb51-54" aria-hidden="true" tabindex="-1"></a>tnc_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars.tidync</span>(cesm_tnc)</span>
+<span id="cb51-55"><a href="#cb51-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-56"><a href="#cb51-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-57"><a href="#cb51-57" aria-hidden="true" tabindex="-1"></a><span class="do">## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.</span></span>
+<span id="cb51-58"><a href="#cb51-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-59"><a href="#cb51-59" aria-hidden="true" tabindex="-1"></a><span class="co"># stars to df</span></span>
+<span id="cb51-60"><a href="#cb51-60" aria-hidden="true" tabindex="-1"></a>stars_df <span class="ot">&lt;-</span> stars<span class="sc">:::</span><span class="fu">to_df</span>(cesm_stars) </span>
+<span id="cb51-61"><a href="#cb51-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-62"><a href="#cb51-62" aria-hidden="true" tabindex="-1"></a><span class="co"># df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)</span></span>
+<span id="cb51-63"><a href="#cb51-63" aria-hidden="true" tabindex="-1"></a>df_stars <span class="ot">&lt;-</span> stars_df <span class="sc">%&gt;%</span></span>
+<span id="cb51-64"><a href="#cb51-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_dim</span>(<span class="fu">dim</span>(cesm_stars)) <span class="sc">%&gt;%</span></span>
+<span id="cb51-65"><a href="#cb51-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_stars</span>(<span class="at">dimensions =</span> <span class="fu">st_dimensions</span>(cesm_stars))</span>
+<span id="cb51-66"><a href="#cb51-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-67"><a href="#cb51-67" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; df</span></span>
+<span id="cb51-68"><a href="#cb51-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-69"><a href="#cb51-69" aria-hidden="true" tabindex="-1"></a>tidyterra<span class="sc">::</span><span class="fu">as_tibble</span>(cesm_terra, <span class="at">xy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 
