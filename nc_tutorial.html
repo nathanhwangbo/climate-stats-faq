@@ -178,6 +178,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./hvplot_tutorial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">notes on using hvplot/holoviews</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./eof_terminology.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">What’s an EOF?</span></a>
   </div>
@@ -900,7 +906,6 @@ Suppose you want to combine two rasters, but they're in different coordinate sys
 
 
 
-
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -912,9 +917,7 @@ st_transform(terra::crs(rast))
 
 
 
-
 ## Python
-
 
 
 
@@ -924,7 +927,6 @@ st_transform(terra::crs(rast))
 # todo
 ```
 :::
-
 
 
 
@@ -1301,7 +1303,51 @@ st_transform(terra::crs(rast))
 <span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a><span class="co"># More generally, if we want to subset to JJA:</span></span>
-<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>ds_jja <span class="ot">=</span> <span class="fu">ds.where</span>(ds[<span class="st">'time.month'</span>]<span class="fu">.isin</span>([<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>]), <span class="at">drop =</span> True)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb41-16"><a href="#cb41-16" aria-hidden="true" tabindex="-1"></a>ds_jja <span class="ot">=</span> <span class="fu">ds.where</span>(ds[<span class="st">'time.month'</span>]<span class="fu">.isin</span>([<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>]), <span class="at">drop =</span> True)</span>
+<span id="cb41-17"><a href="#cb41-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-18"><a href="#cb41-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-19"><a href="#cb41-19" aria-hidden="true" tabindex="-1"></a><span class="co"># dirty way of getting annual JJA max ts in northern heimpshere, DJF in southern hemipshere</span></span>
+<span id="cb41-20"><a href="#cb41-20" aria-hidden="true" tabindex="-1"></a><span class="co"># with DJF using the year of the JF</span></span>
+<span id="cb41-21"><a href="#cb41-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-22"><a href="#cb41-22" aria-hidden="true" tabindex="-1"></a>from xarray.groupers import SeasonResampler</span>
+<span id="cb41-23"><a href="#cb41-23" aria-hidden="true" tabindex="-1"></a>import cftime</span>
+<span id="cb41-24"><a href="#cb41-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-25"><a href="#cb41-25" aria-hidden="true" tabindex="-1"></a>nh_jja <span class="ot">=</span> (</span>
+<span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ds.sel</span>(<span class="at">lat=</span><span class="fu">slice</span>(<span class="dv">0</span>, None))</span>
+<span id="cb41-27"><a href="#cb41-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">.groupby</span>(<span class="at">time=</span><span class="fu">SeasonResampler</span>([<span class="st">"JJA"</span>]))</span>
+<span id="cb41-28"><a href="#cb41-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">.max</span>()</span>
+<span id="cb41-29"><a href="#cb41-29" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb41-30"><a href="#cb41-30" aria-hidden="true" tabindex="-1"></a><span class="co"># remove month/day info, keeping only year</span></span>
+<span id="cb41-31"><a href="#cb41-31" aria-hidden="true" tabindex="-1"></a>new_nh_time <span class="ot">=</span> [</span>
+<span id="cb41-32"><a href="#cb41-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cftime.DatetimeNoLeap</span>(</span>
+<span id="cb41-33"><a href="#cb41-33" aria-hidden="true" tabindex="-1"></a>        t.year,</span>
+<span id="cb41-34"><a href="#cb41-34" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span>,</span>
+<span id="cb41-35"><a href="#cb41-35" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span>,</span>
+<span id="cb41-36"><a href="#cb41-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">calendar=</span>t.calendar,</span>
+<span id="cb41-37"><a href="#cb41-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb41-38"><a href="#cb41-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="cf">in</span> nh_jja.time.values</span>
+<span id="cb41-39"><a href="#cb41-39" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb41-40"><a href="#cb41-40" aria-hidden="true" tabindex="-1"></a>nh_jja[<span class="st">'time'</span>] <span class="ot">=</span> new_nh_time</span>
+<span id="cb41-41"><a href="#cb41-41" aria-hidden="true" tabindex="-1"></a>sh_djf <span class="ot">=</span> (</span>
+<span id="cb41-42"><a href="#cb41-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ds.sel</span>(<span class="at">lat=</span><span class="fu">slice</span>(None, <span class="dv">0</span>))</span>
+<span id="cb41-43"><a href="#cb41-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">.groupby</span>(<span class="at">time=</span><span class="fu">SeasonResampler</span>([<span class="st">"DJF"</span>], <span class="at">drop_incomplete=</span>True))</span>
+<span id="cb41-44"><a href="#cb41-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">.max</span>()</span>
+<span id="cb41-45"><a href="#cb41-45" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb41-46"><a href="#cb41-46" aria-hidden="true" tabindex="-1"></a><span class="co"># mark the year as the year of the jan and feb</span></span>
+<span id="cb41-47"><a href="#cb41-47" aria-hidden="true" tabindex="-1"></a><span class="co"># and everything else as 1 1 (to match ouptut of hdp package)</span></span>
+<span id="cb41-48"><a href="#cb41-48" aria-hidden="true" tabindex="-1"></a>new_sh_time <span class="ot">=</span> [</span>
+<span id="cb41-49"><a href="#cb41-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cftime.DatetimeNoLeap</span>(</span>
+<span id="cb41-50"><a href="#cb41-50" aria-hidden="true" tabindex="-1"></a>        t.year <span class="sc">+</span> <span class="dv">1</span>,</span>
+<span id="cb41-51"><a href="#cb41-51" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span>,</span>
+<span id="cb41-52"><a href="#cb41-52" aria-hidden="true" tabindex="-1"></a>        <span class="dv">1</span>,</span>
+<span id="cb41-53"><a href="#cb41-53" aria-hidden="true" tabindex="-1"></a>        <span class="at">calendar=</span>t.calendar,</span>
+<span id="cb41-54"><a href="#cb41-54" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb41-55"><a href="#cb41-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> t <span class="cf">in</span> sh_djf.time.values</span>
+<span id="cb41-56"><a href="#cb41-56" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb41-57"><a href="#cb41-57" aria-hidden="true" tabindex="-1"></a>sh_djf[<span class="st">"time"</span>] <span class="ot">=</span> new_sh_time</span>
+<span id="cb41-58"><a href="#cb41-58" aria-hidden="true" tabindex="-1"></a>sh_djf <span class="ot">=</span> <span class="fu">sh_djf.dropna</span>(<span class="at">dim=</span><span class="st">"time"</span>, <span class="at">how=</span><span class="st">"all"</span>)  <span class="co"># drop the last year bc no data</span></span>
+<span id="cb41-59"><a href="#cb41-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-60"><a href="#cb41-60" aria-hidden="true" tabindex="-1"></a>season_max <span class="ot">=</span> <span class="fu">xr.combine_by_coords</span>([nh_jja, sh_djf])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1471,7 +1517,6 @@ We commonly represent spatiotemporal data cubes as matrices: one row per time po
 
 
 
-
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -1485,9 +1530,7 @@ t(mat_terra)  # n_time * n_gridcell representation
 
 
 
-
 ## Python
-
 
 
 
@@ -1497,7 +1540,6 @@ t(mat_terra)  # n_time * n_gridcell representation
 # todo
 ```
 :::
-
 
 
 

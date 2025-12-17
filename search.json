@@ -76,24 +76,6 @@
     ]
   },
   {
-    "objectID": "climate_data_access_R.html",
-    "href": "climate_data_access_R.html",
-    "title": "Where to get climate data?",
-    "section": "",
-    "text": "CMIP\n\nRPython\n\n\n\n# pak::pkg_install('eliocamp/rcmip6')       # for nice CMIP access\nlibrary(tidyverse)\nlibrary(rcmip6) # pak::pkg_install(\"eliocamp/rcmip6\")\nsource(here::here('rcmip6_fixes.R'))\n\n\ntas_query &lt;- list(\n  type = \"Dataset\",\n  replica = \"false\",\n  latest = \"true\",\n  variable_id = \"tas\",\n  project = \"CMIP6\",\n  frequency = \"mon\",\n  table_id = \"Amon\",\n  experiment_id = \"historical\",\n  source_id = \"CanESM5\"\n)\n\n\nquery_rss_canesm5 &lt;- list(\n  type = \"Dataset\",\n  replica = \"false\",\n  latest = \"true\",\n  variable_id = \"rss\",\n  project = \"CMIP6\",\n  frequency = \"mon\",\n  experiment_id = \"historical\",\n  source_id = \"CanESM5\"\n)\n\n\nresults_rss_canesm5 &lt;- cmip_search(\n  query_rss_canesm5,\n  url = \"https://aims2.llnl.gov/proxy/search\"\n)\nresults_rss_canesm5_filtered &lt;- results_rss_canesm5 %&gt;%\n  cmip_simplify() |&gt; # To keep only the most informative columns\n  subset(, select = -full_info) |&gt;\n  as_tibble() %&gt;%\n  distinct(member_id, .keep_all = T) %&gt;%\n  filter(str_detect(member_id, 'p1f1'))\n\n\ncmip_urls(results_rss_canesm5_filtered)\ncmip_download(results_rss_canesm5_filtered)\n\ncmip_info(results_rss_canesm5)\nresults_rss_canesm5_filtered |&gt;\n  cmip_simplify() |&gt; # To keep only the most informative columns\n  mutate(ens_number = as.numeric(str_extract(member_id, \"(?&lt;=r)\\\\d+\"))) %&gt;%\n  arrange(ens_number)\n\n\nvar_list &lt;- c(\"rss\", \"tas\")\n# list of cmip6 models with large ensembles\nsource_df &lt;- tribble(\n  ~source_id, ~n_members,\n  'CanESM5',\n  25,\n  'ACCESS-ESM1-5',\n  30,\n  'IPSL-CM6A-LR',\n  32,\n  'MIROC-ES2L',\n  31,\n  'MIROC6',\n  50,\n  'CNRM-CM6-1',\n  29,\n  'EC-Earth3',\n  22,\n  'NorCPM1',\n  30\n)\n\n\n\ntribble(\n  ~col1, ~ col2,\n  1, 2\n  3, 3\n)\n\n\n#' @param var should use cmip variable_id.\nget_cmip6_monthly_le &lt;- function(source = 'CANESM5', var = 'tas') {\n  query &lt;- list(\n    type = \"Dataset\",\n    replica = \"false\",\n    latest = \"true\",\n    variable_id = var,\n    project = \"CMIP6\",\n    frequency = \"mon\",\n    experiment_id = \"historical\",\n    source_id = source\n  )\n  results &lt;- cmip_search(\n    query,\n    url = \"https://aims2.llnl.gov/proxy/search\"\n  )\n  results_filtered &lt;- results %&gt;%\n    cmip_simplify() |&gt; # To keep only the most informative columns\n    subset(, select = -full_info) |&gt;\n    as_tibble() %&gt;%\n    distinct(member_id, .keep_all = T) #%&gt;%\n  #filter(str_detect(member_id, 'p1f1'))\n\n  results_filtered\n}\n\n\nidentical(\n  nrow(results),\n  source_df %&gt;%\n    filter(source_id == distinct(results$source_id)) %&gt;%\n    pull(n_members)\n)\n\n\n\n\n\nCode\nimport intake\nimport xarray as xr\nfrom tqdm import tqdm\nimport pyarrow as pa\nimport polars as pl\nimport numpy as np\nimport os.path\n\n\n#### change the next three lines\nvar_to_use = [\"rsus\", \"rsds\", \"tas\"]\nexps = [\"historical\"]\nsavedir = \"D:data\\\\CMIP6\\\\processed_data\\\\\"\n#########################################\n\n# Open catalog\ncol_url = \"https://storage.googleapis.com/cmip6/pangeo-cmip6.json\"\ncol = intake.open_esm_datastore(col_url)\n\n# Search for the variable and experiments\n# might need to change the table_id, depending on the variables\ncat = col.search(variable_id=var_to_use, table_id=\"Amon\", experiment_id=exps)\n\n# Work with a local copy of the catalog dataframe\ndf = cat.df.dropna(subset=[\"zstore\"]).copy()\n\n# Create a combined ID of model and member\ndf[\"source_member\"] = df[\"source_id\"].astype(str) + \".\" + df[\"member_id\"].astype(str)\n\n# Keep only model/member pairs that have all variables in both experiments\n# can also add experiments to the groupby\ncounts = df.groupby([\"source_member\", \"variable_id\"]).size().unstack()\nvalid_sources = counts.dropna().index.tolist()\ndf = df[df[\"source_member\"].isin(valid_sources)]\n\n\n# Keep only members that have the \"standard forcings\" (f1), and the first set of physics (p1) ----\n# this part is optional. Can replace with any other subsetting you want to do.\nis_p1f1 = df[\"member_id\"].str.endswith(\"p1f1\")\ndf = df[is_p1f1]\n\n# remove duplicates\ndf = df.drop_duplicates(\n    subset=[\"source_id\", \"member_id\", \"experiment_id\", \"variable_id\"]\n)\n\n# Keep only source_ids that have at least 20 ensemble members\n# this part is optional. Can replace with any other subsetting you want to do.\nens_member_counts = (\n    df.groupby([\"source_id\", \"variable_id\"]).size().reset_index(name=\"count\")\n)\nmin_n_members = ens_member_counts.groupby(\"source_id\")[\"count\"].min()\nsources_to_keep = min_n_members[min_n_members &gt;= 20].index.tolist()\ndf = df[df[\"source_id\"].isin(sources_to_keep)]\n\n# View example keys (you can check one with df.iloc[0])\nprint(df)\n\n# Group by model/member\ngrouped = df.groupby([\"source_id\", \"member_id\"])\n\n## go through each model/member and save to file.\n\n# next(iter(grouped)) # look at the first group\nfor (model, member), group_df in tqdm(grouped, desc=\"Processing models\"):\n    if os.path.exists(f\"{savedir}monthly_rss_tas_{member}_{model}.nc\"):\n        # skip if file already exists\n        continue\n    try:\n        # get paths for all of the different variables\n        zstores = dict(zip(group_df[\"variable_id\"], group_df[\"zstore\"]))\n        if not set(var_to_use).issubset(zstores):\n            continue  # skip incomplete\n\n        # load all of the variables\n        ds = xr.open_mfdataset(\n            list(zstores.values()), engine=\"zarr\", combine=\"by_coords\", join=\"override\"\n        )\n        \n        # can do some preprocessing to ds here.\n\n        # save to file. replace with desired filename.\n        ds.to_netcdf(f\"{savedir}monthly_rss_tas_{member}_{model}.nc\")\n\n    except Exception as e:\n        print(f\"Skipped {model}_{member}: {e}\")\n\n\n\n\n\n\n\nCESM specifically\n\n\nERA\necmwfr is an R API wrapper to download ERA data. To use this package, you’ll need to head over to the ECMWF website, make an account, and get your API key. See instructions on the ecmwfr package README (the code chunk below is directly copied from that readme.)\nNote: the general workflow is: go to the “climate data store”, use their gui to filter files that you want, grab the api call (the cilmate data store has a big button for you to click on to copy it), then paste that text into R.\nThe original ecmwfr package had a RStudio add-on that would convert that copied text into an R list, but since I’m not using RStudio anymore, I’ve instead modified their function that takes text -&gt; list. This is python_to_list() below.\n\n# pak::pkg_install('bluegreen-labs/ecmwfr') # for better ERA5 data access\nlibrary(ecmwfr)\n\n# set a key to the keychain -- you'll only have to do this once!\n# wf_set_key(key = \"abcd1234-foo-bar-98765431-XXXXXXXXXX\")\n\n# fixing ecmwfr:::python_to_list so that it works without the add in.\npython_to_list &lt;- function(python_text) {\n\n  if(missing(python_text)){\n    stop(\"No input text provided\")\n  }\n\n  # substitute inconsistent quotes, sorting the f-ing API mess\n  # for consistency\n  python_text &lt;- gsub(\"\\\\\\\"\",\"\\'\", python_text)\n\n  # split string on line breaks\n  line_breaks &lt;- strsplit(python_text, \"\\\\n\")[[1]]\n\n  leading &lt;- line_breaks[grep(\"dataset =\", line_breaks)]\n  trailing &lt;- line_breaks[grep(\"target =\", line_breaks)]\n\n  # clean up leading and trailing ends if any\n  if (nchar(leading) == 0 || length(leading) == 0){\n    stop(\"Incomplete query selection: dataset is missing\")\n  }\n\n  # dropping field name and removing quotes\n  leading &lt;- gsub(\"dataset = \",\"\", leading)\n  leading &lt;- gsub(\"\\'\",\"\", leading)\n\n  # clean up leading and trailing ends if any\n  if (nchar(trailing) == 0 || length(trailing) == 0){\n    trailing &lt;- \"TMPFILE\"\n  } else {\n    # dropping field name and removing quotes\n    trailing &lt;- gsub(\"target = \",\"\", trailing)\n    trailing &lt;- gsub(\"\\'\",\"\", trailing)\n  }\n\n  # grab anything between {} within ()\n  c_brackets &lt;- try(gsub(\"[\\\\{\\\\}]\", \"\",\n                         regmatches(python_text,\n                                    gregexpr(\"\\\\{.*?\\\\}\", python_text))[[1]]))\n\n  # check if strings have content\n  if(length(c_brackets) == 0){\n    stop(\"Incomplete query selection\")\n  }\n\n  # trap the goddamn inconsistent MARS json formatting issue\n  c_brackets &lt;- gsub(\"\\n| \",\"\", c_brackets)\n  if(substr(c_brackets, nchar(c_brackets),nchar(c_brackets)) == \",\"){\n    c_brackets &lt;- substr(c_brackets, 1, nchar(c_brackets)-1)\n  }\n\n  # Remove trailing commas (\",]\")\n  c_brackets &lt;- gsub(\",]\", \"]\", c_brackets)\n  c_brackets &lt;- paste0(\"{\",c_brackets,\"}\")\n  c_brackets &lt;- gsub(\"\\'\", \"\\\"\", c_brackets)\n\n  # read in data as list\n  c_list &lt;- jsonlite::fromJSON(c_brackets)\n\n  # add leading and trailing bits\n  # to request list\n  c_list &lt;- c(dataset_short_name = leading, c_list, target = trailing)\n\n  # clean up leading and trailing ends if any\n  if (nchar(leading) == 0 || length(leading) == 0){\n    c_list$dataset_short_name &lt;- gsub('\\\\n|,\\\\n| |\"','', leading)\n  }\n\n  if (nchar(trailing) == 0 || length(trailing) == 0){\n    c_list$target &lt;- gsub('\\\\n|,\\\\n| |\"','', trailing)\n  }\n\n  # clean up list values\n  list_values &lt;- lapply(c_list, function(l){\n    if(length(l) == 1){\n      paste0('\"',l,'\"')\n    } else {\n      l\n    }\n  })\n\n  # returned cleaned up list\n\n  c_list\n\n\n}\n\nrequest &lt;- python_to_list(\n  'dataset = \"reanalysis-era5-single-levels-monthly-means\"\nrequest = {\n    \"product_type\": [\"monthly_averaged_reanalysis\"],\n    \"variable\": [\"2m_temperature\"],\n    \"year\": [\"2024\"],\n    \"month\": [\n        \"01\", \"02\", \"03\",\n        \"04\", \"05\", \"06\",\n        \"07\", \"08\", \"09\",\n        \"10\", \"11\", \"12\"\n    ],\n    \"time\": [\"00:00\"],\n    \"data_format\": \"netcdf\",\n    \"download_format\": \"unarchived\"\n}\n') \n\n# If you have stored your user login information\n# in the keyring by calling cds_set_key you can\n# call:\nfile &lt;- wf_request(\n request  = request,  # the request\n transfer = TRUE,     # download the file\n path     = here()      # store data in current working directory\n )\n\n\nera_path &lt;- here('era5-demo.nc')\n\nNow, era5-demo.nc should be downloaded into your working directory!\n\n\nNASA GISSTEMP\nThis is their land temperature product. Using good old fashioned base R capabilities.\n\ngisstemp_url &lt;- 'https://data.giss.nasa.gov/pub/gistemp/gistemp250_GHCNv4.nc.gz'\n\n# downloads into the working directory\ndownload.file(gisstemp_url, destfile = here('ghcn_demo.nc.gz'))\n\n# unzip the file\nR.utils::gunzip(here('ghcn_demo.nc.gz'), remove = FALSE)\n\n\nghcn_path &lt;- here('ghcn_demo.nc')\n\n\n\nmisc\nClimateR is a cool package for pulling out data from a point (or a general area)\n\n# climateR demo\n\ngeodata is a nice source for simplified, smaller versions of data. Super easy to pull.\n\n# # example data (picked because of ease of access and small size)\n# WARNING: will download to current directory\nlibrary(geodata)\neg_res10 &lt;- cmip6_world(\n  model = 'CanESM5', ssp = '585', \n  time ='2021-2040', var = 'tavg',\n  res = 10, path = here()\n  )\n\neg_res5 &lt;- cmip6_world('CanESM5')",
-    "crumbs": [
-      "Notes",
-      "Where to get climate data?"
-    ]
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "About this site"
-  },
-  {
     "objectID": "eof_terminology.html",
     "href": "eof_terminology.html",
     "title": "What’s an EOF?",
@@ -146,6 +128,266 @@
     "crumbs": [
       "Notes",
       "What's an EOF?"
+    ]
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "climate_data_access_R.html",
+    "href": "climate_data_access_R.html",
+    "title": "Where to get climate data?",
+    "section": "",
+    "text": "CMIP\n\nRPython\n\n\n\n# pak::pkg_install('eliocamp/rcmip6')       # for nice CMIP access\nlibrary(tidyverse)\nlibrary(rcmip6) # pak::pkg_install(\"eliocamp/rcmip6\")\nsource(here::here('rcmip6_fixes.R'))\n\n\ntas_query &lt;- list(\n  type = \"Dataset\",\n  replica = \"false\",\n  latest = \"true\",\n  variable_id = \"tas\",\n  project = \"CMIP6\",\n  frequency = \"mon\",\n  table_id = \"Amon\",\n  experiment_id = \"historical\",\n  source_id = \"CanESM5\"\n)\n\n\nquery_rss_canesm5 &lt;- list(\n  type = \"Dataset\",\n  replica = \"false\",\n  latest = \"true\",\n  variable_id = \"rss\",\n  project = \"CMIP6\",\n  frequency = \"mon\",\n  experiment_id = \"historical\",\n  source_id = \"CanESM5\"\n)\n\n\nresults_rss_canesm5 &lt;- cmip_search(\n  query_rss_canesm5,\n  url = \"https://aims2.llnl.gov/proxy/search\"\n)\nresults_rss_canesm5_filtered &lt;- results_rss_canesm5 %&gt;%\n  cmip_simplify() |&gt; # To keep only the most informative columns\n  subset(, select = -full_info) |&gt;\n  as_tibble() %&gt;%\n  distinct(member_id, .keep_all = T) %&gt;%\n  filter(str_detect(member_id, 'p1f1'))\n\n\ncmip_urls(results_rss_canesm5_filtered)\ncmip_download(results_rss_canesm5_filtered)\n\ncmip_info(results_rss_canesm5)\nresults_rss_canesm5_filtered |&gt;\n  cmip_simplify() |&gt; # To keep only the most informative columns\n  mutate(ens_number = as.numeric(str_extract(member_id, \"(?&lt;=r)\\\\d+\"))) %&gt;%\n  arrange(ens_number)\n\n\nvar_list &lt;- c(\"rss\", \"tas\")\n# list of cmip6 models with large ensembles\nsource_df &lt;- tribble(\n  ~source_id, ~n_members,\n  'CanESM5',\n  25,\n  'ACCESS-ESM1-5',\n  30,\n  'IPSL-CM6A-LR',\n  32,\n  'MIROC-ES2L',\n  31,\n  'MIROC6',\n  50,\n  'CNRM-CM6-1',\n  29,\n  'EC-Earth3',\n  22,\n  'NorCPM1',\n  30\n)\n\n\n\ntribble(\n  ~col1, ~ col2,\n  1, 2\n  3, 3\n)\n\n\n#' @param var should use cmip variable_id.\nget_cmip6_monthly_le &lt;- function(source = 'CANESM5', var = 'tas') {\n  query &lt;- list(\n    type = \"Dataset\",\n    replica = \"false\",\n    latest = \"true\",\n    variable_id = var,\n    project = \"CMIP6\",\n    frequency = \"mon\",\n    experiment_id = \"historical\",\n    source_id = source\n  )\n  results &lt;- cmip_search(\n    query,\n    url = \"https://aims2.llnl.gov/proxy/search\"\n  )\n  results_filtered &lt;- results %&gt;%\n    cmip_simplify() |&gt; # To keep only the most informative columns\n    subset(, select = -full_info) |&gt;\n    as_tibble() %&gt;%\n    distinct(member_id, .keep_all = T) #%&gt;%\n  #filter(str_detect(member_id, 'p1f1'))\n\n  results_filtered\n}\n\n\nidentical(\n  nrow(results),\n  source_df %&gt;%\n    filter(source_id == distinct(results$source_id)) %&gt;%\n    pull(n_members)\n)\n\n\n\n\n\nCode\nimport intake\nimport xarray as xr\nfrom tqdm import tqdm\nimport pyarrow as pa\nimport polars as pl\nimport numpy as np\nimport os.path\n\n\n#### change the next three lines\nvar_to_use = [\"rsus\", \"rsds\", \"tas\"]\nexps = [\"historical\"]\nsavedir = \"D:data\\\\CMIP6\\\\processed_data\\\\\"\n#########################################\n\n# Open catalog\ncol_url = \"https://storage.googleapis.com/cmip6/pangeo-cmip6.json\"\ncol = intake.open_esm_datastore(col_url)\n\n# Search for the variable and experiments\n# might need to change the table_id, depending on the variables\ncat = col.search(variable_id=var_to_use, table_id=\"Amon\", experiment_id=exps)\n\n# Work with a local copy of the catalog dataframe\ndf = cat.df.dropna(subset=[\"zstore\"]).copy()\n\n# Create a combined ID of model and member\ndf[\"source_member\"] = df[\"source_id\"].astype(str) + \".\" + df[\"member_id\"].astype(str)\n\n# Keep only model/member pairs that have all variables in both experiments\n# can also add experiments to the groupby\ncounts = df.groupby([\"source_member\", \"variable_id\"]).size().unstack()\nvalid_sources = counts.dropna().index.tolist()\ndf = df[df[\"source_member\"].isin(valid_sources)]\n\n\n# Keep only members that have the \"standard forcings\" (f1), and the first set of physics (p1) ----\n# this part is optional. Can replace with any other subsetting you want to do.\nis_p1f1 = df[\"member_id\"].str.endswith(\"p1f1\")\ndf = df[is_p1f1]\n\n# remove duplicates\ndf = df.drop_duplicates(\n    subset=[\"source_id\", \"member_id\", \"experiment_id\", \"variable_id\"]\n)\n\n# Keep only source_ids that have at least 20 ensemble members\n# this part is optional. Can replace with any other subsetting you want to do.\nens_member_counts = (\n    df.groupby([\"source_id\", \"variable_id\"]).size().reset_index(name=\"count\")\n)\nmin_n_members = ens_member_counts.groupby(\"source_id\")[\"count\"].min()\nsources_to_keep = min_n_members[min_n_members &gt;= 20].index.tolist()\ndf = df[df[\"source_id\"].isin(sources_to_keep)]\n\n# View example keys (you can check one with df.iloc[0])\nprint(df)\n\n# Group by model/member\ngrouped = df.groupby([\"source_id\", \"member_id\"])\n\n## go through each model/member and save to file.\n\n# next(iter(grouped)) # look at the first group\nfor (model, member), group_df in tqdm(grouped, desc=\"Processing models\"):\n    if os.path.exists(f\"{savedir}monthly_rss_tas_{member}_{model}.nc\"):\n        # skip if file already exists\n        continue\n    try:\n        # get paths for all of the different variables\n        zstores = dict(zip(group_df[\"variable_id\"], group_df[\"zstore\"]))\n        if not set(var_to_use).issubset(zstores):\n            continue  # skip incomplete\n\n        # load all of the variables\n        ds = xr.open_mfdataset(\n            list(zstores.values()), engine=\"zarr\", combine=\"by_coords\", join=\"override\"\n        )\n        \n        # can do some preprocessing to ds here.\n\n        # save to file. replace with desired filename.\n        ds.to_netcdf(f\"{savedir}monthly_rss_tas_{member}_{model}.nc\")\n\n    except Exception as e:\n        print(f\"Skipped {model}_{member}: {e}\")\n\n\n\n\n\n\n\nCESM specifically\n\n\nERA\necmwfr is an R API wrapper to download ERA data. To use this package, you’ll need to head over to the ECMWF website, make an account, and get your API key. See instructions on the ecmwfr package README (the code chunk below is directly copied from that readme.)\nNote: the general workflow is: go to the “climate data store”, use their gui to filter files that you want, grab the api call (the cilmate data store has a big button for you to click on to copy it), then paste that text into R.\nThe original ecmwfr package had a RStudio add-on that would convert that copied text into an R list, but since I’m not using RStudio anymore, I’ve instead modified their function that takes text -&gt; list. This is python_to_list() below.\n\n# pak::pkg_install('bluegreen-labs/ecmwfr') # for better ERA5 data access\nlibrary(ecmwfr)\n\n# set a key to the keychain -- you'll only have to do this once!\n# wf_set_key(key = \"abcd1234-foo-bar-98765431-XXXXXXXXXX\")\n\n# fixing ecmwfr:::python_to_list so that it works without the add in.\npython_to_list &lt;- function(python_text) {\n\n  if(missing(python_text)){\n    stop(\"No input text provided\")\n  }\n\n  # substitute inconsistent quotes, sorting the f-ing API mess\n  # for consistency\n  python_text &lt;- gsub(\"\\\\\\\"\",\"\\'\", python_text)\n\n  # split string on line breaks\n  line_breaks &lt;- strsplit(python_text, \"\\\\n\")[[1]]\n\n  leading &lt;- line_breaks[grep(\"dataset =\", line_breaks)]\n  trailing &lt;- line_breaks[grep(\"target =\", line_breaks)]\n\n  # clean up leading and trailing ends if any\n  if (nchar(leading) == 0 || length(leading) == 0){\n    stop(\"Incomplete query selection: dataset is missing\")\n  }\n\n  # dropping field name and removing quotes\n  leading &lt;- gsub(\"dataset = \",\"\", leading)\n  leading &lt;- gsub(\"\\'\",\"\", leading)\n\n  # clean up leading and trailing ends if any\n  if (nchar(trailing) == 0 || length(trailing) == 0){\n    trailing &lt;- \"TMPFILE\"\n  } else {\n    # dropping field name and removing quotes\n    trailing &lt;- gsub(\"target = \",\"\", trailing)\n    trailing &lt;- gsub(\"\\'\",\"\", trailing)\n  }\n\n  # grab anything between {} within ()\n  c_brackets &lt;- try(gsub(\"[\\\\{\\\\}]\", \"\",\n                         regmatches(python_text,\n                                    gregexpr(\"\\\\{.*?\\\\}\", python_text))[[1]]))\n\n  # check if strings have content\n  if(length(c_brackets) == 0){\n    stop(\"Incomplete query selection\")\n  }\n\n  # trap the goddamn inconsistent MARS json formatting issue\n  c_brackets &lt;- gsub(\"\\n| \",\"\", c_brackets)\n  if(substr(c_brackets, nchar(c_brackets),nchar(c_brackets)) == \",\"){\n    c_brackets &lt;- substr(c_brackets, 1, nchar(c_brackets)-1)\n  }\n\n  # Remove trailing commas (\",]\")\n  c_brackets &lt;- gsub(\",]\", \"]\", c_brackets)\n  c_brackets &lt;- paste0(\"{\",c_brackets,\"}\")\n  c_brackets &lt;- gsub(\"\\'\", \"\\\"\", c_brackets)\n\n  # read in data as list\n  c_list &lt;- jsonlite::fromJSON(c_brackets)\n\n  # add leading and trailing bits\n  # to request list\n  c_list &lt;- c(dataset_short_name = leading, c_list, target = trailing)\n\n  # clean up leading and trailing ends if any\n  if (nchar(leading) == 0 || length(leading) == 0){\n    c_list$dataset_short_name &lt;- gsub('\\\\n|,\\\\n| |\"','', leading)\n  }\n\n  if (nchar(trailing) == 0 || length(trailing) == 0){\n    c_list$target &lt;- gsub('\\\\n|,\\\\n| |\"','', trailing)\n  }\n\n  # clean up list values\n  list_values &lt;- lapply(c_list, function(l){\n    if(length(l) == 1){\n      paste0('\"',l,'\"')\n    } else {\n      l\n    }\n  })\n\n  # returned cleaned up list\n\n  c_list\n\n\n}\n\nrequest &lt;- python_to_list(\n  'dataset = \"reanalysis-era5-single-levels-monthly-means\"\nrequest = {\n    \"product_type\": [\"monthly_averaged_reanalysis\"],\n    \"variable\": [\"2m_temperature\"],\n    \"year\": [\"2024\"],\n    \"month\": [\n        \"01\", \"02\", \"03\",\n        \"04\", \"05\", \"06\",\n        \"07\", \"08\", \"09\",\n        \"10\", \"11\", \"12\"\n    ],\n    \"time\": [\"00:00\"],\n    \"data_format\": \"netcdf\",\n    \"download_format\": \"unarchived\"\n}\n') \n\n# If you have stored your user login information\n# in the keyring by calling cds_set_key you can\n# call:\nfile &lt;- wf_request(\n request  = request,  # the request\n transfer = TRUE,     # download the file\n path     = here()      # store data in current working directory\n )\n\n\nera_path &lt;- here('era5-demo.nc')\n\nNow, era5-demo.nc should be downloaded into your working directory!\n\n\nNASA GISSTEMP\nThis is their land temperature product. Using good old fashioned base R capabilities.\n\ngisstemp_url &lt;- 'https://data.giss.nasa.gov/pub/gistemp/gistemp250_GHCNv4.nc.gz'\n\n# downloads into the working directory\ndownload.file(gisstemp_url, destfile = here('ghcn_demo.nc.gz'))\n\n# unzip the file\nR.utils::gunzip(here('ghcn_demo.nc.gz'), remove = FALSE)\n\n\nghcn_path &lt;- here('ghcn_demo.nc')\n\n\n\nmisc\nClimateR is a cool package for pulling out data from a point (or a general area)\n\n# climateR demo\n\ngeodata is a nice source for simplified, smaller versions of data. Super easy to pull.\n\n# # example data (picked because of ease of access and small size)\n# WARNING: will download to current directory\nlibrary(geodata)\neg_res10 &lt;- cmip6_world(\n  model = 'CanESM5', ssp = '585', \n  time ='2021-2040', var = 'tavg',\n  res = 10, path = here()\n  )\n\neg_res5 &lt;- cmip6_world('CanESM5')",
+    "crumbs": [
+      "Notes",
+      "Where to get climate data?"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html",
+    "href": "hvplot_tutorial.html",
+    "title": "notes on using hvplot/holoviews",
+    "section": "",
+    "text": "Click here for optional background\n\nI learned how to analyze data using R. I’ve started to switch to python because xarray is amazing. The transition was relatively painless, except for one thing – matplotlib. I find generating plots in matplotlib to be a painful and awkward experience, especially compared to what I was used to in ggplot2. While I’m sure I would get used to matplotlib in time, I think that there’s gotta be a better way. The makers of ggplot have made a wrapper around matplotlib (called plotnine) which looks really great for tabular data, but doesn’t have great support for maps yet. There are a few other plotting options outside of matplotlib (e.g. bokeh and plotly), but it wasn’t clear to me which library was worth investing time into learning.\nSo.. here, I’m exploring another plotting library called holoviews. The premise is great: the goal is to unify these different plotting backends into a single API, so that you can go between a matplotlib plot and its equivalent bokeh plot just by changing a single line of code. And its sibling package, hvplot, makes things even easier by connecting holoviews to libraries like xarray and pandas, so that we can simply replace da.plot() with da.hvplot() for a truly painless transition away from the default plotting libraries!\nIn practice…this ends up being a bit of a mess. It turns out that it’s really hard to translate settings from a matplotlib plot to a bokeh plot, or vice versa. However, the holoviews way of building plots is really nice, so a lot of people end up just picking one plotting backend (usually matplotlib or bokeh), and build these plots using holoviews code.\n\nThe first few code chunks below show off the features that really sold me on using holoviews, so I recommend starting there!\nThe hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the bokeh backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where matplotlib is just better, so I’ll also try to include holoviews + matplotlib settings in the tabs below.",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#background",
+    "href": "hvplot_tutorial.html#background",
+    "title": "notes on using hvplot/holoviews",
+    "section": "",
+    "text": "Click here for optional background\n\nI learned how to analyze data using R. I’ve started to switch to python because xarray is amazing. The transition was relatively painless, except for one thing – matplotlib. I find generating plots in matplotlib to be a painful and awkward experience, especially compared to what I was used to in ggplot2. While I’m sure I would get used to matplotlib in time, I think that there’s gotta be a better way. The makers of ggplot have made a wrapper around matplotlib (called plotnine) which looks really great for tabular data, but doesn’t have great support for maps yet. There are a few other plotting options outside of matplotlib (e.g. bokeh and plotly), but it wasn’t clear to me which library was worth investing time into learning.\nSo.. here, I’m exploring another plotting library called holoviews. The premise is great: the goal is to unify these different plotting backends into a single API, so that you can go between a matplotlib plot and its equivalent bokeh plot just by changing a single line of code. And its sibling package, hvplot, makes things even easier by connecting holoviews to libraries like xarray and pandas, so that we can simply replace da.plot() with da.hvplot() for a truly painless transition away from the default plotting libraries!\nIn practice…this ends up being a bit of a mess. It turns out that it’s really hard to translate settings from a matplotlib plot to a bokeh plot, or vice versa. However, the holoviews way of building plots is really nice, so a lot of people end up just picking one plotting backend (usually matplotlib or bokeh), and build these plots using holoviews code.\n\nThe first few code chunks below show off the features that really sold me on using holoviews, so I recommend starting there!\nThe hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the bokeh backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where matplotlib is just better, so I’ll also try to include holoviews + matplotlib settings in the tabs below.",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#preliminaries",
+    "href": "hvplot_tutorial.html#preliminaries",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Preliminaries",
+    "text": "Preliminaries\nLet’s start by loading in all of the packages we’ll need. This guide will focus on using holoviews to plot xarray objects, which is made convenient by the hvplot.xarray accessor. I’ll be using the the built in air_temperature tutorial dataset to play with.\nNote that bokeh is the default backend, and that the matplotlib backend can be used by running hv.extension('matplotlib') before making a plot. That’s the only line of code that we need to switch between the two!\n\nimport numpy as np\nimport xarray as xr\nimport holoviews as hv\nimport hvplot.xarray\nimport cartopy.crs as ccrs\nimport tastymap  # optional, but I like using it to make colorbars\n\nda = xr.tutorial.load_dataset(\"air_temperature\")\n\n\n# pull out a few time points, so that we have multiple maps to play with\nda_map1 = da.isel(time=0)\nda_map2 = da.isel(time=1)\nda_map3 = da.isel(time=2)\nda_map4 = da.isel(time=3)",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#making-our-first-map",
+    "href": "hvplot_tutorial.html#making-our-first-map",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Making our first map",
+    "text": "Making our first map\nxarray has handy plotting features built in, so we’re probably familiar with calling da_map.plot(). To make the switch, all we need to do is add two letters! (da_map.hvplot()).\nWe’ll get into resizing plots and all of those other goodies later, so don’t worry about how different the matplotlib and bokeh versions look.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nda_map1.hvplot(coastline=True)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nda_map1.hvplot(coastline=True)",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#making-subplots",
+    "href": "hvplot_tutorial.html#making-subplots",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Making subplots",
+    "text": "Making subplots\nThis was probably the first feature that I saw that made me want to switch to holoviews!\nSide by side plots are called Layouts in holoviews, and can be made by simply adding plots together!\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# make three different maps, and a line plot\nfig1a = da_map1.hvplot(coastline=True) \nfig1b = da_map2.hvplot(coastline=True)\nfig1c = da_map3.hvplot(coastline=True)\n\n# a line plot of the spatal average\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# combine them, and specify the number of columns\n(fig1a + fig1b + fig1c + fig1d).cols(2)\n\n## the following is equivalent, and is handy if you programatically create a bunch of figures\n# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# make three different maps\nfig1a = da_map1.hvplot(coastline=True)\nfig1b = da_map2.hvplot(coastline=True)\nfig1c = da_map3.hvplot(coastline=True)\n\n# a line plot of the spatal average\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\")\n\n# combine them, and specify the number of columns\n(fig1a + fig1b + fig1c + fig1d).cols(2)\n\n## the following is equivalent, and is handy if you programatically create a bunch of figures\n# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#adding-components-to-a-figure",
+    "href": "hvplot_tutorial.html#adding-components-to-a-figure",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Adding components to a figure",
+    "text": "Adding components to a figure\nda_map1.hvplot(coastline = True) has two elements on the same figure: the temperatures, and the coastline. When we have multiple elements on the same panel, it’s called an Overlay. They can be made by multiplying plots together (i.e. if we had a separate map and coastline object, we could have done fig_map * fig_coastline).\nIn the example below, I add a horizontal line to the lineplot\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# a line plot of the spatal average, same as before\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# add a horizontal line\nline_1d = hv.HLine(y = 280)\n\nfig1d * line_1d\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# a line plot of the spatal average, same as before\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# add a horizontal line\nline_1d = hv.HLine(y = 280)\n\nfig1d * line_1d",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#basic-plot-styling",
+    "href": "hvplot_tutorial.html#basic-plot-styling",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Basic plot styling",
+    "text": "Basic plot styling\nAdding titles, figure sizes, ect. is controlled by adding .opts() to the end of your plot. Some options can go directly into the parentheses of hvplot(), but the general recommendation is to leave most of the styling to the end, through an additional .opts() call.\nSide note: I prefer .options(), which is the same thing except that it doesn’t modify your figure in place. In other words, .options() is equivalent to .opts(clone = True)\nSide note: By default, xarray maps are plotted as “Images”, so that da_map1.hvplot() is equivalent to da_map1.hvplot.Image(). This may not be the best option (see the section on geographic options), so I’ll start making this choice explicit\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nda_map1.hvplot.Image(coastline=True).options(\n    title=\"example plot\",\n    xlabel = \"eg xlab\",\n    ylabel = \"eg ylab\",\n    clabel = \"cbar lab\",\n    ylim=(None, 70),\n    clim=(240, 280), # colorbar limit\n    width=600,\n    height=400,\n    fontsize={\n        \"title\": 15,  # can also use percentages, eg \"200%\"\n        \"labels\": 14,\n        \"ticks\": 10,\n        \"legend\": 10\n    },\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\nda_map1.hvplot.image(coastline=True).options(\n    title=\"example plot\",\n    xlabel = \"eg xlab\",\n    ylabel = \"eg ylab\",\n    clabel = \"cbar lab\",\n    ylim=(None, 70),\n    clim=(240, 280), # colorbar limit\n    width=600,\n    height=400,\n    fontsize={\n        \"title\": 15,  # can also use percentages, eg \"200%\"\n        \"labels\": 14,\n        \"ticks\": 10,\n        \"legend\": 10\n    },\n)",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#plot-styling-pt-2-styling-layouts-and-adding-defaults",
+    "href": "hvplot_tutorial.html#plot-styling-pt-2-styling-layouts-and-adding-defaults",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Plot styling pt 2 (styling Layouts and adding “defaults”!)",
+    "text": "Plot styling pt 2 (styling Layouts and adding “defaults”!)\nSometimes you make a Layout (i.e. a figure with subplots) and want to apply the same customization to each plot (i.e. changing the figure size). There are a few ways of doing this:\n\nif all subplots are the same (e.g. all “Images” or all scatterplots), then you can nest a hv.opts.Image() call into your original options call (fig.opts(hv.opts.Image(ADD CODE HERE))).\nif the subplot are different (e.g. a map “Image”, a scatterplot, and a lineplot), then you can use fig.map(lambda x: x.opts(ADD CODE HERE), [hv.Scatter, hv.Line]) call, to selectively apply your operation to the scatterplot and lineplot, but NOT the map.\n\nAlso – to save some time with individual plots, I often like to keep a dictionary at the top of my script with all of the plotting options I use “by default”.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nuniversal_style_opts = {\n    # the size of each subplot\n    \"frame_width\": 350,\n    \"frame_height\": 300,\n    # font sizes\n    \"fontsize\": {\n        \"title\": \"14pt\",\n        \"labels\": \"12pt\",\n        \"xticks\": \"10pt\",\n        \"yticks\": \"10pt\",\n        \"legend\": \"12pt\",\n    },\n    # remove the toolbar\n    \"toolbar\": None,\n}\n\n# options we only want to apply to maps\ngeo_opts = {\"coastline\": True}\n\n# options we only want to apply to lineplots\nline_opts = {\"xrotation\": 45}\n\n# for a single plot, we can add some defaults\nda_map1.hvplot.Image(coastline=True).options(\n    title=\"example plot\", ylim=(None, 70), **universal_style_opts\n)\n\n\n# now, for a multi-panel layout.\n\nlayout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)\n\n# applying separate options based on plot type\nlayout_eg.options(\n    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps\n    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot\n)\n\n# Alternate way to apply universal options to both types\nlayout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nuniversal_style_opts = {\n    # the size of each subplot\n    \"fig_inches\": 5,\n    \"aspect\": 1.17,\n    # font sizes\n    \"fontsize\": {\n        \"title\": 14,\n        \"labels\": 12,\n        \"xticks\": 10,\n        \"yticks\": 10,\n        \"legend\": 12,\n    },\n}\n\n# options we only want to apply to maps\ngeo_opts = {\"cmap\": \"RdBu\"}\n\n# options we only want to apply to lineplots\nline_opts = {\"xrotation\": 45}\n\n# for a single plot, we can add some defaults\nda_map1.hvplot.image(coastline=True).options(\n    title=\"example plot\", ylim=(None, 70), **universal_style_opts\n)\n\n###############################\n# modifying a multi-panel layout.\n################################\n\n# this is the same layout we made previously (3 maps and a lineplot)\nlayout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)\n\n# applying separate options based on plot type\nlayout_eg.options(\n    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps\n    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot\n)\n\n# Alternate way to apply universal options to both plot types\nlayout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#custom-colorbars",
+    "href": "hvplot_tutorial.html#custom-colorbars",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Custom colorbars",
+    "text": "Custom colorbars\nI usually use discrete colorbars. Discrete colorbars are made up of 4 components:\n\nthe colors we want to use (controlled by the cmap parameter)\nat what values the colors change (controlled by the color_levels parameter)\nwhere we place the tickmarks (controlled by ticks in mpl and FixedTicker() in bokeh)\nwhere the colorbar starts and ends (controlled by clim)\n\n(technically, you could include other components, like controlling the spacing between the colors. Here I’m assuming that the underlying variable is numeric and continuous, and that the spacing between the colors matches the distance between their values. but this can be changed as well with extra work)\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\nfrom bokeh.models import FixedTicker\n\nda_map1.hvplot.quadmesh.opts(\n    cmap=[\"green\", \"yellow\", \"orange\", \"red\"],\n    colorbar_opts={\"ticker\": FixedTicker(ticks=[230, 250, 270, 300, 320])},\n    color_levels=[230, 250, 270, 300, 320],\n    clim=(230, 320),\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nlevels = [230, 250, 270, 300, 320]\nda_map1.hvplot().opts(\n    cmap=[\"green\", \"yellow\", \"orange\", \"red\"],\n    color_levels=levels,\n    colorbar_opts={'ticks': levels},\n    clim=(230, 320),\n    colorbar=True\n)",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#custom-colorbars-pt-2-non-centered-diverging-colorbars",
+    "href": "hvplot_tutorial.html#custom-colorbars-pt-2-non-centered-diverging-colorbars",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Custom colorbars pt 2: non-centered diverging colorbars",
+    "text": "Custom colorbars pt 2: non-centered diverging colorbars\nSuppose I have a variable that ranges from -0.5 -&gt; 1, and 0 is important. I would like to use a diverging colorbar to show that 0 is important (e.g. blue -&gt; white -&gt; red). By default, the center of the colorbar is 0. So, if I wanted to show off the full range of the data, I could have the colorbar range from -1 -&gt; 1. I don’t love this, though, because all of the colors between -1 and -0.5 don’t get used!\nThe code below hacks together a colorbar which has 0 at a location different from the center. (Note: in matplotlib, the TwoSlopeNorm() might be a useful alternative)\nI like using the tastymap package for making colorbars (even in matplotlib), just because it has a lot more cmap options than matplotlib (like the colorcet options, e.g. cet_CET_L18), and there are some nice convenience functions. But the tastymap part is totally optional\ntastymap quick usage:\n\nA discrete colorbar with 12 levels:\n\nreds_discrete = tastymap.cook_tmap(\"cet_CET_L18\", num_colors = 12)\n\nIf I want to remove white:\n\nnowhite = tastymap.cook_tmap(\"cet_CET_L18\", num_colors = 12)[1:12].cmap\nor equiv: nowhite = tastymap.utils.subset_cmap(reds_discrete, slice(1,11))\n\nIf I need hex codes, for whatever reason\n\nreds_hex = reds_discrete.to_model(\"hex\")\n\n\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nfrom bokeh.models import FixedTicker\n\n# TODO: I think tastymap.pair_tbar() might make this easier.\n\nmy_ticks = (\n    np.arange(-0.5, 0, 0.05).round(2).tolist()\n)  # ticks aren't symmetric around 0!\nn_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom\nmy_cmap = tastymap.cook_tmap(\"RdBu_r\", num_colors=n_colors * 2)[0:n_colors].cmap\n\n# make a map with values closer to zero\neg_map = da_map2 - da_map1\neg_map.hvplot.quadmesh(coastline=True).opts(\n    opts.QuadMesh(\n        cmap=my_cmap,\n        colorbar_opts={\"ticker\": FixedTicker(ticks=my_ticks)},\n        color_levels=my_ticks,\n        clim=(min(my_ticks), max(my_ticks)),\n        title=\"check out my colorbar!\",\n    )\n)\n\n\n\n\n# note: TwoSlopeNorm might be a useful alternative,  see below\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n\n\nmy_ticks = (\n    np.arange(-0.5, 0, 0.05).round(2).tolist()\n)  # ticks aren't symmetric around 0!\nn_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom\nmy_cmap = tastymap.cook_tmap(\"RdBu_r\", num_colors=n_colors * 2)[0:n_colors].cmap\n\n# make a map with values closer to zero\neg_map = da_map2 - da_map1\neg_map.hvplot.quadmesh(coastline=True).opts(\n    hv.opts.QuadMesh(\n        cmap=my_cmap,\n        ticks = my_ticks,\n        color_levels=my_ticks,\n        clim=(min(my_ticks), max(my_ticks)),\n        title=\"check out my colorbar!\",\n    )\n)\n\n\n## note: TwoSlopeNorm might be a useful alternative,  see below\n## source: https://discourse.holoviz.org/t/diverging-colorbar-around-asymetric-data/3339/3\n\n# import matplotlib.colors as colors\n# data = np.random.random((10,10))\n# data = 10 * (data - 0.8)\n# test_array = xr.DataArray(\n#     data,\n#     coords=[np.arange(10), np.arange(10)],\n#     dims=['x','y'], name='z')\n# test_array.hvplot(clim=(-8, 2), cmap=\"coolwarm\")\n\n\n# divnorm = colors.TwoSlopeNorm(vmin=-8., vcenter=0., vmax=2)\n# levels = np.arange(-8, 2.5, 0.5)\n# colors = [colors.to_hex(c, keep_alpha=True) for c in plt.cm.coolwarm(divnorm(levels))]\n# test_array.hvplot(clim=(-8, 2), cmap=colors)",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#geographic-options-changing-projection",
+    "href": "hvplot_tutorial.html#geographic-options-changing-projection",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Geographic options: changing projection",
+    "text": "Geographic options: changing projection\nA list of avaialble geographic-specific options is here. As an example, we’ll change the projection of the data.\nBy default, calling da.hvplot() uses the Image plot type, so that da.hvplot() is equivalent to da.hvplot.Image(). This isn’t very accurate when using different projections, so it’s safer to use da.hvplot.quadmesh() instead. See here for some more detail\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# quadmesh is more accurate than the default (hv.plot.Image)\nda_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# quadmesh is more accurate than the default (hv.plot.Image) with different projections\nda_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#using-matplotlib-bokeh-code",
+    "href": "hvplot_tutorial.html#using-matplotlib-bokeh-code",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Using matplotlib / bokeh code",
+    "text": "Using matplotlib / bokeh code\nHoloviews doesn’t have ALL of the underlying matplotlib / bokeh options. If there’s a modification that you need to make to your figure, and you can’t find the corresponding holoviews setting, then we can manually add it in using the underlying matplotlib (or bokeh) code.\nThere are two ways to do this: first, by grabbing the underlying matplotlib axes and continuing on in matplotlib land, or by using “hooks”, which allow us to inject matplotlib code whilst keeping the holoviews object intact.\nIn the matplotlib example, I add some text to the corner. I find that hvplot struggles with relative positioning of text.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# option 1: extracting the underlying object ----------\n\n# option 2: using hooks -----------------------\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# option 1: transferring our work to matplotlib ----------\n\nfig = plot.handles[\"fig\"]\nax = plot.handles[\"axes\"]\n\n# and now we can just continue on using (fig, ax) like in any other matplotlib object!\nax.text(\n    0.95,\n    0.05,\n    \"Hook Text\",\n    transform=ax.transAxes,\n    ha=\"right\",\n    va=\"bottom\",\n    color=\"white\",\n    fontsize=12,\n    bbox=dict(facecolor=\"black\", alpha=0.5),\n)\n\n\n# option 2: trying to stay in holoviews  -----------------------\n\n\ndef mpl_text_hook(plot, element):\n    \"\"\"\n    An example matplotlib hook to add some text to the corner\n    \"\"\"\n    # 1. Access the Matplotlib Axes\n    ax = plot.handles[\"axis\"]\n\n    # transform=ax.transAxes is a nice trick to place text relative to corners\n    ax.text(\n        0.95,\n        0.05,\n        \"Hook Text\",\n        transform=ax.transAxes,\n        ha=\"right\",\n        va=\"bottom\",\n        color=\"white\",\n        fontsize=12,\n        bbox=dict(facecolor=\"black\", alpha=0.5),\n    )\n\n\nfig1d.opts(title=\"testing out hooks\", hooks=[mpl_text_hook])",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#exporting-as-pickle",
+    "href": "hvplot_tutorial.html#exporting-as-pickle",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Exporting as pickle",
+    "text": "Exporting as pickle\nI often like to save figures as python objects, so that I can quickly load them in and modify cosmetic options without having to re-run the entire analysis (although it’s good practice to re-run your entire analysis once in a while to make sure it’s reproducible!). Pickling objects is a good way of doing this.\nHowever, by default, saving holoview objects as pickles loses their styling options. So, we need to add a line of code before we pickle to make sure that everything gets saved. Alternatively, holoviews has their own wrapper around pickle: hv.Store.dump() and hv.Store.load()\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\nhv.Store.save_option_state = True\npickle.loads(pickle.dumps(fig1a))\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nhv.Store.save_option_state = True\npickle.loads(pickle.dumps(fig1a))",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#exporting-as-png",
+    "href": "hvplot_tutorial.html#exporting-as-png",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Exporting as png",
+    "text": "Exporting as png\nhv.save() is the function we use to save figures. Including the file extension (e.g. png, svg, jpg) at the end of the filename will automatically determine the output.\nThis is really straightforward with the matplotlib backend, but tricky with the bokeh backend. Bokeh figures are designed to be interactive, so they don’t like static filetypes like png. These figures are designed to be exported as html files, so hv.save(fig, \"my_fig.html\") works really well. If we export as png, what opens the figure in a browser in the backend and takes a screenshot. This is a little hacky, but tends to work well enough.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# hv.save(fig, 'tmp.html')\n# hv.save(fig, 'tmp.png')\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# hv.save(fig, 'tmp.png')",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#custom-layouts",
+    "href": "hvplot_tutorial.html#custom-layouts",
+    "title": "notes on using hvplot/holoviews",
+    "section": "Custom Layouts",
+    "text": "Custom Layouts\nWe saw that we can arrange plots into a grid using figa + figb, or by hv.Layout([figa, figb]). That’s fine for the basics, but won’t do if we want to customize the arrangements of the plots.\nFor example, the snippet below takes three subplots, and arranges them so that the first plot is by itself in the first row, and is centered.\nThis requires another sibling package of holoviews, called panel. This package provides a ton of layout options.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nimport panel as pn\npn.Column(\n    pn.panel(fig1a, center=True, sizing_mode=\"fixed\"),\n    pn.panel(fig1b + fig1c, center=True, sizing_mode=\"fixed\"),\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section",
+    "href": "hvplot_tutorial.html#new-section",
+    "title": "notes on using hvplot/holoviews",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-1",
+    "href": "hvplot_tutorial.html#new-section-1",
+    "title": "notes on using hvplot/holoviews",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-2",
+    "href": "hvplot_tutorial.html#new-section-2",
+    "title": "notes on using hvplot/holoviews",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-3",
+    "href": "hvplot_tutorial.html#new-section-3",
+    "title": "notes on using hvplot/holoviews",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-4",
+    "href": "hvplot_tutorial.html#new-section-4",
+    "title": "notes on using hvplot/holoviews",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-5",
+    "href": "hvplot_tutorial.html#new-section-5",
+    "title": "notes on using hvplot/holoviews",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-6",
+    "href": "hvplot_tutorial.html#new-section-6",
+    "title": "notes on using hvplot/holoviews",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "notes on using hvplot/holoviews"
     ]
   },
   {
@@ -351,7 +593,7 @@
     "href": "nc_tutorial.html#monthly-data---seasonal-average",
     "title": "How to work with netcdf?",
     "section": "Monthly data -> Seasonal average",
-    "text": "Monthly data -&gt; Seasonal average\nSay, we want one value per year – the June - August mean.\n\nRPython\n\n\n\njja_months &lt;- c(6,7,8)\n\n# stars\n\nspaceavg_stars &lt;- cesm_stars %&gt;%\n  filter(month(time) %in% jja_months) %&gt;%\n  st_apply('time', mean, na.rm = T)\n\n\n# terra\n\n# https://stackoverflow.com/questions/73035913/r-computing-seasonal-raster-based-on-specified-months-in-r\n# tapp()\n\nspaceavg_terra &lt;- cesm_terra %&gt;%\n  subset(month(time(.)) %in% jja_months) %&gt;%\n  mean()\n\n\n# tidync (i.e. with the raw data cube, which stars also supports in backend)\n\n\n# might need to self-implement mutate for this... or check out stars mutate.\ncesm_tnc %&gt;%\n  hyper_tbl_cube() %&gt;%\n  filter(month(time) %in% jja_months) %&gt;%\n  group_by(year(time)) %&gt;%\n  summarize(avg_jja = mean(TREFHT))\n\n\n\n\nfrom xarray.groupers import SeasonGrouper\n\nds.groupby(time=SeasonGrouper([\"DJF\", \"MAMJ\", \"JJA\", \"SON\"])).mean() # calculates each seasonal mean.\n\n\n# This works a little better, by accounting for the number of days in the month. This needs to be tested.\n\nmonth_length = ds.time.dt.days_in_month\nseason_grouper = xr.groupers.SeasonGrouper([\"DJF\", \"MAMJ\", \"JJA\", \"SON\"])\nweighted_sum = (ds * month_length).groupby(time=season_grouper).sum()\nsum_of_weights = month_length.groupby(time=season_grouper).sum()\nweighted_avg = weighted_sum / sum_of_weights\n\n\n# More generally, if we want to subset to JJA:\nds_jja = ds.where(ds['time.month'].isin([6,7,8]), drop = True)",
+    "text": "Monthly data -&gt; Seasonal average\nSay, we want one value per year – the June - August mean.\n\nRPython\n\n\n\njja_months &lt;- c(6,7,8)\n\n# stars\n\nspaceavg_stars &lt;- cesm_stars %&gt;%\n  filter(month(time) %in% jja_months) %&gt;%\n  st_apply('time', mean, na.rm = T)\n\n\n# terra\n\n# https://stackoverflow.com/questions/73035913/r-computing-seasonal-raster-based-on-specified-months-in-r\n# tapp()\n\nspaceavg_terra &lt;- cesm_terra %&gt;%\n  subset(month(time(.)) %in% jja_months) %&gt;%\n  mean()\n\n\n# tidync (i.e. with the raw data cube, which stars also supports in backend)\n\n\n# might need to self-implement mutate for this... or check out stars mutate.\ncesm_tnc %&gt;%\n  hyper_tbl_cube() %&gt;%\n  filter(month(time) %in% jja_months) %&gt;%\n  group_by(year(time)) %&gt;%\n  summarize(avg_jja = mean(TREFHT))\n\n\n\n\nfrom xarray.groupers import SeasonGrouper\n\nds.groupby(time=SeasonGrouper([\"DJF\", \"MAMJ\", \"JJA\", \"SON\"])).mean() # calculates each seasonal mean.\n\n\n# This works a little better, by accounting for the number of days in the month. This needs to be tested.\n\nmonth_length = ds.time.dt.days_in_month\nseason_grouper = xr.groupers.SeasonGrouper([\"DJF\", \"MAMJ\", \"JJA\", \"SON\"])\nweighted_sum = (ds * month_length).groupby(time=season_grouper).sum()\nsum_of_weights = month_length.groupby(time=season_grouper).sum()\nweighted_avg = weighted_sum / sum_of_weights\n\n\n# More generally, if we want to subset to JJA:\nds_jja = ds.where(ds['time.month'].isin([6,7,8]), drop = True)\n\n\n# dirty way of getting annual JJA max ts in northern heimpshere, DJF in southern hemipshere\n# with DJF using the year of the JF\n\nfrom xarray.groupers import SeasonResampler\nimport cftime\n\nnh_jja = (\n    ds.sel(lat=slice(0, None))\n    .groupby(time=SeasonResampler([\"JJA\"]))\n    .max()\n)\n# remove month/day info, keeping only year\nnew_nh_time = [\n    cftime.DatetimeNoLeap(\n        t.year,\n        1,\n        1,\n        calendar=t.calendar,\n    )\n    for t in nh_jja.time.values\n]\nnh_jja['time'] = new_nh_time\nsh_djf = (\n    ds.sel(lat=slice(None, 0))\n    .groupby(time=SeasonResampler([\"DJF\"], drop_incomplete=True))\n    .max()\n)\n# mark the year as the year of the jan and feb\n# and everything else as 1 1 (to match ouptut of hdp package)\nnew_sh_time = [\n    cftime.DatetimeNoLeap(\n        t.year + 1,\n        1,\n        1,\n        calendar=t.calendar,\n    )\n    for t in sh_djf.time.values\n]\nsh_djf[\"time\"] = new_sh_time\nsh_djf = sh_djf.dropna(dim=\"time\", how=\"all\")  # drop the last year bc no data\n\nseason_max = xr.combine_by_coords([nh_jja, sh_djf])",
     "crumbs": [
       "Notes",
       "How to work with netcdf?"
