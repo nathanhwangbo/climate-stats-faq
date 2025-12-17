@@ -193,6 +193,7 @@ app = App(app_ui, server)
 netCDF4
 h5py
 h5netcdf
+nc-time-axis
 
 ```
 

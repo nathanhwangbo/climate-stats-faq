@@ -75,6 +75,10 @@ import matplotlib.pyplot as plt
 import urllib
 import gzip
 import xesmf as xe # need to get this one from conda-forge. not pip!
+import cartopy.crs as ccrs
+
+import tastymap # a way to quickly make discrete colorbars :)
+reds_discrete = tastymap.cook_tmap("cet_CET_L18", num_colors=10).cmap
 
 ```
 
@@ -365,6 +369,105 @@ cesm_360 = cesm180.assign_coords(lon=lon360).sortby("lon")
 
 :::
 
+## Datetime manipulation
+
+::: {.panel-tabset group="language"}
+
+## R
+
+In R, lubridate makes this dead simple, so I don't think this needs to be included
+
+## Python
+
+I find working with datetimes in python/xarray really confusing. I'm never really sure when to use cftime vs pandas vs numpy.
+
+One difference between R and python that I've found a bit annoying is that it's difficult to specify just year-month in a monthly xarray -- we always need to specify the full date, at least down to the day. The function below transforms a monthly dataarray by resetting the day index to 1, and resetting the time index to 00
+
+```{python}
+def clean_monthly_da(da):
+  '''
+  takes a monthly-indexed xarray object and resets the day-time component
+  da should have dimension "time". The day and time should be meaningless.
+  returns a dataarray of the same dimension, just with the time coordinate changed.
+  '''
+  years = da.time.dt.year
+  months = da.time.dt.month
+
+  new_times = [pd.Timestamp(f'{y}-{m}-01') for y, m in zip(years, months)]
+
+  da['time'] = new_times
+
+  return da
+
+
+```
+
+:::
+
+
+
+
+## Shifting Southern Hemisphere by 6 months
+
+Scenario: we have a global xarray object and we want to obtain a global "summer" average. Summer in the Northern and Southern hemispheres are offset by 6 months. The chunk below shifts all the southern hemisphere data back by 6 months.
+
+::: {.panel-tabset group="language"}
+
+## Python
+
+```{python}
+## if the data is monthly resolution, then this trick works
+# this doesn't work for different temporal resoltuions bc shift only works by index and not by time
+xr.where(eg_xr.lat > 0, era_temp, eg_xr.shift(time = -6))
+
+
+## a first pass solution which works for data at all temporal resolutions
+# NOTE: wait this might not work sometimes bc of the dependence on np.timedelta. 
+# TODO:I should revisit this
+eg_nh = eg_xr.where(lat>=0, drop = True)
+eg_sh = eg_xr.where(lat<0, drop = True)
+eg_sh['time'] = eg_sh['time'] - np.timedelta64(6,'M')
+eg_shifted = xr.combine_by_coords([eg_nh, eg_sh])
+
+## Annother attempt at a solution.
+## I think this is a more foolproof approach?
+def shift_sh(x):
+    """
+    shift time in the southern hemisphere by 6 months, to match seasonality with nh
+    x is an xarray object with dimension "time" and "lat", whose temporal resolution is monthly or finer
+    """
+    is_nh = x.lat >= 0
+
+    x_nh = x.where(is_nh, drop=True)
+    x_sh = x.where(~is_nh, drop=True)
+
+    new_sh_time = [
+        cftime.DatetimeNoLeap(
+            t.year + (6 - 1) // 12,
+            (t.month + 6 - 1) % 12 + 1,
+            t.day,
+            calendar=t.calendar,
+        )
+        for t in x_sh.time.values
+    ]
+
+    x_sh["time"] = new_sh_time
+    x_sh = x_sh.sortby('time')
+    x_shifted = xr.combine_by_coords([x_nh, x_sh], join='inner')
+
+    return x_shifted
+
+
+```
+
+## R
+
+```{r}
+#todo
+```
+
+:::
+
 
 ## Detrending  {#sec-detrending}
 
@@ -424,7 +527,7 @@ eg_anoms = eg_xr - eg_trend
 
 ## Removing the seasonal cycle
 
-Method 1: by removing climatological means 
+### Method 1: by removing climatological means 
 
 Shown here for monthly data, but similar code works for different timescales
 
@@ -442,15 +545,17 @@ monthly_climatology = tapp(eg_xr, 'months', "mean")
 
 ```{python}
 monthly_climatology = eg_xr.groupby("time.month").mean()
-    eg_xr_anom = (
-        eg_xr.groupby("time.month") - monthly_climatology
-    )
+eg_xr_anom = (
+    eg_xr.groupby("time.month") - monthly_climatology
+)
 ```
 
 :::
 
 
-<!-- Method 2: by fourier basis
+### Method 2: by fourier basis
+
+The climatology estimated by Method 1 will not be a smooth curve, because it's based on the sample mean. The code below adds a step to method 1, smoothing out the climatology via fourier transform. We then compute anomalies by subtracting out the smoothed climatology.
 
 ::: {.panel-tabset group="language"}
 
@@ -466,10 +571,65 @@ monthly_climatology = eg_xr.groupby("time.month").mean()
 
 
 ```{python}
-# todo
+def fourier_climatology_smoother(da, n_time, n_bases=5):
+    """
+    taken from karen's code
+
+    calculates a fourier-smoothed climatology at each gridcell, using n_bases components
+    output is an xarray data array with climatologies, with dimension (n_time, lon, lat)
+
+    da is a data array, with dimensions (time, lon, lat)
+    n_time is 365 if removing the doy climatology or 12 if removing the monthly climatology
+    nbases is the number of fourier components we want to use
+    """
+    # create basis functions to remove seasonal cycle
+    time = np.arange(1, n_time + 1)
+    t_basis = time / n_time
+
+    # list of the first n_bases fourier components
+    bases = np.empty((n_bases, n_time), dtype=complex)
+    for counter in range(n_bases):
+        bases[counter, :] = np.exp(2 * (counter + 1) * np.pi * 1j * t_basis)
+
+    if n_time == 365:
+        # get empirical average for the doy
+        empirical_sc = da.groupby("time.dayofyear").mean()  # dim (doy, lat, lon)
+        mu = empirical_sc.mean(
+            dim="dayofyear"
+        )  # map of average across all days. dim (lat, lon)
+    elif n_time == 12:
+        # get empirical average for the month
+        empirical_sc = da.groupby("time.month").mean()  # dim (month, lat, lon)
+        mu = empirical_sc.mean(
+            dim="month"
+        )  # map of average across all days. dim (lat, lon)
+    else:
+        raise ValueError("only n_time = 12 or 365 are handled")
+
+    nt, nlat, nlon = empirical_sc.shape
+    loc_len = nlat * nlon
+
+    # project zero-mean data onto basis functions
+    data = (empirical_sc - mu).data
+
+    coeff = 2 / n_time * (np.dot(bases, data.reshape((nt, loc_len))))
+
+    # reconstruct seasonal cycle
+    rec = np.real(np.dot(bases.T, np.conj(coeff)))
+    rec = rec.reshape((nt, nlat, nlon))
+
+    # add back the mean
+    da_rec = empirical_sc.copy(data=rec) + mu
+    return da_rec
+
+
+# example usage
+eg_climatology = fourier_climatology_smoother(eg_xr, n_time = 12, n_bases = 5)
+eg_xr_anom = eg_xr.groupby('time.month') - eg_climatology
+
 ```
 
-::: -->
+:::
 
 
 ## Regridding {#sec-regridding}
@@ -607,7 +767,7 @@ weighted_average <- cellStats(y, sum) / cellStats(a, sum)
 
 weights_cos = np.cos(np.deg2rad(cesm_eg['lat']))
 cesm_eg_weighted = cesm_eg.weighted(weights_cos)
-
+cesm_eg_weighted.mean(("lon", "lat"))
 ```
 
 :::
@@ -745,27 +905,28 @@ terra::mask(cesm_terra, countries)
 
 
 ```{python}
-# todo: replace code with the actual example
 import regionmask
 
-# create a landmask
-land = regionmask.defined_regions.natural_earth_v5_0_0.land_110
-landmask = land.mask(eg_xr)  # ocean is nan, land is 0
-is_land = landmask == 0
+def get_landmask(x):
+  # create a landmask, which still includes antactica and greenland
+  land = regionmask.defined_regions.natural_earth_v5_0_0.land_110
+  landmask = land.mask(eg_xr)  # ocean is nan, land is 0
+  is_land = landmask == 0
 
+  # we also generally wanna get rid of greenland
+  greenland = regionmask.defined_regions.natural_earth_v5_0_0.countries_110[["Greenland"]]
+  greenland_mask = greenland.mask(eg_xr)
+  is_not_greenland = greenland_mask.isnull() # greenland is 0, everything else is nan
 
+  # we also generally wanna get rid of antarctica
+  is_not_antarctic = eg_xr["lat"] > -60
 
-# we also generally wanna get rid of greenland and arctic
-greenland = regionmask.defined_regions.natural_earth_v5_0_0.countries_110[["Greenland"]]
-greenland_mask = greenland.mask(eg_xr)
-is_not_greenland = greenland_mask.isnull() # greenland is 0, everything else is nan
+  # apply all masks
+  eg_xr_land = eg_xr.where(is_land & is_not_greenland & is_not_antarctic)
 
+  return eg_xr_land
 
-# can get rid of arctic just by subsetting to above 60S
-
-# apply all masks
-eg_xr_land = eg_xr.where(is_land & is_not_greenland)
-
+eg_xr_land = get_landmask(eg_xr)
 
 ```
 
@@ -958,6 +1119,63 @@ cesm_tnc %>%
 from xarray.groupers import SeasonGrouper
 
 ds.groupby(time=SeasonGrouper(["DJF", "MAMJ", "JJA", "SON"])).mean() # calculates each seasonal mean.
+
+
+# This works a little better, by accounting for the number of days in the month. This needs to be tested.
+
+month_length = ds.time.dt.days_in_month
+season_grouper = xr.groupers.SeasonGrouper(["DJF", "MAMJ", "JJA", "SON"])
+weighted_sum = (ds * month_length).groupby(time=season_grouper).sum()
+sum_of_weights = month_length.groupby(time=season_grouper).sum()
+weighted_avg = weighted_sum / sum_of_weights
+
+
+# More generally, if we want to subset to JJA:
+ds_jja = ds.where(ds['time.month'].isin([6,7,8]), drop = True)
+
+
+# dirty way of getting annual JJA max ts in northern heimpshere, DJF in southern hemipshere
+# with DJF using the year of the JF
+
+from xarray.groupers import SeasonResampler
+import cftime
+
+nh_jja = (
+    ds.sel(lat=slice(0, None))
+    .groupby(time=SeasonResampler(["JJA"]))
+    .max()
+)
+# remove month/day info, keeping only year
+new_nh_time = [
+    cftime.DatetimeNoLeap(
+        t.year,
+        1,
+        1,
+        calendar=t.calendar,
+    )
+    for t in nh_jja.time.values
+]
+nh_jja['time'] = new_nh_time
+sh_djf = (
+    ds.sel(lat=slice(None, 0))
+    .groupby(time=SeasonResampler(["DJF"], drop_incomplete=True))
+    .max()
+)
+# mark the year as the year of the jan and feb
+# and everything else as 1 1 (to match ouptut of hdp package)
+new_sh_time = [
+    cftime.DatetimeNoLeap(
+        t.year + 1,
+        1,
+        1,
+        calendar=t.calendar,
+    )
+    for t in sh_djf.time.values
+]
+sh_djf["time"] = new_sh_time
+sh_djf = sh_djf.dropna(dim="time", how="all")  # drop the last year bc no data
+
+season_max = xr.combine_by_coords([nh_jja, sh_djf])
 ```
 
 :::
@@ -1011,6 +1229,80 @@ eg_xr.mean('time').plot()
 
 ::: 
 
+## Plotting in python with hvplot
+
+I've been playing around with `hvplot` (via the accessor `hvplot.xarray`), and I've really been enjoying it as a way to quickly prototype figures. I see two main advantages compared to using `matplotlib`. First, composing plots is wayyyyyy easier -- if I have two figures, I can put them side by side just by typing `fig_a + fig_b`. I've come to love this type of plot composition from the `patchwork` package in `R`, so I'm glad that `hvplot` has similar functionality. The second advantage I've seen from `hvplot` is the use of interactive backends. `hvplot` uses `bokeh` as the default plotting engine, which has built in interactivity -- in particular, it's very helpful for me to hover over a map and see the exact values (lon, lat, and color) at the pixel that my cursor is hovering over.
+
+Here's an example how the syntax looks.
+
+In the most simple case, we can just replace `.plot()` with `.hvplot()`!
+```{python}
+import hvplot.xarray
+
+fig_eg1 = eg_xr.mean('time').hvplot() 
+```
+
+If we want the same figure using `matplotlib`, then it's a one-liner
+
+```{python}
+hvplot.extension('matplotlib')
+fig_eg1 # now it should show as a matplotlib figure.
+
+# changing back to bokeh (the default)
+hvplot.extension('bokeh')
+```
+
+Here's a more complicated plot that shows off a bunch of options
+
+```{python}
+
+fig_eg2 = eg_xr.hvplot(
+    projection=ccrs.PlateCarree(),
+    coastline=True,
+    cmap=reds_discrete, # discrete colorbar
+    clim=(0, 15), # colorbar limits
+    title="example title",
+    clabel="", # colorbar title
+    xlabel="",
+    ylabel="",
+).opts(fontscale=2.5, ylim=(-60, None)) # changing fontsize and removing antarctica
+
+```
+
+
+Now combining figures!
+
+```{python}
+fig_eg1 + fig_eg2 # side by side
+
+
+(fig_eg1 + fig_eg2).cols(1) # two rows, 1 column
+
+```
+
+For making paper-ready figures, sometimes it's hard to get the figure to look the way you want it to look just using the `hvplot` options. Their documentation could definitely use some work. That's why I mainly recommend hvplot for prototyping figures. For final figures, it might be better to start from scratch using matploblib.
+
+If you don't want to start completely from scratch, it's not too hard to get the underlying matplotlib objects from hvplot. Here's what I mean:
+
+```{python}
+
+# "convert" the plot from hvplot -> matplotlib
+renderer = hv.renderer('matplotlib')
+hv_plot_obj = renderer.get_plot(fig_eg2)
+
+# get the usual matplotlib objects
+fig = hv_plot_obj.figure
+ax = hv_plot_obj.handles['ax']
+cax = hv_plot_obj.handles['cax'] # colorbar
+
+# and now we can do normal matplotlib things
+ax.set_title('new title using matplotlib')
+
+```
+
+
+
+
 
 # Regression
 
@@ -1019,6 +1311,8 @@ eg_xr.mean('time').plot()
 In @sec-detrending, we saw how to regress a variable against time. Here, we consider regressing one variable against another.
 
 For our example, we're going to regress CESM temperature against GISTEMP temperature. Note that we're using the re-gridded GISTEMP data, so that the two rasters are on the same grid
+
+::: {.panel-tabset group="language"}
 
 ## R 
 
@@ -1071,6 +1365,8 @@ slopes = xr.apply_ufunc(
 )
 
 ```
+
+:::
 
 <!-- # Conversion between data types
 

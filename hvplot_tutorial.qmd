@@ -1,0 +1,918 @@
+---
+title: "notes on using hvplot/holoviews"
+format: 
+  html:
+    page-layout: full
+    title-block-banner: true
+toc: true
+toc-expand: 2
+execute:
+  eval: true
+---
+
+## Background
+
+<details>
+  <summary>Click here for optional background</summary>
+
+I learned how to analyze data using R. I've started to switch to python because `xarray` is amazing. The transition was relatively painless, except for one thing -- `matplotlib`. I find generating plots in matplotlib to be a painful and awkward experience, especially compared to what I was used to in `ggplot2`. While I'm sure I would get used to matplotlib in time, I think that there's gotta be a better way. The makers of ggplot have made a wrapper around matplotlib (called `plotnine`) which looks really great for tabular data, but doesn't have great support for maps yet. There are a few other plotting options outside of matplotlib (e.g. `bokeh` and `plotly`), but it wasn't clear to me which library was worth investing time into learning.
+
+So.. here, I'm exploring another plotting library called `holoviews`. The premise is great: the goal is to unify these different plotting backends into a single API, so that you can go between a `matplotlib` plot and its equivalent `bokeh` plot just by changing a single line of code. And its sibling package, `hvplot`, makes things even easier by connecting `holoviews` to libraries like `xarray` and `pandas`, so that we can simply replace `da.plot()` with `da.hvplot()` for a truly painless transition away from the default plotting libraries! 
+
+In practice...this ends up being a bit of a mess. It turns out that it's really hard to translate settings from a `matplotlib` plot to a `bokeh` plot, or vice versa. However, the holoviews way of building plots is really nice, so a lot of people end up just picking one plotting backend (usually matplotlib or bokeh), and build these plots using holoviews code. 
+
+</details>
+
+The first few code chunks below show off the features that really sold me on using holoviews, so I recommend starting there! 
+
+The hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the `bokeh` backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where `matplotlib` is just better, so I'll also try to include holoviews + matplotlib settings in the tabs below.
+
+
+## Preliminaries
+
+Let's start by loading in all of the packages we'll need. This guide will focus on using holoviews to plot xarray objects, which is made convenient by the `hvplot.xarray` accessor. I'll be using the the built in air_temperature tutorial dataset to play with.
+
+Note that bokeh is the default backend, and that the matplotlib backend can be used by running `hv.extension('matplotlib')` before making a plot. That's the only line of code that we need to switch between the two! 
+
+```{python}
+# | code-fold: false
+
+import numpy as np
+import xarray as xr
+import holoviews as hv
+import hvplot.xarray
+import cartopy.crs as ccrs
+import tastymap  # optional, but I like using it to make colorbars
+
+da = xr.tutorial.load_dataset("air_temperature")
+
+
+# pull out a few time points, so that we have multiple maps to play with
+da_map1 = da.isel(time=0)
+da_map2 = da.isel(time=1)
+da_map3 = da.isel(time=2)
+da_map4 = da.isel(time=3)
+```
+
+
+## Making our first map
+
+xarray has handy plotting features built in, so we're probably familiar with calling `da_map.plot()`. To make the switch, all we need to do is add two letters! (`da_map.hvplot()`).
+
+We'll get into resizing plots and all of those other goodies later, so don't worry about how different the matplotlib and bokeh versions look.
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+da_map1.hvplot(coastline=True)
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+da_map1.hvplot(coastline=True)
+
+```
+
+:::
+
+
+## Making subplots
+
+This was probably the first feature that I saw that made me want to switch to holoviews! 
+
+Side by side plots are called `Layout`s in holoviews, and can be made by simply adding plots together!
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+# make three different maps, and a line plot
+fig1a = da_map1.hvplot(coastline=True) 
+fig1b = da_map2.hvplot(coastline=True)
+fig1c = da_map3.hvplot(coastline=True)
+
+# a line plot of the spatal average
+fig1d = da.mean(dim=["lon", "lat"]).hvplot.line(x="time", y="air") 
+
+# combine them, and specify the number of columns
+(fig1a + fig1b + fig1c + fig1d).cols(2)
+
+## the following is equivalent, and is handy if you programatically create a bunch of figures
+# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+# make three different maps
+fig1a = da_map1.hvplot(coastline=True)
+fig1b = da_map2.hvplot(coastline=True)
+fig1c = da_map3.hvplot(coastline=True)
+
+# a line plot of the spatal average
+fig1d = da.mean(dim=["lon", "lat"]).hvplot.line(x="time", y="air")
+
+# combine them, and specify the number of columns
+(fig1a + fig1b + fig1c + fig1d).cols(2)
+
+## the following is equivalent, and is handy if you programatically create a bunch of figures
+# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)
+
+
+```
+
+:::
+
+
+## Adding components to a figure
+
+
+`da_map1.hvplot(coastline = True)` has two elements on the same figure: the temperatures, and the coastline. When we have multiple elements on the same panel, it's called an `Overlay`. They can be made by multiplying plots together (i.e. if we had a separate map and coastline object, we could have done `fig_map * fig_coastline`).
+
+In the example below, I add a horizontal line to the lineplot
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+# a line plot of the spatal average, same as before
+fig1d = da.mean(dim=["lon", "lat"]).hvplot.line(x="time", y="air") 
+
+# add a horizontal line
+line_1d = hv.HLine(y = 280)
+
+fig1d * line_1d
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+# a line plot of the spatal average, same as before
+fig1d = da.mean(dim=["lon", "lat"]).hvplot.line(x="time", y="air") 
+
+# add a horizontal line
+line_1d = hv.HLine(y = 280)
+
+fig1d * line_1d
+
+```
+
+:::
+
+
+## Basic plot styling
+
+Adding titles, figure sizes, ect. is controlled by adding `.opts()` to the end of your plot. Some options can go directly into the parentheses of `hvplot()`, but the [general recommendation](https://holoviews.org/user_guide/Applying_Customizations.html) is to leave most of the styling to the end, through an additional `.opts()` call. 
+
+Side note: I prefer `.options()`, which is the same thing except that it doesn't modify your figure in place. In other words, `.options()` is equivalent to `.opts(clone = True)`
+
+Side note: By default, xarray maps are plotted as "Images", so that `da_map1.hvplot()` is equivalent to `da_map1.hvplot.Image()`. This may not be the best option (see the section on geographic options), so I'll start making this choice explicit 
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+da_map1.hvplot.Image(coastline=True).options(
+    title="example plot",
+    xlabel = "eg xlab",
+    ylabel = "eg ylab",
+    clabel = "cbar lab"
+    ylim=(None, 70),
+    clim=(240, 280), # colorbar limit
+    width=600,
+    height=400,
+    fontsize={
+        "title": 15,  # can also use percentages, eg "200%"
+        "labels": 14,
+        "ticks": 10,
+        "legend": 10
+    },
+)
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+da_map1.hvplot.Image(coastline=True).options(
+    title="example plot",
+    xlabel = "eg xlab",
+    ylabel = "eg ylab",
+    clabel = "cbar lab"
+    ylim=(None, 70),
+    clim=(240, 280), # colorbar limit
+    width=600,
+    height=400,
+    fontsize={
+        "title": 15,  # can also use percentages, eg "200%"
+        "labels": 14,
+        "ticks": 10,
+        "legend": 10
+    },
+)
+
+```
+
+:::
+
+
+## Plot styling pt 2 (styling Layouts and adding "defaults"!)
+
+Sometimes you make a Layout (i.e. a figure with subplots) and want to apply the same customization to each plot (i.e. changing the figure size). There are a few ways of doing this:
+
+- if all subplots are the same (e.g. all "Images" or all scatterplots), then you can nest a `hv.opts.Image()` call into your original options call (`fig.opts(hv.opts.Image(ADD CODE HERE))`).
+- if the subplot are different (e.g. a map "Image", a scatterplot, and a lineplot), then you can use  `fig.map(lambda x: x.opts(ADD CODE HERE), [hv.Scatter, hv.Line])` call, to selectively apply your operation to the scatterplot and lineplot, but NOT the map.
+
+Also -- to save some time with individual plots, I often like to keep a dictionary at the top of my script with all of the plotting options I use "by default".
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+universal_style_opts = {
+    # the size of each subplot
+    "frame_width": 350,
+    "frame_height": 300,
+    # font sizes
+    "fontsize": {
+        "title": "14pt",
+        "labels": "12pt",
+        "xticks": "10pt",
+        "yticks": "10pt",
+        "legend": "12pt",
+    },
+    # remove the toolbar
+    "toolbar": None,
+}
+
+# options we only want to apply to maps
+geo_opts = {"coastline": True}
+
+# options we only want to apply to lineplots
+line_opts = {"xrotation": 45}
+
+# for a single plot, we can add some defaults
+da_map1.hvplot.Image(coastline=True).options(
+    title="example plot", ylim=(None, 70), **universal_style_opts
+)
+
+
+# now, for a multi-panel layout.
+
+layout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)
+
+# applying separate options based on plot type
+layout_eg.options(
+    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps
+    hv.opts.Line(**line_opts, **universal_style_opts),  # will change the lineplot
+)
+
+# Alternate way to apply universal options to both types
+layout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Line])
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+universal_style_opts = {
+    # the size of each subplot
+    "frame_width": 350,
+    "frame_height": 300,
+    # font sizes
+    "fontsize": {
+        "title": "14pt",
+        "labels": "12pt",
+        "xticks": "10pt",
+        "yticks": "10pt",
+        "legend": "12pt",
+    },
+}
+
+# options we only want to apply to maps
+geo_opts = {"coastline": True}
+
+# options we only want to apply to lineplots
+line_opts = {"xrotation": 45}
+
+# for a single plot, we can add some defaults
+da_map1.hvplot.Image(coastline=True).options(
+    title="example plot", ylim=(None, 70), **universal_style_opts
+)
+
+###############################
+# modifying a multi-panel layout.
+################################
+
+# this is the same layout we made previously (3 maps and a lineplot)
+layout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)
+
+# applying separate options based on plot type
+layout_eg.options(
+    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps
+    hv.opts.Line(**line_opts, **universal_style_opts),  # will change the lineplot
+)
+
+# Alternate way to apply universal options to both plot types
+layout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Line])
+
+```
+
+:::
+
+
+
+
+## Custom colorbars
+
+I usually use discrete colorbars. Discrete colorbars are made up of 4 components:
+
+- the colors we want to use (controlled by the `cmap` parameter)
+- at what values the colors change (controlled by the `color_levels` parameter)
+- where we place the tickmarks (controlled by `ticks` in mpl and `FixedTicker()` in bokeh)
+- where the colorbar starts and ends (controlled by `clim`)
+
+(technically, you could include other components, like controlling the spacing between the colors. Here I'm assuming that the underlying variable is numeric and continuous, and that the spacing between the colors matches the distance between their values. but this can be changed as well with [extra work](https://discourse.holoviz.org/t/custom-discrete-colormaps/2183/15))
+
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+from bokeh.models import FixedTicker
+
+da_map1.hvplot.quadmesh.opts(
+    cmap=["green", "yellow", "orange", "red"],
+    colorbar_opts={"ticker": FixedTicker(ticks=[230, 250, 270, 300, 320])},
+    color_levels=[230, 250, 270, 300, 320],
+    clim=(230, 320),
+)
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+levels = [230, 250, 270, 300, 320]
+da_map1.hvplot().opts(
+    cmap=["green", "yellow", "orange", "red"],
+    color_levels=levels,
+    colorbar_opts={'ticks': levels},
+    clim=(230, 320),
+    colorbar=True
+)
+
+```
+
+:::
+
+## Custom colorbars pt 2: non-centered diverging colorbars
+
+Suppose I have a variable that ranges from -0.5 -> 1, and 0 is important. I would like to use a diverging colorbar to show that 0 is important (e.g. blue -> white -> red). By default, the center of the colorbar is 0. So, if I wanted to show off the full range of the data, I could have the colorbar range from -1 -> 1. I don't love this, though, because all of the colors between -1 and -0.5 don't get used! 
+
+The code below hacks together a colorbar which has 0 at a location different from the center. (Note: in matplotlib, the `TwoSlopeNorm()` might be a useful alternative)
+
+I like using the `tastymap` package for making colorbars (even in matplotlib), just because it has a lot more cmap options than matplotlib (like the colorcet options, e.g. `cet_CET_L18`), and there are some nice convenience functions. But the tastymap part is totally optional
+
+tastymap quick usage: 
+
+- A discrete colorbar with 12 levels:
+
+    - `reds_discrete = tastymap.cook_tmap("cet_CET_L18", num_colors = 12)` 
+    
+- If I want to remove white:
+
+    - `nowhite = tastymap.cook_tmap("cet_CET_L18", num_colors = 12)[1:12].cmap`
+    - or equiv: `nowhite = tastymap.utils.subset_cmap(reds_discrete, slice(1,11))`
+
+- If I need hex codes, for whatever reason
+    - `reds_hex = reds_discrete.to_model("hex")`
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+from bokeh.models import FixedTicker
+
+# TODO: I think tastymap.pair_tbar() might make this easier.
+
+my_ticks = (
+    np.arange(-0.5, 0, 0.05).round(2).tolist()
+)  # ticks aren't symmetric around 0!
+n_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom
+my_cmap = tastymap.cook_tmap("RdBu_r", num_colors=n_colors * 2)[0:n_colors].cmap
+
+# make a map with values closer to zero
+eg_map = da_map2 - da_map1
+eg_map.hvplot.quadmesh(coastline=True).opts(
+    opts.QuadMesh(
+        cmap=my_cmap,
+        colorbar_opts={"ticker": FixedTicker(ticks=my_ticks)},
+        color_levels=my_ticks,
+        clim=(min(my_ticks), max(my_ticks)),
+        title="check out my colorbar!",
+    )
+)
+
+```
+
+
+## Matplotlib
+
+```{python}
+
+# note: TwoSlopeNorm might be a useful alternative,  see below
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+
+my_ticks = (
+    np.arange(-0.5, 0, 0.05).round(2).tolist()
+)  # ticks aren't symmetric around 0!
+n_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom
+my_cmap = tastymap.cook_tmap("RdBu_r", num_colors=n_colors * 2)[0:n_colors].cmap
+
+# make a map with values closer to zero
+eg_map = da_map2 - da_map1
+eg_map.hvplot.quadmesh(coastline=True).opts(
+    opts.QuadMesh(
+        cmap=my_cmap,
+        ticks = my_ticks,
+        color_levels=my_ticks,
+        clim=(min(my_ticks), max(my_ticks)),
+        title="check out my colorbar!",
+    )
+)
+
+
+## note: TwoSlopeNorm might be a useful alternative,  see below
+## source: https://discourse.holoviz.org/t/diverging-colorbar-around-asymetric-data/3339/3
+
+# import matplotlib.colors as colors
+# data = np.random.random((10,10))
+# data = 10 * (data - 0.8)
+# test_array = xr.DataArray(
+#     data,
+#     coords=[np.arange(10), np.arange(10)],
+#     dims=['x','y'], name='z')
+# test_array.hvplot(clim=(-8, 2), cmap="coolwarm")
+
+
+# divnorm = colors.TwoSlopeNorm(vmin=-8., vcenter=0., vmax=2)
+# levels = np.arange(-8, 2.5, 0.5)
+# colors = [colors.to_hex(c, keep_alpha=True) for c in plt.cm.coolwarm(divnorm(levels))]
+# test_array.hvplot(clim=(-8, 2), cmap=colors)
+```
+
+:::
+
+
+## Geographic options: changing projection
+
+A list of avaialble geographic-specific options is [here](https://hvplot.holoviz.org/en/docs/latest/user_guide/Geographic_Data.html#options). As an example, we'll change the projection of the data. 
+
+By default, calling `da.hvplot()` uses the `Image` plot type, so that `da.hvplot()` is equivalent to `da.hvplot.Image()`. This isn't very accurate when using different projections, so it's safer to use `da.hvplot.quadmesh()` instead. [See here for some more detail](https://github.com/bokeh/bokeh/issues/14192#issuecomment-2538634997)
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+# quadmesh is more accurate than the default (hv.plot.Image)
+da_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+# quadmesh is more accurate than the default (hv.plot.Image) with different projections
+da_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())
+
+```
+
+:::
+
+## Using matplotlib / bokeh code
+
+Holoviews doesn't have ALL of the underlying matplotlib / bokeh options. If there's a modification that you need to make to your figure, and you can't find the corresponding holoviews setting, then we can manually add it in using the underlying matplotlib (or bokeh) code.
+
+There are two ways to do this: first, by grabbing the underlying matplotlib axes and continuing on in matplotlib land, or by using "hooks", which allow us to inject matplotlib code whilst keeping the holoviews object intact.
+
+
+In the matplotlib example, I add some text to the corner. I find that hvplot struggles with relative positioning of text.
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+# option 1: extracting the underlying object ----------
+
+# option 2: using hooks -----------------------
+
+
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+# option 1: transferring our work to matplotlib ----------
+
+fig = plot.handles["fig"]
+ax = plot.handles["axes"]
+
+# and now we can just continue on using (fig, ax) like in any other matplotlib object!
+ax.text(
+    0.95,
+    0.05,
+    "Hook Text",
+    transform=ax.transAxes,
+    ha="right",
+    va="bottom",
+    color="white",
+    fontsize=12,
+    bbox=dict(facecolor="black", alpha=0.5),
+)
+
+
+# option 2: trying to stay in holoviews  -----------------------
+
+
+def mpl_text_hook(plot, element):
+    """
+    An example matplotlib hook to add some text to the corner
+    """
+    # 1. Access the Matplotlib Axes
+    ax = plot.handles["axis"]
+
+    # transform=ax.transAxes is a nice trick to place text relative to corners
+    ax.text(
+        0.95,
+        0.05,
+        "Hook Text",
+        transform=ax.transAxes,
+        ha="right",
+        va="bottom",
+        color="white",
+        fontsize=12,
+        bbox=dict(facecolor="black", alpha=0.5),
+    )
+
+
+fig1d.opts(title="testing out hooks", hooks=[mpl_text_hook])
+
+
+```
+
+:::
+
+
+## Exporting as pickle
+
+I often like to save figures as python objects, so that I can quickly load them in and modify cosmetic options without having to re-run the entire analysis (although it's good practice to re-run your entire analysis once in a while to make sure it's reproducible!). Pickling objects is a good way of doing this.
+
+However, by default, saving holoview objects as pickles **loses** their styling options. So, we need to add a line of code before we pickle to make sure that everything gets saved. Alternatively, holoviews has their own wrapper around pickle: `hv.Store.dump()` and `hv.Store.load()`
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+hv.Store.save_option_state = True
+pickle.loads(pickle.dumps(fig1a))
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+hv.Store.save_option_state = True
+pickle.loads(pickle.dumps(fig1a))
+
+```
+
+:::
+
+
+## Exporting as png
+
+`hv.save()` is the function we use to save figures. Including the file extension (e.g. png, svg, jpg) at the end of the filename will automatically determine the output. 
+
+This is really straightforward with the matplotlib backend, but tricky with the bokeh backend. Bokeh figures are designed to be interactive, so they don't like static filetypes like png. These figures are designed to be exported as html files, so `hv.save(fig, "my_fig.html")` works really well. If we export as `png`, what opens the figure in a browser in the backend and takes a screenshot. This is a little hacky, but tends to work well enough.
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+# hv.save(fig, 'tmp.html')
+# hv.save(fig, 'tmp.png')
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+# hv.save(fig, 'tmp.png')
+
+
+```
+
+:::
+
+
+
+
+## Custom Layouts
+
+We saw that we can arrange plots into a grid using `figa + figb`, or by `hv.Layout([figa, figb])`. That's fine for the basics, but won't do if we want to customize the arrangements of the plots. 
+
+For example, the snippet below takes three subplots, and arranges them so that the first plot is by itself in the first row, and is centered.
+
+This requires another sibling package of holoviews, called `panel`. This package provides a ton of layout options.
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+import panel as pn
+pn.Column(
+    pn.panel(fig1a, center=True, sizing_mode="fixed"),
+    pn.panel(fig1b + fig1c, center=True, sizing_mode="fixed"),
+)
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
+## New section
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
+## New section
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
+## New section
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
+## New section
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
+## New section
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
+## New section
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
+## New section
+
+
+::: {.panel-tabset group="language"}
+
+
+## Bokeh
+
+```{python}
+hv.extension("bokeh")  # use bokeh as the backend
+
+
+```
+
+
+## Matplotlib
+
+```{python}
+hv.extension("matplotlib")  # use mpl as the backend
+
+
+```
+
+:::
+
