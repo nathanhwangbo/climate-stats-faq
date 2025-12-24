@@ -70,7 +70,7 @@
     "href": "index.html",
     "title": "Climate Statistics FAQ",
     "section": "",
-    "text": "Perhaps the single largest distinguisher between climate statics and other areas of spatiotemporal statistics is the heavy reliance on physics-based climate models. These models are complicated, so I’ve found it tricky to figure out how to work with them in a principled way.\nThe term “FAQ” in the website title is a bit misleading – these questions considered here are only “frequently asked” in the sense that I’ve frequently asked them. I found myself googling the same things over and over to try and find the same webpage, so I figured I should have somewhere to put all of those snippets. This website is a compilation of notes that I’ve compiled throughout grad school, along with the resources that have helped me understand them.",
+    "text": "The term “FAQ” in the title is a bit misleading – these questions considered here are only “frequently asked” in the sense that I’ve frequently asked them. I find myself googling the same things over and over to try and find the same pages, so I figured I should have somewhere to put all of those resources. This site is a compilation of resources, notes, and code snippets that I compiled throughout grad school.",
     "crumbs": [
       "Home"
     ]
