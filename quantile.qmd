@@ -1,0 +1,92 @@
+---
+title: "Regression with quantiles (and a demo of JAX with xarray)"
+execute:
+  eval: false
+---
+
+# setup
+
+Suppose I have two daily time series, $y$ and $x$, and I would like to estimate the conditional q95 of $y$ given $x$. 
+
+
+We're going to compare the following options:
+
+1. linear regression on pre-calculated q95
+- for each year, calculate q95 of summer temperature
+- this gives us two yearly-indexed time series, which we can pass into a standard lm wrapper.
+
+2. Quantile regression -> estimate q95
+- show off custom scikit-learn class using [statsmodels](https://austinpurdie.dev/blog/2024/sklearn-statsmodels-wrapper/)
+
+3. neural network using quantile loss
+- show off equinox and jax
+
+
+## setup 1: iid everything
+
+Let's start with a nice synthetic example
+
+```{python}
+import statsmodels.formula.api as smf
+import pandas as pd
+import numpy as np
+
+
+def qr_mod(y, x, quantile=0.95):
+    """
+    Fit Q(y|x)
+    """
+    # drop nans
+    mask = np.isfinite(y) & np.isfinite(x)
+    df = pd.DataFrame({"y": y[mask], "x": x[mask]})
+
+    if len(df) < 30:
+        exit("fewer than 30 days available.")
+
+    model = smf.quantreg("y ~ x", df).fit(q=quantile)
+
+    pred_df = pd.DataFrame({"x": x_annual})
+    return model.predict(pred_df)
+```
+
+
+
+
+## setup 2: probabilistic eofs?
+
+## setup 3: climate model LE T ~ CO2? 
+
+- compare to between-member variability, and
+- compare to existing quantile models for extreme heat?
+
+# evaluation metrics
+
+For each setup, we should probably have
+
+## measures of pure predictive skill
+
+
+## measures of uncertainty quantification
+
+
+
+## applying to xarray
+
+
+```{python}
+import xarray as xr
+
+# apply to each gridcell
+q95_predicted = xr.apply_ufunc(
+    qr_mod,
+    y_daily,
+    x_daily,
+    input_core_dims=[['time'], ['time']], 
+    output_core_dims=[['year_predicted']], # The output size depends on unique years
+    vectorize=True, 
+    kwargs={'quantile': 0.95},
+    dask='parallelized',
+    output_dtypes=[float],
+    dask_gufunc_kwargs={'output_sizes': {'year_predicted': len(unique_years)}}
+)
+```

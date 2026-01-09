@@ -1,5 +1,5 @@
 ---
-title: "notes on using hvplot/holoviews"
+title: "hvplot/holoviews notes"
 format: 
   html:
     page-layout: full
@@ -7,7 +7,7 @@ format:
 toc: true
 toc-expand: 2
 execute:
-  eval: true
+  eval: false
 ---
 
 ## Background
@@ -27,6 +27,10 @@ The first few code chunks below show off the features that really sold me on usi
 
 The hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the `bokeh` backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where `matplotlib` is just better, so I'll also try to include holoviews + matplotlib settings in the tabs below.
 
+Relevant documentaton:
+
+- https://holoviews.org/user_guide/Plotting_with_Matplotlib.html
+-  https://holoviews.org/user_guide/Plotting_with_Bokeh.html
 
 ## Preliminaries
 
@@ -206,7 +210,7 @@ da_map1.hvplot.Image(coastline=True).options(
     title="example plot",
     xlabel = "eg xlab",
     ylabel = "eg ylab",
-    clabel = "cbar lab"
+    clabel = "cbar lab",
     ylim=(None, 70),
     clim=(240, 280), # colorbar limit
     width=600,
@@ -225,11 +229,11 @@ da_map1.hvplot.Image(coastline=True).options(
 
 ```{python}
 hv.extension("matplotlib")  # use mpl as the backend
-da_map1.hvplot.Image(coastline=True).options(
+da_map1.hvplot.image(coastline=True).options(
     title="example plot",
     xlabel = "eg xlab",
     ylabel = "eg ylab",
-    clabel = "cbar lab"
+    clabel = "cbar lab",
     ylim=(None, 70),
     clim=(240, 280), # colorbar limit
     width=600,
@@ -300,11 +304,11 @@ layout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)
 # applying separate options based on plot type
 layout_eg.options(
     hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps
-    hv.opts.Line(**line_opts, **universal_style_opts),  # will change the lineplot
+    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot
 )
 
 # Alternate way to apply universal options to both types
-layout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Line])
+layout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])
 
 
 ```
@@ -317,26 +321,26 @@ hv.extension("matplotlib")  # use mpl as the backend
 
 universal_style_opts = {
     # the size of each subplot
-    "frame_width": 350,
-    "frame_height": 300,
+    "fig_inches": 5,
+    "aspect": 1.17,
     # font sizes
     "fontsize": {
-        "title": "14pt",
-        "labels": "12pt",
-        "xticks": "10pt",
-        "yticks": "10pt",
-        "legend": "12pt",
+        "title": 14,
+        "labels": 12,
+        "xticks": 10,
+        "yticks": 10,
+        "legend": 12,
     },
 }
 
 # options we only want to apply to maps
-geo_opts = {"coastline": True}
+geo_opts = {"cmap": "RdBu"}
 
 # options we only want to apply to lineplots
 line_opts = {"xrotation": 45}
 
 # for a single plot, we can add some defaults
-da_map1.hvplot.Image(coastline=True).options(
+da_map1.hvplot.image(coastline=True).options(
     title="example plot", ylim=(None, 70), **universal_style_opts
 )
 
@@ -350,11 +354,11 @@ layout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)
 # applying separate options based on plot type
 layout_eg.options(
     hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps
-    hv.opts.Line(**line_opts, **universal_style_opts),  # will change the lineplot
+    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot
 )
 
 # Alternate way to apply universal options to both plot types
-layout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Line])
+layout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])
 
 ```
 
@@ -393,6 +397,115 @@ da_map1.hvplot.quadmesh.opts(
     color_levels=[230, 250, 270, 300, 320],
     clim=(230, 320),
 )
+
+
+# a helper function for making a 0-centered diverging colorbar in hvplot
+# even if the limits are not symmetric around 0.
+def cbar_zero_centered(start, end, cmap="RdBu", width=None, extension="bokeh"):
+    """
+    a hvplot helper to make a zero-centered segmented colorbar
+    :param: start and end are the two endpoints of the colorbar. 0 should be contained inside
+    :param: cmap is a string with the desired colormap. should be accepted by tastymap.cook_tmap(), and should probably be a diverging colorbar.
+    :param: width is a number, the distance between colors. This will be used to determine the number of colors.
+    :param: extension is the hvplot extension -- for now, bokeh and matplotlib are supported.
+
+    :returns: a dictionary to be passed into holoviews .opts
+    :example:
+    da = xr.tutorial.load_dataset('air_temperature.nc').isel(time=10) - 273
+    eg_cbar = cbar_zero_centered(-30, 40)
+    da.hvplot().opts(**eg_cbar)
+    """
+    crange = end - start  # range of the cbar
+
+    # set default width (aka distance between colors)
+    if width is None:
+        # strategy for setting default width:
+        # we're gonna aim for ~10 colors
+        # but we're going to prioritize "round" spacings.
+        # this strategy is assuming that the crange is an integer
+
+        def divisors(n):
+            """
+            get divisors of n, used to calculate default width.
+            https://stackoverflow.com/a/36700288
+            """
+            divs = [1]
+            for i in range(2, int(np.sqrt(n)) + 1):
+                if n % i == 0:
+                    divs.extend([i, n / i])
+            # divs.extend([n])  # n is a divisor, but not needed for our function
+            return np.array(divs)
+
+        def orderOfMag(n):
+            """
+            example: if n = 0.03, then should return 1/100
+            """
+            return 10 ** np.floor(np.log10(n))
+
+        # aiming for ~10 colors. this is our initial guess.
+        width_ballpark = crange / 10
+        if width_ballpark < 1:
+            # if 10 evenly spaced colors produces widths < 1, then try widths in [.1, .125,.2, .25,.5]
+            # but scales, in case all of the numbers are really small.
+            # (e.g. if width is 0.03, then should try 0.01, 0.0125, ect..)
+            width_candidates = np.array([1, 1.25, 2, 2.5, 5]) * orderOfMag(
+                width_ballpark
+            )
+
+        else:
+            # if the width between colors spans more than 1, then try the divisors
+            # TODO: might be worth filtering this so that 0 MUST be one of the tickmarks.
+            width_candidates = divisors(crange)
+
+        check_n_colors = crange / width_candidates  # number of colors for each width
+        width = width_candidates[
+            np.argmin(np.abs(check_n_colors - 10))
+        ]  # pick the width that produces closest to 10 colors
+
+    # end getting default width ---
+
+    n_colors = int(np.round(crange / width))  # round to handle weird precision.
+    # use n_colors + 1 bc including both endpoints
+    ticks = np.linspace(start, end, n_colors + 1).round(10).tolist()
+    # find location of 0
+    zero_ind = np.searchsorted(ticks, 0)
+
+    # if the colorbar is symmetric, then most of this work was totally unnecessary
+    if abs(start) == abs(end):
+        cmap_final = tastymap.cook_tmap(cmap, num_colors=n_colors)
+    else:
+        # use twice the colors, so that cmap_base[n_colors] is white.
+        # TODO: this is a little hacky and leads to muted colors.
+        # one alternative would be to split the cbar at zero and rescale (as in matplotlib twoslopenorm)
+        # could be done using two calls to tastymap.resize, which are combined using &
+        # e.g. cmap_below0 = cmap_base[0:n_colors].resize(zero_ind),
+        # cmap_above0 = cmap_base[n_colors:].resize(n_colors - zero_ind)
+        # cmap_final = (cmap_below0 & cmap_above0).cmap
+
+        cmap_base = tastymap.cook_tmap(cmap, num_colors=n_colors * 2)
+
+        # n_colors is white, so we want to start zero_ind below, and then pick out the next n_colors.
+        # mult by 2 version if you wanna up the saturation
+        # cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)] * 2
+        cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)]
+
+    if extension == "bokeh":
+        tick_loc = {"ticker": FixedTicker(ticks=ticks)}
+    elif extension == "matplotlib":
+        tick_loc = {"ticks": ticks}
+    else:
+        exit("only bokeh and matplotlib extensions are supported.")
+
+    cbar_dict = dict(
+        cmap=cmap_final.cmap,
+        clim=(start, end),
+        colorbar_opts=tick_loc,
+        color_levels=ticks,
+    )
+
+    return cbar_dict
+
+
 
 ```
 
@@ -489,7 +602,7 @@ my_cmap = tastymap.cook_tmap("RdBu_r", num_colors=n_colors * 2)[0:n_colors].cmap
 # make a map with values closer to zero
 eg_map = da_map2 - da_map1
 eg_map.hvplot.quadmesh(coastline=True).opts(
-    opts.QuadMesh(
+    hv.opts.QuadMesh(
         cmap=my_cmap,
         ticks = my_ticks,
         color_levels=my_ticks,
@@ -521,7 +634,7 @@ eg_map.hvplot.quadmesh(coastline=True).opts(
 :::
 
 
-## Geographic options: changing projection
+## Geographic options
 
 A list of avaialble geographic-specific options is [here](https://hvplot.holoviz.org/en/docs/latest/user_guide/Geographic_Data.html#options). As an example, we'll change the projection of the data. 
 
@@ -588,8 +701,12 @@ hv.extension("matplotlib")  # use mpl as the backend
 
 # option 1: transferring our work to matplotlib ----------
 
-fig = plot.handles["fig"]
-ax = plot.handles["axes"]
+fig = hv.render(plot)
+ax = fig.axes
+
+# alternative to above!
+# fig = plot.handles["fig"]
+# ax = plot.handles["axes"]
 
 # and now we can just continue on using (fig, ax) like in any other matplotlib object!
 ax.text(
