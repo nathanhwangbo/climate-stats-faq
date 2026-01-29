@@ -18,7 +18,7 @@ website:
           - when_to_average.qmd          
       - section: "Tools"
         contents: 
-          - nc_explorer.qmd       # TODO: need to work out shinylive
+          # - nc_explorer.qmd       # TODO: need to work out shinylive
           #- eof_data_simulator.qmd # TODO: make from scratch. use probablistic pca to make a testbed for eof-based methods.
       # - section: "Side Quests"
       #   contents:
