@@ -446,7 +446,8 @@ def cbar_zero_centered(start, end, cmap="RdBu", width=None, extension="bokeh"):
         width_ballpark = crange / 10
         if width_ballpark < 1:
             # if 10 evenly spaced colors produces widths < 1, then try widths in [.1, .125,.2, .25,.5]
-            # but scales, in case all of the numbers are really small.
+            # which guarantees that all integers get their own ticks
+            # this scales by order of magnitude, in case the range is small.
             # (e.g. if width is 0.03, then should try 0.01, 0.0125, ect..)
             width_candidates = np.array([1, 1.25, 2, 2.5, 5]) * orderOfMag(
                 width_ballpark
@@ -489,6 +490,8 @@ def cbar_zero_centered(start, end, cmap="RdBu", width=None, extension="bokeh"):
         # cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)] * 2
         cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)]
 
+    # label the number at every colorchage
+    # todo: if there are a lot of colors, we could do every other number
     if extension == "bokeh":
         tick_loc = {"ticker": FixedTicker(ticks=ticks)}
     elif extension == "matplotlib":
@@ -676,6 +679,8 @@ There are two ways to do this: first, by grabbing the underlying matplotlib axes
 
 In the matplotlib example, I add some text to the corner. I find that hvplot struggles with relative positioning of text.
 
+In the bokeh example, I modify the plot titles to include subplot labels (like (a), (b), (c))
+
 ::: {.panel-tabset group="language"}
 
 
@@ -684,10 +689,35 @@ In the matplotlib example, I add some text to the corner. I find that hvplot str
 ```{python}
 hv.extension("bokeh")  # use bokeh as the backend
 
+my_multipanel_fig = fig1a + fig1b + fig1c + fig1d  # same as layout_eg
+
 # option 1: extracting the underlying object ----------
 
 # option 2: using hooks -----------------------
 
+import string
+from functools import partial
+
+
+def subplot_label_hook(plot, element, sub_label=""):
+    """add subplot labels (a, b, c...)"""
+    # Access the underlying Bokeh figure
+    fig = plot.state
+
+    original_title = fig.title.text
+    fig.title.text = f"{sub_label} {original_title}"
+
+
+# iterate over the subplots and add the label to the title.
+updated_figlist = []
+for i, subplot in enumerate(my_multipanel_fig):
+    new_label = f"({string.ascii_lowercase[i]})"  # this sets the format to (a), (b), ..
+    updated_subplot = subplot.opts(
+        hooks=[partial(subplot_label_hook, sub_label=new_label)]
+    )
+    updated_figlist.append(updated_subplot)
+
+updated_figure = hv.Layout(updated_figlist)
 
 
 

@@ -12,11 +12,10 @@ website:
       - section: "Notes"
         contents:
           - nc_tutorial.qmd
+          - hvplot_tutorial.qmd
           - eof_terminology.qmd  
-          - climate_data_access_R.qmd
-          - when_to_average.qmd
-          # - cmip_data_access.qmd   # TODO: convert from get_cmip6_le_rss_tas.py
-          
+          - climate_data_access.qmd
+          - when_to_average.qmd          
       - section: "Tools"
         contents: 
           - nc_explorer.qmd       # TODO: need to work out shinylive

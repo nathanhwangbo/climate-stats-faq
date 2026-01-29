@@ -163,7 +163,7 @@ with open("cesm_demo2.nc", mode="wb") as file:
 :::
 
 
-# Reading files
+# Reading and Writing files
 
 Let's start with the cesm file for our demo, assuming that there's a single variable that we're interested in, TREFHT. Compare to the output after reading in the GISTEMP data.
 
@@ -254,6 +254,46 @@ cesm_mf = cesm_mf['TREFHT']
 
 :::
 
+
+## Writing netcdf
+
+One cool thing about netcdf is that the structure is nicely compressible. Compressing files as you write them often speeds up overall code time in the future by decreasing how much your hard drive has to do (the trade off is that insteadm, your CPU has to work harder)
+
+zstandard (zst) is probably the recommended compresison algorithm these days, but writing to zst will require the user to import addition python packages (e.g. hdf5plugin, see [here](https://data-infrastructure-services.gitlab-pages.dkrz.de/tutorials-and-use-cases/tutorial_compression_netcdf.html)).
+
+The zlib config below is a good general purpose option -- the python function below is adapated from the discussion [here](https://github.com/pydata/xarray/discussions/5709)
+
+::: {.panel-tabset group="language"}
+
+## R
+
+```{r}
+
+```
+
+## Python
+
+```{python}
+def write_nc(ds, filepath):
+    # a default choice of compression
+    comp = dict(zlib=True, complevel=5)
+
+    if type(ds) is xr.Dataset:
+        for var in ds:
+            ds[var].encoding.update(comp)
+    if type(ds) is xr.DataArray:
+        ds.encoding.update(comp)
+
+    ds.to_netcdf(filepath, format="NETCDF4")
+
+
+# example
+write_nc(cesm_mf, "compressed_file.nc")
+```
+
+:::
+
+
 # Looking at metadata
 
 e.g. finding the units of a variable
@@ -302,6 +342,8 @@ cesm1_da.long_name
 ```
 
 :::
+
+
 
 # Preprocessing
 
