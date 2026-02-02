@@ -262,6 +262,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#separate-regressions-for-each-gridcell" id="toc-separate-regressions-for-each-gridcell" class="nav-link" data-scroll-target="#separate-regressions-for-each-gridcell">Separate regressions for each gridcell</a></li>
   </ul></li>
+  <li><a href="#misc" id="toc-misc" class="nav-link" data-scroll-target="#misc">Misc</a>
+  <ul class="collapse">
+  <li><a href="#simulating-data-in-.nc-format" id="toc-simulating-data-in-.nc-format" class="nav-link" data-scroll-target="#simulating-data-in-.nc-format">Simulating data in .nc format</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1525,6 +1529,44 @@ st_transform(terra::crs(rast))
 </div>
 </div>
 </div>
+</section>
+</section>
+<section id="misc" class="level1">
+<h1>Misc</h1>
+<section id="simulating-data-in-.nc-format" class="level2">
+<h2 class="anchored" data-anchor-id="simulating-data-in-.nc-format">Simulating data in .nc format</h2>
+<p>Here are some helpers for composing fake data into a netcdf format.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset" data-group="language">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-25-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-25-1" role="tab" aria-controls="tabset-25-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-25-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-25-2" role="tab" aria-controls="tabset-25-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content" data-group="language">
+<div id="tabset-25-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-25-1-tab">
+
+</div>
+<div id="tabset-25-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-25-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>timescale <span class="op">=</span> <span class="st">"daily"</span>  <span class="co"># monthly, annual can be postprocessed from daily</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>is_trend <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="co"># read in multiple years of ERA to get reasonable lon/lat (var matters, but not much)</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>urls_era <span class="op">=</span> [<span class="ss">f"http://bickford.asuscomm.com:3923/ERA5/t2m_x_1x1/t2m_x_daily_</span><span class="sc">{</span>year<span class="sc">}</span><span class="ss">_1x1.nc"</span> <span class="cf">for</span> year <span class="kw">in</span> <span class="dv">1960</span>:<span class="dv">2024</span>]</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>era_t2m_x <span class="op">=</span> xr.open_mfdataset(urls_era)</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a><span class="co"># center and scale (each location has mean 0, std 1)</span></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a><span class="co"># estimate doy-cycle</span></span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a><span class="co"># estimate month-cycle</span></span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a><span class="co"># estimate trend</span></span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a><span class="co"># generate spatial field of noise</span></span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a><span class="co"># generate y = doy_cycle + month_cycle + trend*t + noise</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</div>
 <!-- # Conversion between data types
 
 We commonly represent spatiotemporal data cubes as matrices: one row per time point, and one column per spatial gridcell. How do we convert from our spatial objects (i.e. xarray, spatRaster) to this matrix form?
@@ -1564,75 +1606,75 @@ t(mat_terra)  # n_time * n_gridcell representation
 <div class="cell">
 <details class="code-fold">
 <summary>Bonus! in R, how do we convert between different spatial packages?</summary>
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; stars</span></span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>terra_to_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars</span>(stars_to_terra)</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="co"># stars -&gt; terra</span></span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a><span class="co"># note: this only works if cesm_stars is *not* a stars proxy object!</span></span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>stars_to_terra <span class="ot">&lt;-</span> <span class="fu">as</span>(cesm_stars, <span class="st">'SpatRaster'</span>)</span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync -&gt; stars</span></span>
-<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>  st_as_stars.tidync <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
-<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>  <span class="do">## x is a tidync</span></span>
-<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">## ignore unit details for the moment</span></span>
-<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">lapply</span>(tidync<span class="sc">::</span><span class="fu">hyper_array</span>(x, <span class="at">drop =</span> <span class="cn">FALSE</span>), </span>
-<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>                 units<span class="sc">::</span>as_units)</span>
-<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a>  <span class="do">## this needs to be a bit easier ...</span></span>
-<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>  transforms <span class="ot">&lt;-</span> tidync<span class="sc">:::</span><span class="fu">active_axis_transforms</span>(x)</span>
-<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a>  dims <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">names</span>(transforms), <span class="cf">function</span>(trname) {</span>
-<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a>    transform <span class="ot">&lt;-</span> transforms[[trname]] <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(selected)</span>
-<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> transform[[trname]]</span>
-<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
-<span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>      stars<span class="sc">:::</span><span class="fu">create_dimension</span>(</span>
-<span id="cb52-26"><a href="#cb52-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> values)</span>
-<span id="cb52-27"><a href="#cb52-27" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb52-28"><a href="#cb52-28" aria-hidden="true" tabindex="-1"></a>      <span class="do">## a hack for now when there's only one value</span></span>
-<span id="cb52-29"><a href="#cb52-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">from =</span> values, <span class="at">to =</span> values, </span>
-<span id="cb52-30"><a href="#cb52-30" aria-hidden="true" tabindex="-1"></a>                     <span class="at">offset =</span> values, <span class="at">delta =</span> <span class="cn">NA_real_</span>, </span>
-<span id="cb52-31"><a href="#cb52-31" aria-hidden="true" tabindex="-1"></a>                     <span class="at">geotransform =</span> <span class="fu">rep</span>(<span class="cn">NA_real_</span>, <span class="dv">6</span>), </span>
-<span id="cb52-32"><a href="#cb52-32" aria-hidden="true" tabindex="-1"></a>                     <span class="at">refsys =</span> <span class="cn">NA_character_</span>, </span>
-<span id="cb52-33"><a href="#cb52-33" aria-hidden="true" tabindex="-1"></a>                     <span class="at">point =</span> <span class="cn">NA</span>, </span>
-<span id="cb52-34"><a href="#cb52-34" aria-hidden="true" tabindex="-1"></a>                     <span class="at">values =</span> <span class="cn">NULL</span>), </span>
-<span id="cb52-35"><a href="#cb52-35" aria-hidden="true" tabindex="-1"></a>                <span class="at">class =</span> <span class="st">"dimension"</span>)</span>
-<span id="cb52-36"><a href="#cb52-36" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb52-37"><a href="#cb52-37" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb52-38"><a href="#cb52-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(dims) <span class="ot">&lt;-</span> <span class="fu">names</span>(transforms)</span>
-<span id="cb52-39"><a href="#cb52-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(transforms)<span class="sc">&gt;=</span> <span class="dv">2</span>L) {</span>
-<span id="cb52-40"><a href="#cb52-40" aria-hidden="true" tabindex="-1"></a>    r <span class="ot">&lt;-</span> <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">affine =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
-<span id="cb52-41"><a href="#cb52-41" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dimensions =</span> <span class="fu">names</span>(dims)[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
-<span id="cb52-42"><a href="#cb52-42" aria-hidden="true" tabindex="-1"></a>                 <span class="at">curvilinear =</span> <span class="cn">FALSE</span>, <span class="at">class =</span> <span class="st">"stars_raster"</span>))</span>
-<span id="cb52-43"><a href="#cb52-43" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb52-44"><a href="#cb52-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">attr</span>(dims, <span class="st">"raster"</span>) <span class="ot">&lt;-</span> r</span>
-<span id="cb52-45"><a href="#cb52-45" aria-hidden="true" tabindex="-1"></a>}  </span>
-<span id="cb52-46"><a href="#cb52-46" aria-hidden="true" tabindex="-1"></a>  geotransform_xy <span class="ot">&lt;-</span> <span class="fu">c</span>(dims[[<span class="dv">1</span>]]<span class="sc">$</span>offset, dims[[<span class="dv">1</span>]]<span class="sc">$</span>delta, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>offset, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>delta)</span>
-<span id="cb52-47"><a href="#cb52-47" aria-hidden="true" tabindex="-1"></a>  dims[[<span class="dv">1</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> dims[[<span class="dv">2</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> geotransform_xy</span>
-<span id="cb52-48"><a href="#cb52-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">structure</span>(data, <span class="at">dimensions =</span>   <span class="fu">structure</span>(dims, <span class="at">class =</span> <span class="st">"dimensions"</span>), </span>
-<span id="cb52-49"><a href="#cb52-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> <span class="st">"stars"</span>)</span>
-<span id="cb52-50"><a href="#cb52-50" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb52-51"><a href="#cb52-51" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb52-52"><a href="#cb52-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-53"><a href="#cb52-53" aria-hidden="true" tabindex="-1"></a><span class="co"># tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))</span></span>
-<span id="cb52-54"><a href="#cb52-54" aria-hidden="true" tabindex="-1"></a>tnc_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars.tidync</span>(cesm_tnc)</span>
-<span id="cb52-55"><a href="#cb52-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-56"><a href="#cb52-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-57"><a href="#cb52-57" aria-hidden="true" tabindex="-1"></a><span class="do">## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.</span></span>
-<span id="cb52-58"><a href="#cb52-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-59"><a href="#cb52-59" aria-hidden="true" tabindex="-1"></a><span class="co"># stars to df</span></span>
-<span id="cb52-60"><a href="#cb52-60" aria-hidden="true" tabindex="-1"></a>stars_df <span class="ot">&lt;-</span> stars<span class="sc">:::</span><span class="fu">to_df</span>(cesm_stars) </span>
-<span id="cb52-61"><a href="#cb52-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-62"><a href="#cb52-62" aria-hidden="true" tabindex="-1"></a><span class="co"># df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)</span></span>
-<span id="cb52-63"><a href="#cb52-63" aria-hidden="true" tabindex="-1"></a>df_stars <span class="ot">&lt;-</span> stars_df <span class="sc">%&gt;%</span></span>
-<span id="cb52-64"><a href="#cb52-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_dim</span>(<span class="fu">dim</span>(cesm_stars)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-65"><a href="#cb52-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_stars</span>(<span class="at">dimensions =</span> <span class="fu">st_dimensions</span>(cesm_stars))</span>
-<span id="cb52-66"><a href="#cb52-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-67"><a href="#cb52-67" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; df</span></span>
-<span id="cb52-68"><a href="#cb52-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-69"><a href="#cb52-69" aria-hidden="true" tabindex="-1"></a>tidyterra<span class="sc">::</span><span class="fu">as_tibble</span>(cesm_terra, <span class="at">xy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; stars</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>terra_to_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars</span>(stars_to_terra)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a><span class="co"># stars -&gt; terra</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="co"># note: this only works if cesm_stars is *not* a stars proxy object!</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>stars_to_terra <span class="ot">&lt;-</span> <span class="fu">as</span>(cesm_stars, <span class="st">'SpatRaster'</span>)</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a><span class="co"># tidync -&gt; stars</span></span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>  st_as_stars.tidync <span class="ot">&lt;-</span> <span class="cf">function</span>(x, ...) {</span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>  <span class="do">## x is a tidync</span></span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>  <span class="do">## ignore unit details for the moment</span></span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">lapply</span>(tidync<span class="sc">::</span><span class="fu">hyper_array</span>(x, <span class="at">drop =</span> <span class="cn">FALSE</span>), </span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a>                 units<span class="sc">::</span>as_units)</span>
+<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a>  <span class="do">## this needs to be a bit easier ...</span></span>
+<span id="cb53-20"><a href="#cb53-20" aria-hidden="true" tabindex="-1"></a>  transforms <span class="ot">&lt;-</span> tidync<span class="sc">:::</span><span class="fu">active_axis_transforms</span>(x)</span>
+<span id="cb53-21"><a href="#cb53-21" aria-hidden="true" tabindex="-1"></a>  dims <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">names</span>(transforms), <span class="cf">function</span>(trname) {</span>
+<span id="cb53-22"><a href="#cb53-22" aria-hidden="true" tabindex="-1"></a>    transform <span class="ot">&lt;-</span> transforms[[trname]] <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(selected)</span>
+<span id="cb53-23"><a href="#cb53-23" aria-hidden="true" tabindex="-1"></a>    values <span class="ot">&lt;-</span> transform[[trname]]</span>
+<span id="cb53-24"><a href="#cb53-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">1</span>) {</span>
+<span id="cb53-25"><a href="#cb53-25" aria-hidden="true" tabindex="-1"></a>      stars<span class="sc">:::</span><span class="fu">create_dimension</span>(</span>
+<span id="cb53-26"><a href="#cb53-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> values)</span>
+<span id="cb53-27"><a href="#cb53-27" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb53-28"><a href="#cb53-28" aria-hidden="true" tabindex="-1"></a>      <span class="do">## a hack for now when there's only one value</span></span>
+<span id="cb53-29"><a href="#cb53-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">from =</span> values, <span class="at">to =</span> values, </span>
+<span id="cb53-30"><a href="#cb53-30" aria-hidden="true" tabindex="-1"></a>                     <span class="at">offset =</span> values, <span class="at">delta =</span> <span class="cn">NA_real_</span>, </span>
+<span id="cb53-31"><a href="#cb53-31" aria-hidden="true" tabindex="-1"></a>                     <span class="at">geotransform =</span> <span class="fu">rep</span>(<span class="cn">NA_real_</span>, <span class="dv">6</span>), </span>
+<span id="cb53-32"><a href="#cb53-32" aria-hidden="true" tabindex="-1"></a>                     <span class="at">refsys =</span> <span class="cn">NA_character_</span>, </span>
+<span id="cb53-33"><a href="#cb53-33" aria-hidden="true" tabindex="-1"></a>                     <span class="at">point =</span> <span class="cn">NA</span>, </span>
+<span id="cb53-34"><a href="#cb53-34" aria-hidden="true" tabindex="-1"></a>                     <span class="at">values =</span> <span class="cn">NULL</span>), </span>
+<span id="cb53-35"><a href="#cb53-35" aria-hidden="true" tabindex="-1"></a>                <span class="at">class =</span> <span class="st">"dimension"</span>)</span>
+<span id="cb53-36"><a href="#cb53-36" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb53-37"><a href="#cb53-37" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb53-38"><a href="#cb53-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">names</span>(dims) <span class="ot">&lt;-</span> <span class="fu">names</span>(transforms)</span>
+<span id="cb53-39"><a href="#cb53-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(transforms)<span class="sc">&gt;=</span> <span class="dv">2</span>L) {</span>
+<span id="cb53-40"><a href="#cb53-40" aria-hidden="true" tabindex="-1"></a>    r <span class="ot">&lt;-</span> <span class="fu">structure</span>(<span class="fu">list</span>(<span class="at">affine =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
+<span id="cb53-41"><a href="#cb53-41" aria-hidden="true" tabindex="-1"></a>                 <span class="at">dimensions =</span> <span class="fu">names</span>(dims)[<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], </span>
+<span id="cb53-42"><a href="#cb53-42" aria-hidden="true" tabindex="-1"></a>                 <span class="at">curvilinear =</span> <span class="cn">FALSE</span>, <span class="at">class =</span> <span class="st">"stars_raster"</span>))</span>
+<span id="cb53-43"><a href="#cb53-43" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-44"><a href="#cb53-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">attr</span>(dims, <span class="st">"raster"</span>) <span class="ot">&lt;-</span> r</span>
+<span id="cb53-45"><a href="#cb53-45" aria-hidden="true" tabindex="-1"></a>}  </span>
+<span id="cb53-46"><a href="#cb53-46" aria-hidden="true" tabindex="-1"></a>  geotransform_xy <span class="ot">&lt;-</span> <span class="fu">c</span>(dims[[<span class="dv">1</span>]]<span class="sc">$</span>offset, dims[[<span class="dv">1</span>]]<span class="sc">$</span>delta, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>offset, <span class="dv">0</span>, dims[[<span class="dv">2</span>]]<span class="sc">$</span>delta)</span>
+<span id="cb53-47"><a href="#cb53-47" aria-hidden="true" tabindex="-1"></a>  dims[[<span class="dv">1</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> dims[[<span class="dv">2</span>]]<span class="sc">$</span>geotransform <span class="ot">&lt;-</span> geotransform_xy</span>
+<span id="cb53-48"><a href="#cb53-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">structure</span>(data, <span class="at">dimensions =</span>   <span class="fu">structure</span>(dims, <span class="at">class =</span> <span class="st">"dimensions"</span>), </span>
+<span id="cb53-49"><a href="#cb53-49" aria-hidden="true" tabindex="-1"></a>            <span class="at">class =</span> <span class="st">"stars"</span>)</span>
+<span id="cb53-50"><a href="#cb53-50" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-51"><a href="#cb53-51" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb53-52"><a href="#cb53-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-53"><a href="#cb53-53" aria-hidden="true" tabindex="-1"></a><span class="co"># tnc_stars &lt;- stars::st_as_stars(tnc_tib, dims = c('lon', 'lat', 'time'))</span></span>
+<span id="cb53-54"><a href="#cb53-54" aria-hidden="true" tabindex="-1"></a>tnc_stars <span class="ot">&lt;-</span> <span class="fu">st_as_stars.tidync</span>(cesm_tnc)</span>
+<span id="cb53-55"><a href="#cb53-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-56"><a href="#cb53-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-57"><a href="#cb53-57" aria-hidden="true" tabindex="-1"></a><span class="do">## stars implements mutate by going stars -&gt; df -&gt; dplyr::mutate -&gt; stars. Here's how that looks.</span></span>
+<span id="cb53-58"><a href="#cb53-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-59"><a href="#cb53-59" aria-hidden="true" tabindex="-1"></a><span class="co"># stars to df</span></span>
+<span id="cb53-60"><a href="#cb53-60" aria-hidden="true" tabindex="-1"></a>stars_df <span class="ot">&lt;-</span> stars<span class="sc">:::</span><span class="fu">to_df</span>(cesm_stars) </span>
+<span id="cb53-61"><a href="#cb53-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-62"><a href="#cb53-62" aria-hidden="true" tabindex="-1"></a><span class="co"># df BACK to stars (i.e., assumes that we started with a stars object called cesm_stars)</span></span>
+<span id="cb53-63"><a href="#cb53-63" aria-hidden="true" tabindex="-1"></a>df_stars <span class="ot">&lt;-</span> stars_df <span class="sc">%&gt;%</span></span>
+<span id="cb53-64"><a href="#cb53-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_dim</span>(<span class="fu">dim</span>(cesm_stars)) <span class="sc">%&gt;%</span></span>
+<span id="cb53-65"><a href="#cb53-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_stars</span>(<span class="at">dimensions =</span> <span class="fu">st_dimensions</span>(cesm_stars))</span>
+<span id="cb53-66"><a href="#cb53-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-67"><a href="#cb53-67" aria-hidden="true" tabindex="-1"></a><span class="co"># terra -&gt; df</span></span>
+<span id="cb53-68"><a href="#cb53-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-69"><a href="#cb53-69" aria-hidden="true" tabindex="-1"></a>tidyterra<span class="sc">::</span><span class="fu">as_tibble</span>(cesm_terra, <span class="at">xy =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 
