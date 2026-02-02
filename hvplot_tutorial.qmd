@@ -399,114 +399,6 @@ da_map1.hvplot.quadmesh.opts(
 )
 
 
-# a helper function for making a 0-centered diverging colorbar in hvplot
-# even if the limits are not symmetric around 0.
-def cbar_zero_centered(start, end, cmap="RdBu", width=None, extension="bokeh"):
-    """
-    a hvplot helper to make a zero-centered segmented colorbar
-    :param: start and end are the two endpoints of the colorbar. 0 should be contained inside
-    :param: cmap is a string with the desired colormap. should be accepted by tastymap.cook_tmap(), and should probably be a diverging colorbar.
-    :param: width is a number, the distance between colors. This will be used to determine the number of colors.
-    :param: extension is the hvplot extension -- for now, bokeh and matplotlib are supported.
-
-    :returns: a dictionary to be passed into holoviews .opts
-    :example:
-    da = xr.tutorial.load_dataset('air_temperature.nc').isel(time=10) - 273
-    eg_cbar = cbar_zero_centered(-30, 40)
-    da.hvplot().opts(**eg_cbar)
-    """
-    crange = end - start  # range of the cbar
-
-    # set default width (aka distance between colors)
-    if width is None:
-        # strategy for setting default width:
-        # we're gonna aim for ~10 colors
-        # but we're going to prioritize "round" spacings.
-        # this strategy is assuming that the crange is an integer
-
-        def divisors(n):
-            """
-            get divisors of n, used to calculate default width.
-            https://stackoverflow.com/a/36700288
-            """
-            divs = [1]
-            for i in range(2, int(np.sqrt(n)) + 1):
-                if n % i == 0:
-                    divs.extend([i, n / i])
-            # divs.extend([n])  # n is a divisor, but not needed for our function
-            return np.array(divs)
-
-        def orderOfMag(n):
-            """
-            example: if n = 0.03, then should return 1/100
-            """
-            return 10 ** np.floor(np.log10(n))
-
-        # aiming for ~10 colors. this is our initial guess.
-        width_ballpark = crange / 10
-        if width_ballpark < 1:
-            # if 10 evenly spaced colors produces widths < 1, then try widths in [.1, .125,.2, .25,.5]
-            # which guarantees that all integers get their own ticks
-            # this scales by order of magnitude, in case the range is small.
-            # (e.g. if width is 0.03, then should try 0.01, 0.0125, ect..)
-            width_candidates = np.array([1, 1.25, 2, 2.5, 5]) * orderOfMag(
-                width_ballpark
-            )
-
-        else:
-            # if the width between colors spans more than 1, then try the divisors
-            # TODO: might be worth filtering this so that 0 MUST be one of the tickmarks.
-            width_candidates = divisors(crange)
-
-        check_n_colors = crange / width_candidates  # number of colors for each width
-        width = width_candidates[
-            np.argmin(np.abs(check_n_colors - 10))
-        ]  # pick the width that produces closest to 10 colors
-
-    # end getting default width ---
-
-    n_colors = int(np.round(crange / width))  # round to handle weird precision.
-    # use n_colors + 1 bc including both endpoints
-    ticks = np.linspace(start, end, n_colors + 1).round(10).tolist()
-    # find location of 0
-    zero_ind = np.searchsorted(ticks, 0)
-
-    # if the colorbar is symmetric, then most of this work was totally unnecessary
-    if abs(start) == abs(end):
-        cmap_final = tastymap.cook_tmap(cmap, num_colors=n_colors)
-    else:
-        # use twice the colors, so that cmap_base[n_colors] is white.
-        # TODO: this is a little hacky and leads to muted colors.
-        # one alternative would be to split the cbar at zero and rescale (as in matplotlib twoslopenorm)
-        # could be done using two calls to tastymap.resize, which are combined using &
-        # e.g. cmap_below0 = cmap_base[0:n_colors].resize(zero_ind),
-        # cmap_above0 = cmap_base[n_colors:].resize(n_colors - zero_ind)
-        # cmap_final = (cmap_below0 & cmap_above0).cmap
-
-        cmap_base = tastymap.cook_tmap(cmap, num_colors=n_colors * 2)
-
-        # n_colors is white, so we want to start zero_ind below, and then pick out the next n_colors.
-        # mult by 2 version if you wanna up the saturation
-        # cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)] * 2
-        cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)]
-
-    # label the number at every colorchage
-    # todo: if there are a lot of colors, we could do every other number
-    if extension == "bokeh":
-        tick_loc = {"ticker": FixedTicker(ticks=ticks)}
-    elif extension == "matplotlib":
-        tick_loc = {"ticks": ticks}
-    else:
-        exit("only bokeh and matplotlib extensions are supported.")
-
-    cbar_dict = dict(
-        cmap=cmap_final.cmap,
-        clim=(start, end),
-        colorbar_opts=tick_loc,
-        color_levels=ticks,
-    )
-
-    return cbar_dict
 
 
 
@@ -566,9 +458,7 @@ from bokeh.models import FixedTicker
 
 # TODO: I think tastymap.pair_tbar() might make this easier.
 
-my_ticks = (
-    np.arange(-0.5, 0, 0.05).round(2).tolist()
-)  # ticks aren't symmetric around 0!
+my_ticks = np.arange(-0.5, 0, 0.05).round(2).tolist()  # ticks aren't symmetric around 0!
 n_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom
 my_cmap = tastymap.cook_tmap("RdBu_r", num_colors=n_colors * 2)[0:n_colors].cmap
 
@@ -584,6 +474,117 @@ eg_map.hvplot.quadmesh(coastline=True).opts(
     )
 )
 
+
+# in helper function form
+def cbar_discrete(start, end, cmap="RdBu", width=None, zero_centered=False, extension="bokeh"):
+    """
+    a hvplot helper to make a zero-centered segmented colorbar
+    :param: start and end are the two endpoints of the colorbar. 0 should be contained inside
+    :param: cmap is a string with the desired colormap. should be accepted by tastymap.cook_tmap(), and should probably be a diverging colorbar.
+    :param: width is a number, the distance between colors. This will be used to determine the number of colors.
+    :param: extension is the hvplot extension -- for now, bokeh and matplotlib are supported.
+
+    :returns: a dictionary to be passed into holoviews .opts
+    :example:
+    da = xr.tutorial.load_dataset('air_temperature.nc').isel(time=10) - 273
+    eg_cbar = cbar_discrete(-30, 40, cmap = "RdBu", zero_centered= True)
+    da.hvplot().opts(**eg_cbar)
+    """
+    crange = end - start  # range of the cbar
+
+    # set default width (aka distance between colors)
+    if width is None:
+        # strategy for setting default width:
+        # we're gonna aim for ~10 colors
+        # but we're going to prioritize "round" spacings.
+        # this strategy is assuming that the crange is an integer
+
+        def divisors(n):
+            """
+            get divisors of n, used to calculate default width.
+            https://stackoverflow.com/a/36700288
+            """
+            divs = [1]
+            for i in range(2, int(np.sqrt(n)) + 1):
+                if n % i == 0:
+                    divs.extend([i, n / i])
+            # divs.extend([n])  # n is a divisor, but not needed for our function
+            return np.array(divs)
+
+        def orderOfMag(n):
+            """
+            example: if n = 0.03, then should return 1/100
+            """
+            return 10 ** np.floor(np.log10(n))
+
+        # aiming for ~10 colors. this is our initial guess.
+        width_ballpark = crange / 10
+        if width_ballpark < 1:
+            # if 10 evenly spaced colors produces widths < 1, then try widths in [.1, .125,.2, .25,.5]
+            # which guarantees that all integers get their own ticks
+            # this scales by order of magnitude, in case the range is small.
+            # (e.g. if width is 0.03, then should try 0.01, 0.0125, ect..)
+            width_candidates = np.array([1, 1.25, 2, 2.5, 5]) * orderOfMag(width_ballpark)
+
+        else:
+            # if the width between colors spans more than 1, then try the divisors
+            # TODO: might be worth filtering this so that 0 MUST be one of the tickmarks.
+            width_candidates = divisors(crange)
+
+        check_n_colors = crange / width_candidates  # number of colors for each width
+        width = width_candidates[
+            np.argmin(np.abs(check_n_colors - 10))
+        ]  # pick the width that produces closest to 10 colors
+
+    # end getting default width ---
+
+    n_colors = int(np.round(crange / width))  # round to handle weird precision.
+    # use n_colors + 1 bc including both endpoints
+    ticks = np.linspace(start, end, n_colors + 1).round(10).tolist()
+
+    # label the number at every colorchage
+    # todo: if there are a lot of colors, we could do every other number
+    if extension == "bokeh":
+        tick_loc = {"ticker": FixedTicker(ticks=ticks)}
+    elif extension == "matplotlib":
+        tick_loc = {"ticks": ticks}
+    else:
+        exit("only bokeh and matplotlib extensions are supported.")
+
+    ############################################
+    # adds logic to center a diverging cmap at 0
+    ############################################
+    is_not_symmetric = abs(start) != abs(end)
+    # check that (1) we want zero centered and (2) the cbar isn't already symmetric
+    if (zero_centered) and (is_not_symmetric):
+        # find location of 0
+        zero_ind = np.searchsorted(ticks, 0)
+
+        # use twice the colors, so that cmap_base[n_colors] is white.
+        # TODO: this is a little hacky and leads to muted colors.
+        # one alternative would be to split the cbar at zero and rescale (as in matplotlib twoslopenorm)
+        # could be done using two calls to tastymap.resize, which are combined using &
+        # e.g. cmap_below0 = cmap_base[0:n_colors].resize(zero_ind),
+        # cmap_above0 = cmap_base[n_colors:].resize(n_colors - zero_ind)
+        # cmap_final = (cmap_below0 & cmap_above0).cmap
+
+        cmap_base = tastymap.cook_tmap(cmap, num_colors=n_colors * 2)
+
+        # n_colors is white, so we want to start zero_ind below, and then pick out the next n_colors.
+        # mult by 2 version if you wanna up the saturation
+        # cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)] * 2
+        cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)]
+    else:
+        cmap_final = tastymap.cook_tmap(cmap, num_colors=n_colors)
+
+    cbar_dict = dict(
+        cmap=cmap_final.cmap,
+        clim=(start, end),
+        colorbar_opts=tick_loc,
+        color_levels=ticks,
+    )
+
+    return cbar_dict
 ```
 
 
