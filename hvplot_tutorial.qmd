@@ -292,9 +292,7 @@ geo_opts = {"coastline": True}
 line_opts = {"xrotation": 45}
 
 # for a single plot, we can add some defaults
-da_map1.hvplot.Image(coastline=True).options(
-    title="example plot", ylim=(None, 70), **universal_style_opts
-)
+da_map1.hvplot.Image(coastline=True).options(title="example plot", ylim=(None, 70), **universal_style_opts)
 
 
 # now, for a multi-panel layout.
@@ -311,6 +309,26 @@ layout_eg.options(
 layout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])
 
 
+### Bonus! if there are changes you want to make universally, it might be helpful to add a theme
+
+# Forces a specific font ('sans-serif') -----------
+new_font = "sans-serif"
+#  [n for n in bokeh.models.Text.properties() if "font" in n] # see what's out there
+custom_theme = Theme(
+    json={
+        "attrs": {
+            "Title": {"text_font": new_font},
+            "Axis": {"axis_label_text_font": new_font, "major_label_text_font": new_font},
+            "ColorBar": {"title_text_font": new_font, "major_label_text_font": new_font},
+            "Legend": {"title_text_font": new_font, "label_text_font": new_font},
+            "Label": {"text_font": new_font},
+            "Text": {"text_font": {"value": new_font}},
+        }
+    }
+)
+
+# apply this theme to all bokeh plots
+hv.renderer("bokeh").theme = custom_theme
 ```
 
 
@@ -596,7 +614,6 @@ def cbar_discrete(start, end, cmap="RdBu", width=None, zero_centered=False, exte
 hv.extension("matplotlib")  # use mpl as the backend
 
 
-
 my_ticks = (
     np.arange(-0.5, 0, 0.05).round(2).tolist()
 )  # ticks aren't symmetric around 0!
@@ -608,7 +625,7 @@ eg_map = da_map2 - da_map1
 eg_map.hvplot.quadmesh(coastline=True).opts(
     hv.opts.QuadMesh(
         cmap=my_cmap,
-        ticks = my_ticks,
+        ticks=my_ticks,
         color_levels=my_ticks,
         clim=(min(my_ticks), max(my_ticks)),
         title="check out my colorbar!",
@@ -633,6 +650,68 @@ eg_map.hvplot.quadmesh(coastline=True).opts(
 # levels = np.arange(-8, 2.5, 0.5)
 # colors = [colors.to_hex(c, keep_alpha=True) for c in plt.cm.coolwarm(divnorm(levels))]
 # test_array.hvplot(clim=(-8, 2), cmap=colors)
+
+
+def cbar_zero_centered(start, end, num_bins=10, cmap="RdBu", rescale=False):
+    """
+    generate a discrete matplotlib colorbar with white at the zero mark, even if colorbar isn't symmetric around zero.
+
+    Args:
+        start (numeric): the bottom endpoint of the colobar, must be less than zero
+        end (numeric): the top endpoint of the colorbar, must be greater than zero
+        num_bins (int, optional): number of colors in the colorbar. Defaults to 10.
+        cmap (str, optional): what colormap to use. see list(plt.colormaps) for options. Diverging colorbars make the most sense here. Defaults to "RdBu".
+                              bonus! if you import colorcet, you can pass in any of their colormap names to this argument!
+        rescale (bool, optional): whether to rescale the colormap so that the endpoints are equally intense, regardess of their values. Defaults to False.
+
+    Returns:
+        dict: dictionary of kwargs that can be passed into xarary's plot accessor. (will also work for most matplotlib functions)
+
+    Example:
+        my_kwargs = cbar_zero_centered(-30, 20)
+        da = xr.tutorial.open_dataset('air_temperature').isel(time=1).air - 273.15
+        da.plot(**my_kwargs)
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as mcolors
+    import matplotlib.ticker
+    import numpy as np
+
+    # 256 colors, interpolating between 0 and 1
+    og_cmap = plt.colormaps[cmap]  # endpoints are 0 and 1, by default
+
+    zero_fraction = (0 - start) / (
+        end - start
+    )  # eg. zero is "0.4" of the way from the top
+    stop_point = 0.5 / zero_fraction  # e.g. the "1" endpoint is moved to 0.5/0.4 = 1.25
+
+    if rescale:
+        # the bottom and top of the colorbar will be the "darkest" shades, even if the numbers aren't symmetric
+        # e.g. for {cmap= 'RdBu', start=-5, end = 30}, -5 will be just as dark red as 30 is dark blue.
+        new_colors = og_cmap(
+            np.interp(np.linspace(0, 1, og_cmap.N), [0, zero_fraction, 1], [0, 0.5, 1])
+        )
+    else:
+        # e.g. for {cmap= 'RdBu', start=-5, end = 30}, -5 will be just light red and 30 dark blue.
+        # this is really sneaky trick I found
+        # og_cmap(x) only wants inputs between 0-1, but..
+        # if you pass in values greater than 1, it just repeats the max color
+        # e.g. og_cmap(1.1) == og_cmap(1.5)
+        new_colors = og_cmap(np.linspace(0, stop_point, og_cmap.N))
+
+    shifted_cmap = mcolors.ListedColormap(new_colors)
+
+    # rely on mpl's clever auto-generation of tickmarks
+    levels = matplotlib.ticker.MaxNLocator(nbins=num_bins).tick_values(start, end)
+    norm = mcolors.BoundaryNorm(levels, shifted_cmap.N)  # .N should still be 256
+
+    # is putting norms and levels redundant?
+    cbar_kwargs = dict(
+        cmap=shifted_cmap,
+        norm=norm,
+        levels=levels,
+    )
+    return cbar_kwargs
 ```
 
 :::
