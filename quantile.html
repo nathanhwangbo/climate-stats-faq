@@ -220,6 +220,12 @@ window.Quarto = {
  <span class="menu-text">When to average a climate model ensemble?</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./statclimate_model_ensembles.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">A (very) brief survey of climate statistics</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item sidebar-item-section">
@@ -299,7 +305,7 @@ window.Quarto = {
 <section id="setup-1-iid-everything" class="level2">
 <h2 class="anchored" data-anchor-id="setup-1-iid-everything">setup 1: iid everything</h2>
 <p>Let’s start with a nice synthetic example</p>
-<div id="e3212265" class="cell" data-execution_count="1">
+<div id="d26b2c14" class="cell" data-execution_count="1">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.formula.api <span class="im">as</span> smf</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -344,7 +350,7 @@ window.Quarto = {
 </section>
 <section id="applying-to-xarray" class="level2">
 <h2 class="anchored" data-anchor-id="applying-to-xarray">applying to xarray</h2>
-<div id="b7b21c04" class="cell" data-execution_count="2">
+<div id="2af65a22" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> xarray <span class="im">as</span> xr</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># apply to each gridcell</span></span>
