@@ -1,244 +1,64 @@
 [
   {
-    "objectID": "hvplot_tutorial.html",
-    "href": "hvplot_tutorial.html",
-    "title": "hvplot/holoviews notes",
+    "objectID": "statclimate_model_ensembles.html#references",
+    "href": "statclimate_model_ensembles.html#references",
+    "title": "A (very) brief survey of climate statistics",
     "section": "",
-    "text": "Click here for optional background\n\nI learned how to analyze data using R. I’ve started to switch to python because xarray is amazing. The transition was relatively painless, except for one thing – matplotlib. I find generating plots in matplotlib to be a painful and awkward experience, especially compared to what I was used to in ggplot2. While I’m sure I would get used to matplotlib in time, I think that there’s gotta be a better way. The makers of ggplot have made a wrapper around matplotlib (called plotnine) which looks really great for tabular data, but doesn’t have great support for maps yet. There are a few other plotting options outside of matplotlib (e.g. bokeh and plotly), but it wasn’t clear to me which library was worth investing time into learning.\nSo.. here, I’m exploring another plotting library called holoviews. The premise is great: the goal is to unify these different plotting backends into a single API, so that you can go between a matplotlib plot and its equivalent bokeh plot just by changing a single line of code. And its sibling package, hvplot, makes things even easier by connecting holoviews to libraries like xarray and pandas, so that we can simply replace da.plot() with da.hvplot() for a truly painless transition away from the default plotting libraries!\nIn practice…this ends up being a bit of a mess. It turns out that it’s really hard to translate settings from a matplotlib plot to a bokeh plot, or vice versa. However, the holoviews way of building plots is really nice, so a lot of people end up just picking one plotting backend (usually matplotlib or bokeh), and build these plots using holoviews code.\n\nThe first few code chunks below show off the features that really sold me on using holoviews, so I recommend starting there!\nThe hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the bokeh backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where matplotlib is just better, so I’ll also try to include holoviews + matplotlib settings in the tabs below.\nRelevant documentaton:\n\nhttps://holoviews.org/user_guide/Plotting_with_Matplotlib.html\nhttps://holoviews.org/user_guide/Plotting_with_Bokeh.html",
+    "text": "References\n\n\n\n\nDeser, C., F. Lehner, K. B. Rodgers, et al. 2020. “Insights from Earth System Model Initial-Condition Large Ensembles and Future Prospects.” Nature Climate Change 10 (4): 277–86. https://doi.org/10.1038/s41558-020-0731-2.\n\n\nHall, Alex, Peter Cox, Chris Huntingford, and Stephen Klein. 2019. “Progressing Emergent Constraints on Future Climate Change.” Nature Climate Change 9 (4): 269–78. https://doi.org/10.1038/s41558-019-0436-6.\n\n\nMcKinnon, Karen A., Andrew Poppick, Etienne Dunn-Sigouin, and Clara Deser. 2017. “An ‘Observational Large Ensemble’ to Compare Observed and Modeled Temperature Trend Uncertainty Due to Internal Variability.” Journal of Climate 30 (19): 7585–98. https://doi.org/10.1175/JCLI-D-16-0905.1.\n\n\nPiani, C., J. O. Haerter, and E. Coppola. 2010. “Statistical Bias Correction for Daily Precipitation in Regional Climate Models over Europe.” Theoretical and Applied Climatology 99 (1): 187–92. https://doi.org/10.1007/s00704-009-0134-9.\n\n\nStott, Peter A., Nathan P. Gillett, Gabriele C. Hegerl, et al. 2010. “Detection and Attribution of Climate Change: A Regional Perspective.” WIREs Climate Change 1 (2): 192–211. https://doi.org/10.1002/wcc.34.\n\n\nZwiers, Francis W., Lisa V. Alexander, Gabriele C. Hegerl, et al. 2013. “Climate Extremes: Challenges in Estimating and Understanding Recent Changes in the Frequency and Intensity of Extreme Climate and Weather Events.” In Climate Science for Serving Society: Research, Modeling and Prediction Priorities, edited by Ghassem R. Asrar and James W. Hurrell. Springer Netherlands. https://doi.org/10.1007/978-94-007-6692-1_13."
+  },
+  {
+    "objectID": "eof_terminology.html",
+    "href": "eof_terminology.html",
+    "title": "What’s an EOF?",
+    "section": "",
+    "text": "Empirical Orthogonal Functions (EOFs) and Principle Component Analysis (PCA) describe the same mathematical operations, but use different terminology. How do we translate between the two vocabularies?",
     "crumbs": [
       "Notes",
-      "hvplot/holoviews notes"
+      "What's an EOF?"
     ]
   },
   {
-    "objectID": "hvplot_tutorial.html#background",
-    "href": "hvplot_tutorial.html#background",
-    "title": "hvplot/holoviews notes",
-    "section": "",
-    "text": "Click here for optional background\n\nI learned how to analyze data using R. I’ve started to switch to python because xarray is amazing. The transition was relatively painless, except for one thing – matplotlib. I find generating plots in matplotlib to be a painful and awkward experience, especially compared to what I was used to in ggplot2. While I’m sure I would get used to matplotlib in time, I think that there’s gotta be a better way. The makers of ggplot have made a wrapper around matplotlib (called plotnine) which looks really great for tabular data, but doesn’t have great support for maps yet. There are a few other plotting options outside of matplotlib (e.g. bokeh and plotly), but it wasn’t clear to me which library was worth investing time into learning.\nSo.. here, I’m exploring another plotting library called holoviews. The premise is great: the goal is to unify these different plotting backends into a single API, so that you can go between a matplotlib plot and its equivalent bokeh plot just by changing a single line of code. And its sibling package, hvplot, makes things even easier by connecting holoviews to libraries like xarray and pandas, so that we can simply replace da.plot() with da.hvplot() for a truly painless transition away from the default plotting libraries!\nIn practice…this ends up being a bit of a mess. It turns out that it’s really hard to translate settings from a matplotlib plot to a bokeh plot, or vice versa. However, the holoviews way of building plots is really nice, so a lot of people end up just picking one plotting backend (usually matplotlib or bokeh), and build these plots using holoviews code.\n\nThe first few code chunks below show off the features that really sold me on using holoviews, so I recommend starting there!\nThe hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the bokeh backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where matplotlib is just better, so I’ll also try to include holoviews + matplotlib settings in the tabs below.\nRelevant documentaton:\n\nhttps://holoviews.org/user_guide/Plotting_with_Matplotlib.html\nhttps://holoviews.org/user_guide/Plotting_with_Bokeh.html",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#preliminaries",
-    "href": "hvplot_tutorial.html#preliminaries",
-    "title": "hvplot/holoviews notes",
+    "objectID": "eof_terminology.html#preliminaries",
+    "href": "eof_terminology.html#preliminaries",
+    "title": "What’s an EOF?",
     "section": "Preliminaries",
-    "text": "Preliminaries\nLet’s start by loading in all of the packages we’ll need. This guide will focus on using holoviews to plot xarray objects, which is made convenient by the hvplot.xarray accessor. I’ll be using the the built in air_temperature tutorial dataset to play with.\nNote that bokeh is the default backend, and that the matplotlib backend can be used by running hv.extension('matplotlib') before making a plot. That’s the only line of code that we need to switch between the two!\n\nimport numpy as np\nimport xarray as xr\nimport holoviews as hv\nimport hvplot.xarray\nimport cartopy.crs as ccrs\nimport tastymap  # optional, but I like using it to make colorbars\n\nda = xr.tutorial.load_dataset(\"air_temperature\")\n\n\n# pull out a few time points, so that we have multiple maps to play with\nda_map1 = da.isel(time=0)\nda_map2 = da.isel(time=1)\nda_map3 = da.isel(time=2)\nda_map4 = da.isel(time=3)",
+    "text": "Preliminaries\nLet’s start with a time by space matrix \\(X\\) with dimensions \\(n \\times p\\).1. \\(X\\) can represent any climate variable that varies over space and time.\nWe’re interested in summarizing \\(X\\). Summaries need to serve two purposes: they need to be (1) compact and (2) a meaningful description of \\(X\\).\nOur first attempt might be to calculate the spatial mean at each time point (i.e. a time series), or the temporal mean at each location (i.e. a map). This is a good start, but it might be too compact. This averaging can lose a lot of interesting information, especially if there are spatial patterns that change over time.\nOn the other side, we could fit a model that explicity models the conditional distribution of \\(X\\) given space and time. But this can get really complicated really quickly and it’s hard to know where to start. Balancing parsimony and model skill is really tough, and probably depends on the specifics of the dataset on hand.\nEOF/PCA achieves this balance by finding low-dimensional representations of \\(X\\) which captures the most spatial variance. Unfortunately, the two fields use different notation to denote spatial variance.\nThe real problem is that the EOF terminology is based on the use of a space by time matrix, while the PCA terminology is based on the use of a time by space matrix. I think that the (time, space) formatting makes way more sense, but that’s my bias showing. The mathematical notation below uses (time, space) formatting, but if you prefer to go the other way,then just replace every instance of \\(X\\) with \\(X^\\top\\) and swap every instance of \\(U\\) and \\(V\\).",
     "crumbs": [
       "Notes",
-      "hvplot/holoviews notes"
+      "What's an EOF?"
     ]
   },
   {
-    "objectID": "hvplot_tutorial.html#making-our-first-map",
-    "href": "hvplot_tutorial.html#making-our-first-map",
-    "title": "hvplot/holoviews notes",
-    "section": "Making our first map",
-    "text": "Making our first map\nxarray has handy plotting features built in, so we’re probably familiar with calling da_map.plot(). To make the switch, all we need to do is add two letters! (da_map.hvplot()).\nWe’ll get into resizing plots and all of those other goodies later, so don’t worry about how different the matplotlib and bokeh versions look.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nda_map1.hvplot(coastline=True)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nda_map1.hvplot(coastline=True)",
+    "objectID": "eof_terminology.html#notation-mapping",
+    "href": "eof_terminology.html#notation-mapping",
+    "title": "What’s an EOF?",
+    "section": "Notation mapping",
+    "text": "Notation mapping\n\nThe SVD of \\(X\\) is written \\(X = U\\Sigma V^\\top\\). (\\(X\\) is dimension \\(n \\times p\\))\n\nIn general, \\(U\\) has dimension \\(n \\times n\\), \\(V\\) has dimension \\(p \\times p\\), and \\(\\Sigma\\) has dimension \\(n \\times p\\) (although \\(\\Sigma\\) is really a square matrix with added rows/columns of zeros added to make the matrix multiplication work)\n\\(\\Sigma\\) is effectively diagonal, and the diagonal elements are known as singular values.\n\nThe covariance matrix of \\(X\\) is \\(Cov(X) = \\frac{1}{n-1} X^\\top X\\) (dimension \\(p \\times p\\))\n\nit’s worth pointing out that although \\(\\Sigma\\) is commonly used in statistics as the notation for the covariance matrix, that isn’t quite true here. If you plug in the SVD for \\(X\\), then you get \\(Cov(X) = \\frac{1}{n-1} V \\Sigma^2 V^\\top\\).\n\nThe columns of \\(V\\) are known as EOFs in the EOF literature and known as Loadings or Principal Components in the PCA literature (each column is a vector of dimension \\(p\\), i.e. a map)\n\nthese are also the eigenvectors of \\(Cov(X)\\).\n\nThe columns of \\(U\\Sigma\\) are known as the Principal Components in the EOF literature and known as the scores in the PCA literature. (each column is a vector of dimension \\(n\\), i.e. a time series)\n\nNote that \\(\\Sigma\\) is diagonal, so that this is really just the column of \\(U\\), scaled by the corresponding singular value (i.e. the diagonal element of \\(\\Sigma\\)).\nPCA people sometimes refer to the first \\(k\\) columns of \\(U\\Sigma\\) as the “projection of \\(X\\) onto the first \\(k\\) PCs”\n\nThe variance explained by the \\(k\\)-th EOF/PC is denoted \\(\\sigma_k^2\\).\n\nrelatedly, the \\(k\\)-th eigenvalue of \\(Cov(X)\\) is \\(\\frac{1}{n-1}\\sigma_k^2\\).\n\nThe rank-k approximation of \\(X\\) is given by \\(U_k \\Sigma_k V_k^\\top\\), where the \\(k\\) subscript refers to the taking the first \\(k\\) columns of \\(U, \\Sigma\\), and \\(V\\).\n\ni.e. this is written equivalently as \\(\\sum_{i=1}^k \\sigma_i u_i v_i^\\top\\), where \\(u_i\\) and \\(v_i\\) are columns of \\(U\\) and \\(V\\), respectively. This is also sometimes called the “reconstruction” of \\(X\\) using the first \\(k\\) principal components.",
     "crumbs": [
       "Notes",
-      "hvplot/holoviews notes"
+      "What's an EOF?"
     ]
   },
   {
-    "objectID": "hvplot_tutorial.html#making-subplots",
-    "href": "hvplot_tutorial.html#making-subplots",
-    "title": "hvplot/holoviews notes",
-    "section": "Making subplots",
-    "text": "Making subplots\nThis was probably the first feature that I saw that made me want to switch to holoviews!\nSide by side plots are called Layouts in holoviews, and can be made by simply adding plots together!\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# make three different maps, and a line plot\nfig1a = da_map1.hvplot(coastline=True) \nfig1b = da_map2.hvplot(coastline=True)\nfig1c = da_map3.hvplot(coastline=True)\n\n# a line plot of the spatal average\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# combine them, and specify the number of columns\n(fig1a + fig1b + fig1c + fig1d).cols(2)\n\n## the following is equivalent, and is handy if you programatically create a bunch of figures\n# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# make three different maps\nfig1a = da_map1.hvplot(coastline=True)\nfig1b = da_map2.hvplot(coastline=True)\nfig1c = da_map3.hvplot(coastline=True)\n\n# a line plot of the spatal average\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\")\n\n# combine them, and specify the number of columns\n(fig1a + fig1b + fig1c + fig1d).cols(2)\n\n## the following is equivalent, and is handy if you programatically create a bunch of figures\n# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)",
+    "objectID": "eof_terminology.html#recommendations",
+    "href": "eof_terminology.html#recommendations",
+    "title": "What’s an EOF?",
+    "section": "Recommendations",
+    "text": "Recommendations\nWhen talking about EOFs / PCA in the spatiotemporal context, I have the following recommendations (which are ordered as easiest -&gt; hardest to implement for people trained in EOFs)\n\nAlways mention the dimension (i.e. map or time series)\n\ne.g. say “principal component time series” or “EOF map”\n\nUse the PCA terminology, “scores” and “loadings” along with the dimension!!! This is not just because that’s how I was trained – it’s also practical because these terms can’t really get confused with anything in the climate literature, so there isn’t much chance of overloading the terms.\n\ni.e. say “PC score time series” and “map of EOF loadings”\n\nDon’t be afraid to use the SVD notation! Luckily, notation for SVD is super standard across all disciplines, so this works as long as you specify whether \\(X\\) is (time, space) or (space, time).",
     "crumbs": [
       "Notes",
-      "hvplot/holoviews notes"
+      "What's an EOF?"
     ]
   },
   {
-    "objectID": "hvplot_tutorial.html#adding-components-to-a-figure",
-    "href": "hvplot_tutorial.html#adding-components-to-a-figure",
-    "title": "hvplot/holoviews notes",
-    "section": "Adding components to a figure",
-    "text": "Adding components to a figure\nda_map1.hvplot(coastline = True) has two elements on the same figure: the temperatures, and the coastline. When we have multiple elements on the same panel, it’s called an Overlay. They can be made by multiplying plots together (i.e. if we had a separate map and coastline object, we could have done fig_map * fig_coastline).\nIn the example below, I add a horizontal line to the lineplot\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# a line plot of the spatal average, same as before\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# add a horizontal line\nline_1d = hv.HLine(y = 280)\n\nfig1d * line_1d\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# a line plot of the spatal average, same as before\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# add a horizontal line\nline_1d = hv.HLine(y = 280)\n\nfig1d * line_1d",
+    "objectID": "eof_terminology.html#footnotes",
+    "href": "eof_terminology.html#footnotes",
+    "title": "What’s an EOF?",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nnote that this means that lon-lat must be collapsed into a single variable↩︎",
     "crumbs": [
       "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#basic-plot-styling",
-    "href": "hvplot_tutorial.html#basic-plot-styling",
-    "title": "hvplot/holoviews notes",
-    "section": "Basic plot styling",
-    "text": "Basic plot styling\nAdding titles, figure sizes, ect. is controlled by adding .opts() to the end of your plot. Some options can go directly into the parentheses of hvplot(), but the general recommendation is to leave most of the styling to the end, through an additional .opts() call.\nSide note: I prefer .options(), which is the same thing except that it doesn’t modify your figure in place. In other words, .options() is equivalent to .opts(clone = True)\nSide note: By default, xarray maps are plotted as “Images”, so that da_map1.hvplot() is equivalent to da_map1.hvplot.Image(). This may not be the best option (see the section on geographic options), so I’ll start making this choice explicit\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nda_map1.hvplot.Image(coastline=True).options(\n    title=\"example plot\",\n    xlabel = \"eg xlab\",\n    ylabel = \"eg ylab\",\n    clabel = \"cbar lab\",\n    ylim=(None, 70),\n    clim=(240, 280), # colorbar limit\n    width=600,\n    height=400,\n    fontsize={\n        \"title\": 15,  # can also use percentages, eg \"200%\"\n        \"labels\": 14,\n        \"ticks\": 10,\n        \"legend\": 10\n    },\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\nda_map1.hvplot.image(coastline=True).options(\n    title=\"example plot\",\n    xlabel = \"eg xlab\",\n    ylabel = \"eg ylab\",\n    clabel = \"cbar lab\",\n    ylim=(None, 70),\n    clim=(240, 280), # colorbar limit\n    width=600,\n    height=400,\n    fontsize={\n        \"title\": 15,  # can also use percentages, eg \"200%\"\n        \"labels\": 14,\n        \"ticks\": 10,\n        \"legend\": 10\n    },\n)",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#plot-styling-pt-2-styling-layouts-and-adding-defaults",
-    "href": "hvplot_tutorial.html#plot-styling-pt-2-styling-layouts-and-adding-defaults",
-    "title": "hvplot/holoviews notes",
-    "section": "Plot styling pt 2 (styling Layouts and adding “defaults”!)",
-    "text": "Plot styling pt 2 (styling Layouts and adding “defaults”!)\nSometimes you make a Layout (i.e. a figure with subplots) and want to apply the same customization to each plot (i.e. changing the figure size). There are a few ways of doing this:\n\nif all subplots are the same (e.g. all “Images” or all scatterplots), then you can nest a hv.opts.Image() call into your original options call (fig.opts(hv.opts.Image(ADD CODE HERE))).\nif the subplot are different (e.g. a map “Image”, a scatterplot, and a lineplot), then you can use fig.map(lambda x: x.opts(ADD CODE HERE), [hv.Scatter, hv.Line]) call, to selectively apply your operation to the scatterplot and lineplot, but NOT the map.\n\nAlso – to save some time with individual plots, I often like to keep a dictionary at the top of my script with all of the plotting options I use “by default”.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nuniversal_style_opts = {\n    # the size of each subplot\n    \"frame_width\": 350,\n    \"frame_height\": 300,\n    # font sizes\n    \"fontsize\": {\n        \"title\": \"14pt\",\n        \"labels\": \"12pt\",\n        \"xticks\": \"10pt\",\n        \"yticks\": \"10pt\",\n        \"legend\": \"12pt\",\n    },\n    # remove the toolbar\n    \"toolbar\": None,\n}\n\n# options we only want to apply to maps\ngeo_opts = {\"coastline\": True}\n\n# options we only want to apply to lineplots\nline_opts = {\"xrotation\": 45}\n\n# for a single plot, we can add some defaults\nda_map1.hvplot.Image(coastline=True).options(\n    title=\"example plot\", ylim=(None, 70), **universal_style_opts\n)\n\n\n# now, for a multi-panel layout.\n\nlayout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)\n\n# applying separate options based on plot type\nlayout_eg.options(\n    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps\n    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot\n)\n\n# Alternate way to apply universal options to both types\nlayout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nuniversal_style_opts = {\n    # the size of each subplot\n    \"fig_inches\": 5,\n    \"aspect\": 1.17,\n    # font sizes\n    \"fontsize\": {\n        \"title\": 14,\n        \"labels\": 12,\n        \"xticks\": 10,\n        \"yticks\": 10,\n        \"legend\": 12,\n    },\n}\n\n# options we only want to apply to maps\ngeo_opts = {\"cmap\": \"RdBu\"}\n\n# options we only want to apply to lineplots\nline_opts = {\"xrotation\": 45}\n\n# for a single plot, we can add some defaults\nda_map1.hvplot.image(coastline=True).options(\n    title=\"example plot\", ylim=(None, 70), **universal_style_opts\n)\n\n###############################\n# modifying a multi-panel layout.\n################################\n\n# this is the same layout we made previously (3 maps and a lineplot)\nlayout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)\n\n# applying separate options based on plot type\nlayout_eg.options(\n    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps\n    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot\n)\n\n# Alternate way to apply universal options to both plot types\nlayout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#custom-colorbars",
-    "href": "hvplot_tutorial.html#custom-colorbars",
-    "title": "hvplot/holoviews notes",
-    "section": "Custom colorbars",
-    "text": "Custom colorbars\nI usually use discrete colorbars. Discrete colorbars are made up of 4 components:\n\nthe colors we want to use (controlled by the cmap parameter)\nat what values the colors change (controlled by the color_levels parameter)\nwhere we place the tickmarks (controlled by ticks in mpl and FixedTicker() in bokeh)\nwhere the colorbar starts and ends (controlled by clim)\n\n(technically, you could include other components, like controlling the spacing between the colors. Here I’m assuming that the underlying variable is numeric and continuous, and that the spacing between the colors matches the distance between their values. but this can be changed as well with extra work)\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\nfrom bokeh.models import FixedTicker\n\nda_map1.hvplot.quadmesh.opts(\n    cmap=[\"green\", \"yellow\", \"orange\", \"red\"],\n    colorbar_opts={\"ticker\": FixedTicker(ticks=[230, 250, 270, 300, 320])},\n    color_levels=[230, 250, 270, 300, 320],\n    clim=(230, 320),\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nlevels = [230, 250, 270, 300, 320]\nda_map1.hvplot().opts(\n    cmap=[\"green\", \"yellow\", \"orange\", \"red\"],\n    color_levels=levels,\n    colorbar_opts={'ticks': levels},\n    clim=(230, 320),\n    colorbar=True\n)",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#custom-colorbars-pt-2-non-centered-diverging-colorbars",
-    "href": "hvplot_tutorial.html#custom-colorbars-pt-2-non-centered-diverging-colorbars",
-    "title": "hvplot/holoviews notes",
-    "section": "Custom colorbars pt 2: non-centered diverging colorbars",
-    "text": "Custom colorbars pt 2: non-centered diverging colorbars\nSuppose I have a variable that ranges from -0.5 -&gt; 1, and 0 is important. I would like to use a diverging colorbar to show that 0 is important (e.g. blue -&gt; white -&gt; red). By default, the center of the colorbar is 0. So, if I wanted to show off the full range of the data, I could have the colorbar range from -1 -&gt; 1. I don’t love this, though, because all of the colors between -1 and -0.5 don’t get used!\nThe code below hacks together a colorbar which has 0 at a location different from the center. (Note: in matplotlib, the TwoSlopeNorm() might be a useful alternative)\nI like using the tastymap package for making colorbars (even in matplotlib), just because it has a lot more cmap options than matplotlib (like the colorcet options, e.g. cet_CET_L18), and there are some nice convenience functions. But the tastymap part is totally optional\ntastymap quick usage:\n\nA discrete colorbar with 12 levels:\n\nreds_discrete = tastymap.cook_tmap(\"cet_CET_L18\", num_colors = 12)\n\nIf I want to remove white:\n\nnowhite = tastymap.cook_tmap(\"cet_CET_L18\", num_colors = 12)[1:12].cmap\nor equiv: nowhite = tastymap.utils.subset_cmap(reds_discrete, slice(1,11))\n\nIf I need hex codes, for whatever reason\n\nreds_hex = reds_discrete.to_model(\"hex\")\n\n\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nfrom bokeh.models import FixedTicker\n\n# TODO: I think tastymap.pair_tbar() might make this easier.\n\nmy_ticks = np.arange(-0.5, 0, 0.05).round(2).tolist()  # ticks aren't symmetric around 0!\nn_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom\nmy_cmap = tastymap.cook_tmap(\"RdBu_r\", num_colors=n_colors * 2)[0:n_colors].cmap\n\n# make a map with values closer to zero\neg_map = da_map2 - da_map1\neg_map.hvplot.quadmesh(coastline=True).opts(\n    opts.QuadMesh(\n        cmap=my_cmap,\n        colorbar_opts={\"ticker\": FixedTicker(ticks=my_ticks)},\n        color_levels=my_ticks,\n        clim=(min(my_ticks), max(my_ticks)),\n        title=\"check out my colorbar!\",\n    )\n)\n\n\n# in helper function form\ndef cbar_discrete(start, end, cmap=\"RdBu\", width=None, zero_centered=False, extension=\"bokeh\"):\n    \"\"\"\n    a hvplot helper to make a zero-centered segmented colorbar\n    :param: start and end are the two endpoints of the colorbar. 0 should be contained inside\n    :param: cmap is a string with the desired colormap. should be accepted by tastymap.cook_tmap(), and should probably be a diverging colorbar.\n    :param: width is a number, the distance between colors. This will be used to determine the number of colors.\n    :param: extension is the hvplot extension -- for now, bokeh and matplotlib are supported.\n\n    :returns: a dictionary to be passed into holoviews .opts\n    :example:\n    da = xr.tutorial.load_dataset('air_temperature.nc').isel(time=10) - 273\n    eg_cbar = cbar_discrete(-30, 40, cmap = \"RdBu\", zero_centered= True)\n    da.hvplot().opts(**eg_cbar)\n    \"\"\"\n    crange = end - start  # range of the cbar\n\n    # set default width (aka distance between colors)\n    if width is None:\n        # strategy for setting default width:\n        # we're gonna aim for ~10 colors\n        # but we're going to prioritize \"round\" spacings.\n        # this strategy is assuming that the crange is an integer\n\n        def divisors(n):\n            \"\"\"\n            get divisors of n, used to calculate default width.\n            https://stackoverflow.com/a/36700288\n            \"\"\"\n            divs = [1]\n            for i in range(2, int(np.sqrt(n)) + 1):\n                if n % i == 0:\n                    divs.extend([i, n / i])\n            # divs.extend([n])  # n is a divisor, but not needed for our function\n            return np.array(divs)\n\n        def orderOfMag(n):\n            \"\"\"\n            example: if n = 0.03, then should return 1/100\n            \"\"\"\n            return 10 ** np.floor(np.log10(n))\n\n        # aiming for ~10 colors. this is our initial guess.\n        width_ballpark = crange / 10\n        if width_ballpark &lt; 1:\n            # if 10 evenly spaced colors produces widths &lt; 1, then try widths in [.1, .125,.2, .25,.5]\n            # which guarantees that all integers get their own ticks\n            # this scales by order of magnitude, in case the range is small.\n            # (e.g. if width is 0.03, then should try 0.01, 0.0125, ect..)\n            width_candidates = np.array([1, 1.25, 2, 2.5, 5]) * orderOfMag(width_ballpark)\n\n        else:\n            # if the width between colors spans more than 1, then try the divisors\n            # TODO: might be worth filtering this so that 0 MUST be one of the tickmarks.\n            width_candidates = divisors(crange)\n\n        check_n_colors = crange / width_candidates  # number of colors for each width\n        width = width_candidates[\n            np.argmin(np.abs(check_n_colors - 10))\n        ]  # pick the width that produces closest to 10 colors\n\n    # end getting default width ---\n\n    n_colors = int(np.round(crange / width))  # round to handle weird precision.\n    # use n_colors + 1 bc including both endpoints\n    ticks = np.linspace(start, end, n_colors + 1).round(10).tolist()\n\n    # label the number at every colorchage\n    # todo: if there are a lot of colors, we could do every other number\n    if extension == \"bokeh\":\n        tick_loc = {\"ticker\": FixedTicker(ticks=ticks)}\n    elif extension == \"matplotlib\":\n        tick_loc = {\"ticks\": ticks}\n    else:\n        exit(\"only bokeh and matplotlib extensions are supported.\")\n\n    ############################################\n    # adds logic to center a diverging cmap at 0\n    ############################################\n    is_not_symmetric = abs(start) != abs(end)\n    # check that (1) we want zero centered and (2) the cbar isn't already symmetric\n    if (zero_centered) and (is_not_symmetric):\n        # find location of 0\n        zero_ind = np.searchsorted(ticks, 0)\n\n        # use twice the colors, so that cmap_base[n_colors] is white.\n        # TODO: this is a little hacky and leads to muted colors.\n        # one alternative would be to split the cbar at zero and rescale (as in matplotlib twoslopenorm)\n        # could be done using two calls to tastymap.resize, which are combined using &\n        # e.g. cmap_below0 = cmap_base[0:n_colors].resize(zero_ind),\n        # cmap_above0 = cmap_base[n_colors:].resize(n_colors - zero_ind)\n        # cmap_final = (cmap_below0 & cmap_above0).cmap\n\n        cmap_base = tastymap.cook_tmap(cmap, num_colors=n_colors * 2)\n\n        # n_colors is white, so we want to start zero_ind below, and then pick out the next n_colors.\n        # mult by 2 version if you wanna up the saturation\n        # cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)] * 2\n        cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)]\n    else:\n        cmap_final = tastymap.cook_tmap(cmap, num_colors=n_colors)\n\n    cbar_dict = dict(\n        cmap=cmap_final.cmap,\n        clim=(start, end),\n        colorbar_opts=tick_loc,\n        color_levels=ticks,\n    )\n\n    return cbar_dict\n\n\n\n\n# note: TwoSlopeNorm might be a useful alternative,  see below\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n\n\nmy_ticks = (\n    np.arange(-0.5, 0, 0.05).round(2).tolist()\n)  # ticks aren't symmetric around 0!\nn_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom\nmy_cmap = tastymap.cook_tmap(\"RdBu_r\", num_colors=n_colors * 2)[0:n_colors].cmap\n\n# make a map with values closer to zero\neg_map = da_map2 - da_map1\neg_map.hvplot.quadmesh(coastline=True).opts(\n    hv.opts.QuadMesh(\n        cmap=my_cmap,\n        ticks = my_ticks,\n        color_levels=my_ticks,\n        clim=(min(my_ticks), max(my_ticks)),\n        title=\"check out my colorbar!\",\n    )\n)\n\n\n## note: TwoSlopeNorm might be a useful alternative,  see below\n## source: https://discourse.holoviz.org/t/diverging-colorbar-around-asymetric-data/3339/3\n\n# import matplotlib.colors as colors\n# data = np.random.random((10,10))\n# data = 10 * (data - 0.8)\n# test_array = xr.DataArray(\n#     data,\n#     coords=[np.arange(10), np.arange(10)],\n#     dims=['x','y'], name='z')\n# test_array.hvplot(clim=(-8, 2), cmap=\"coolwarm\")\n\n\n# divnorm = colors.TwoSlopeNorm(vmin=-8., vcenter=0., vmax=2)\n# levels = np.arange(-8, 2.5, 0.5)\n# colors = [colors.to_hex(c, keep_alpha=True) for c in plt.cm.coolwarm(divnorm(levels))]\n# test_array.hvplot(clim=(-8, 2), cmap=colors)",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#geographic-options",
-    "href": "hvplot_tutorial.html#geographic-options",
-    "title": "hvplot/holoviews notes",
-    "section": "Geographic options",
-    "text": "Geographic options\nA list of avaialble geographic-specific options is here. As an example, we’ll change the projection of the data.\nBy default, calling da.hvplot() uses the Image plot type, so that da.hvplot() is equivalent to da.hvplot.Image(). This isn’t very accurate when using different projections, so it’s safer to use da.hvplot.quadmesh() instead. See here for some more detail\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# quadmesh is more accurate than the default (hv.plot.Image)\nda_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# quadmesh is more accurate than the default (hv.plot.Image) with different projections\nda_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#using-matplotlib-bokeh-code",
-    "href": "hvplot_tutorial.html#using-matplotlib-bokeh-code",
-    "title": "hvplot/holoviews notes",
-    "section": "Using matplotlib / bokeh code",
-    "text": "Using matplotlib / bokeh code\nHoloviews doesn’t have ALL of the underlying matplotlib / bokeh options. If there’s a modification that you need to make to your figure, and you can’t find the corresponding holoviews setting, then we can manually add it in using the underlying matplotlib (or bokeh) code.\nThere are two ways to do this: first, by grabbing the underlying matplotlib axes and continuing on in matplotlib land, or by using “hooks”, which allow us to inject matplotlib code whilst keeping the holoviews object intact.\nIn the matplotlib example, I add some text to the corner. I find that hvplot struggles with relative positioning of text.\nIn the bokeh example, I modify the plot titles to include subplot labels (like (a), (b), (c))\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nmy_multipanel_fig = fig1a + fig1b + fig1c + fig1d  # same as layout_eg\n\n# option 1: extracting the underlying object ----------\n\n# option 2: using hooks -----------------------\n\nimport string\nfrom functools import partial\n\n\ndef subplot_label_hook(plot, element, sub_label=\"\"):\n    \"\"\"add subplot labels (a, b, c...)\"\"\"\n    # Access the underlying Bokeh figure\n    fig = plot.state\n\n    original_title = fig.title.text\n    fig.title.text = f\"{sub_label} {original_title}\"\n\n\n# iterate over the subplots and add the label to the title.\nupdated_figlist = []\nfor i, subplot in enumerate(my_multipanel_fig):\n    new_label = f\"({string.ascii_lowercase[i]})\"  # this sets the format to (a), (b), ..\n    updated_subplot = subplot.opts(\n        hooks=[partial(subplot_label_hook, sub_label=new_label)]\n    )\n    updated_figlist.append(updated_subplot)\n\nupdated_figure = hv.Layout(updated_figlist)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# option 1: transferring our work to matplotlib ----------\n\nfig = hv.render(plot)\nax = fig.axes\n\n# alternative to above!\n# fig = plot.handles[\"fig\"]\n# ax = plot.handles[\"axes\"]\n\n# and now we can just continue on using (fig, ax) like in any other matplotlib object!\nax.text(\n    0.95,\n    0.05,\n    \"Hook Text\",\n    transform=ax.transAxes,\n    ha=\"right\",\n    va=\"bottom\",\n    color=\"white\",\n    fontsize=12,\n    bbox=dict(facecolor=\"black\", alpha=0.5),\n)\n\n\n# option 2: trying to stay in holoviews  -----------------------\n\n\ndef mpl_text_hook(plot, element):\n    \"\"\"\n    An example matplotlib hook to add some text to the corner\n    \"\"\"\n    # 1. Access the Matplotlib Axes\n    ax = plot.handles[\"axis\"]\n\n    # transform=ax.transAxes is a nice trick to place text relative to corners\n    ax.text(\n        0.95,\n        0.05,\n        \"Hook Text\",\n        transform=ax.transAxes,\n        ha=\"right\",\n        va=\"bottom\",\n        color=\"white\",\n        fontsize=12,\n        bbox=dict(facecolor=\"black\", alpha=0.5),\n    )\n\n\nfig1d.opts(title=\"testing out hooks\", hooks=[mpl_text_hook])",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#exporting-as-pickle",
-    "href": "hvplot_tutorial.html#exporting-as-pickle",
-    "title": "hvplot/holoviews notes",
-    "section": "Exporting as pickle",
-    "text": "Exporting as pickle\nI often like to save figures as python objects, so that I can quickly load them in and modify cosmetic options without having to re-run the entire analysis (although it’s good practice to re-run your entire analysis once in a while to make sure it’s reproducible!). Pickling objects is a good way of doing this.\nHowever, by default, saving holoview objects as pickles loses their styling options. So, we need to add a line of code before we pickle to make sure that everything gets saved. Alternatively, holoviews has their own wrapper around pickle: hv.Store.dump() and hv.Store.load()\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\nhv.Store.save_option_state = True\npickle.loads(pickle.dumps(fig1a))\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nhv.Store.save_option_state = True\npickle.loads(pickle.dumps(fig1a))",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#exporting-as-png",
-    "href": "hvplot_tutorial.html#exporting-as-png",
-    "title": "hvplot/holoviews notes",
-    "section": "Exporting as png",
-    "text": "Exporting as png\nhv.save() is the function we use to save figures. Including the file extension (e.g. png, svg, jpg) at the end of the filename will automatically determine the output.\nThis is really straightforward with the matplotlib backend, but tricky with the bokeh backend. Bokeh figures are designed to be interactive, so they don’t like static filetypes like png. These figures are designed to be exported as html files, so hv.save(fig, \"my_fig.html\") works really well. If we export as png, what opens the figure in a browser in the backend and takes a screenshot. This is a little hacky, but tends to work well enough.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# hv.save(fig, 'tmp.html')\n# hv.save(fig, 'tmp.png')\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# hv.save(fig, 'tmp.png')",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#custom-layouts",
-    "href": "hvplot_tutorial.html#custom-layouts",
-    "title": "hvplot/holoviews notes",
-    "section": "Custom Layouts",
-    "text": "Custom Layouts\nWe saw that we can arrange plots into a grid using figa + figb, or by hv.Layout([figa, figb]). That’s fine for the basics, but won’t do if we want to customize the arrangements of the plots.\nFor example, the snippet below takes three subplots, and arranges them so that the first plot is by itself in the first row, and is centered.\nThis requires another sibling package of holoviews, called panel. This package provides a ton of layout options.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nimport panel as pn\npn.Column(\n    pn.panel(fig1a, center=True, sizing_mode=\"fixed\"),\n    pn.panel(fig1b + fig1c, center=True, sizing_mode=\"fixed\"),\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#new-section",
-    "href": "hvplot_tutorial.html#new-section",
-    "title": "hvplot/holoviews notes",
-    "section": "New section",
-    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#new-section-1",
-    "href": "hvplot_tutorial.html#new-section-1",
-    "title": "hvplot/holoviews notes",
-    "section": "New section",
-    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#new-section-2",
-    "href": "hvplot_tutorial.html#new-section-2",
-    "title": "hvplot/holoviews notes",
-    "section": "New section",
-    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#new-section-3",
-    "href": "hvplot_tutorial.html#new-section-3",
-    "title": "hvplot/holoviews notes",
-    "section": "New section",
-    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#new-section-4",
-    "href": "hvplot_tutorial.html#new-section-4",
-    "title": "hvplot/holoviews notes",
-    "section": "New section",
-    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#new-section-5",
-    "href": "hvplot_tutorial.html#new-section-5",
-    "title": "hvplot/holoviews notes",
-    "section": "New section",
-    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
-    ]
-  },
-  {
-    "objectID": "hvplot_tutorial.html#new-section-6",
-    "href": "hvplot_tutorial.html#new-section-6",
-    "title": "hvplot/holoviews notes",
-    "section": "New section",
-    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
-    "crumbs": [
-      "Notes",
-      "hvplot/holoviews notes"
+      "What's an EOF?"
     ]
   },
   {
@@ -642,58 +462,252 @@
     "text": "About this site"
   },
   {
-    "objectID": "eof_terminology.html",
-    "href": "eof_terminology.html",
-    "title": "What’s an EOF?",
+    "objectID": "constructed_circulation_analogues.html",
+    "href": "constructed_circulation_analogues.html",
+    "title": "Contructed Circulation Analogue",
     "section": "",
-    "text": "Empirical Orthogonal Functions (EOFs) and Principle Component Analysis (PCA) describe the same mathematical operations, but use different terminology. How do we translate between the two vocabularies?",
+    "text": "Basic idea:\n\nWe want a prediction of precipitation (map or single value) at a given month (e.g. July 2021).\nIdea: sea level pressure is correlated with precipitation\nSo…let’s look at sea level pressure in July 2021.\n\nLet’s find some historical months with similar looking sea level pressures.\nLet’s fit a regression model to predict July 2021 SLP from the historical SLPs.\n\nThen… let’s use those regression coefficients to predict precip in July 2021 using the historical precip data.\n\nbig assumption here!\n\n\nWe can repeat this process, using different months as the target month (i.e. not just july 2021), to form a time series of predictions.\nThe basis for this comes from thinking about splitting precipitation into a dynamic component and a thermodynamic component - so that the “residual” precip after getting rid of the SLP component leaves only the thermodynamic component. - i.e. we can think of E[precip | slp] as the “dynamic” component of precipition.\nThe underying assumption here really nicely fits into the language of causal inference. There are a few assumptions to watch out for:\n\nThat the relationship between SLP(random month) and SLP(target month) is the same as the relationship between precip(random month) and precip(target month).\nThat the relationship between SLP(random month) and SLP(target month) is the same over space (because we are using gridcells over the region as samples to fit the regression model)\n\nA few questions I have:\n\nwhat happens if you have one really strong analogue month. Will it dominate the regression model and make everything unstable?\ndoes it matter how collinear the different analogue months are (i.e. the different covariates)\n\nsometimes people use EOFs of the different analogues to get around this. But this doesn’t seem to work very well, because the EOFs (or even a linear combination of the EOFs, ala pc regression) tend to be a pretty bad predictor of the target month SLP (i.e. the regression target)\nsee sippel 2019?"
+  },
+  {
+    "objectID": "hvplot_tutorial.html",
+    "href": "hvplot_tutorial.html",
+    "title": "hvplot/holoviews notes",
+    "section": "",
+    "text": "Click here for optional background\n\nI learned how to analyze data using R. I’ve started to switch to python because xarray is amazing. The transition was relatively painless, except for one thing – matplotlib. I find generating plots in matplotlib to be a painful and awkward experience, especially compared to what I was used to in ggplot2. While I’m sure I would get used to matplotlib in time, I think that there’s gotta be a better way. The makers of ggplot have made a wrapper around matplotlib (called plotnine) which looks really great for tabular data, but doesn’t have great support for maps yet. There are a few other plotting options outside of matplotlib (e.g. bokeh and plotly), but it wasn’t clear to me which library was worth investing time into learning.\nSo.. here, I’m exploring another plotting library called holoviews. The premise is great: the goal is to unify these different plotting backends into a single API, so that you can go between a matplotlib plot and its equivalent bokeh plot just by changing a single line of code. And its sibling package, hvplot, makes things even easier by connecting holoviews to libraries like xarray and pandas, so that we can simply replace da.plot() with da.hvplot() for a truly painless transition away from the default plotting libraries!\nIn practice…this ends up being a bit of a mess. It turns out that it’s really hard to translate settings from a matplotlib plot to a bokeh plot, or vice versa. However, the holoviews way of building plots is really nice, so a lot of people end up just picking one plotting backend (usually matplotlib or bokeh), and build these plots using holoviews code.\n\nThe first few code chunks below show off the features that really sold me on using holoviews, so I recommend starting there!\nThe hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the bokeh backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where matplotlib is just better, so I’ll also try to include holoviews + matplotlib settings in the tabs below.\nRelevant documentaton:\n\nhttps://holoviews.org/user_guide/Plotting_with_Matplotlib.html\nhttps://holoviews.org/user_guide/Plotting_with_Bokeh.html",
     "crumbs": [
       "Notes",
-      "What's an EOF?"
+      "hvplot/holoviews notes"
     ]
   },
   {
-    "objectID": "eof_terminology.html#preliminaries",
-    "href": "eof_terminology.html#preliminaries",
-    "title": "What’s an EOF?",
+    "objectID": "hvplot_tutorial.html#background",
+    "href": "hvplot_tutorial.html#background",
+    "title": "hvplot/holoviews notes",
+    "section": "",
+    "text": "Click here for optional background\n\nI learned how to analyze data using R. I’ve started to switch to python because xarray is amazing. The transition was relatively painless, except for one thing – matplotlib. I find generating plots in matplotlib to be a painful and awkward experience, especially compared to what I was used to in ggplot2. While I’m sure I would get used to matplotlib in time, I think that there’s gotta be a better way. The makers of ggplot have made a wrapper around matplotlib (called plotnine) which looks really great for tabular data, but doesn’t have great support for maps yet. There are a few other plotting options outside of matplotlib (e.g. bokeh and plotly), but it wasn’t clear to me which library was worth investing time into learning.\nSo.. here, I’m exploring another plotting library called holoviews. The premise is great: the goal is to unify these different plotting backends into a single API, so that you can go between a matplotlib plot and its equivalent bokeh plot just by changing a single line of code. And its sibling package, hvplot, makes things even easier by connecting holoviews to libraries like xarray and pandas, so that we can simply replace da.plot() with da.hvplot() for a truly painless transition away from the default plotting libraries!\nIn practice…this ends up being a bit of a mess. It turns out that it’s really hard to translate settings from a matplotlib plot to a bokeh plot, or vice versa. However, the holoviews way of building plots is really nice, so a lot of people end up just picking one plotting backend (usually matplotlib or bokeh), and build these plots using holoviews code.\n\nThe first few code chunks below show off the features that really sold me on using holoviews, so I recommend starting there!\nThe hvplot/holoviews documentation is a mess, so the rest of the document is just my personal library of useful code snippets. I mainly use the bokeh backend because it generates interactive plots, which I find handy for exploratory analyses. But there are definitely some areas where matplotlib is just better, so I’ll also try to include holoviews + matplotlib settings in the tabs below.\nRelevant documentaton:\n\nhttps://holoviews.org/user_guide/Plotting_with_Matplotlib.html\nhttps://holoviews.org/user_guide/Plotting_with_Bokeh.html",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#preliminaries",
+    "href": "hvplot_tutorial.html#preliminaries",
+    "title": "hvplot/holoviews notes",
     "section": "Preliminaries",
-    "text": "Preliminaries\nLet’s start with a time by space matrix \\(X\\) with dimensions \\(n \\times p\\).1. \\(X\\) can represent any climate variable that varies over space and time.\nWe’re interested in summarizing \\(X\\). Summaries need to serve two purposes: they need to be (1) compact and (2) a meaningful description of \\(X\\).\nOur first attempt might be to calculate the spatial mean at each time point (i.e. a time series), or the temporal mean at each location (i.e. a map). This is a good start, but it might be too compact. This averaging can lose a lot of interesting information, especially if there are spatial patterns that change over time.\nOn the other side, we could fit a model that explicity models the conditional distribution of \\(X\\) given space and time. But this can get really complicated really quickly and it’s hard to know where to start. Balancing parsimony and model skill is really tough, and probably depends on the specifics of the dataset on hand.\nEOF/PCA achieves this balance by finding low-dimensional representations of \\(X\\) which captures the most spatial variance. Unfortunately, the two fields use different notation to denote spatial variance.\nThe real problem is that the EOF terminology is based on the use of a space by time matrix, while the PCA terminology is based on the use of a time by space matrix. I think that the (time, space) formatting makes way more sense, but that’s my bias showing. The mathematical notation below uses (time, space) formatting, but if you prefer to go the other way,then just replace every instance of \\(X\\) with \\(X^\\top\\) and swap every instance of \\(U\\) and \\(V\\).",
+    "text": "Preliminaries\nLet’s start by loading in all of the packages we’ll need. This guide will focus on using holoviews to plot xarray objects, which is made convenient by the hvplot.xarray accessor. I’ll be using the the built in air_temperature tutorial dataset to play with.\nNote that bokeh is the default backend, and that the matplotlib backend can be used by running hv.extension('matplotlib') before making a plot. That’s the only line of code that we need to switch between the two!\n\nimport numpy as np\nimport xarray as xr\nimport holoviews as hv\nimport hvplot.xarray\nimport cartopy.crs as ccrs\nimport tastymap  # optional, but I like using it to make colorbars\n\nda = xr.tutorial.load_dataset(\"air_temperature\")\n\n\n# pull out a few time points, so that we have multiple maps to play with\nda_map1 = da.isel(time=0)\nda_map2 = da.isel(time=1)\nda_map3 = da.isel(time=2)\nda_map4 = da.isel(time=3)",
     "crumbs": [
       "Notes",
-      "What's an EOF?"
+      "hvplot/holoviews notes"
     ]
   },
   {
-    "objectID": "eof_terminology.html#notation-mapping",
-    "href": "eof_terminology.html#notation-mapping",
-    "title": "What’s an EOF?",
-    "section": "Notation mapping",
-    "text": "Notation mapping\n\nThe SVD of \\(X\\) is written \\(X = U\\Sigma V^\\top\\). (\\(X\\) is dimension \\(n \\times p\\))\n\nIn general, \\(U\\) has dimension \\(n \\times n\\), \\(V\\) has dimension \\(p \\times p\\), and \\(\\Sigma\\) has dimension \\(n \\times p\\) (although \\(\\Sigma\\) is really a square matrix with added rows/columns of zeros added to make the matrix multiplication work)\n\\(\\Sigma\\) is effectively diagonal, and the diagonal elements are known as singular values.\n\nThe covariance matrix of \\(X\\) is \\(Cov(X) = \\frac{1}{n-1} X^\\top X\\) (dimension \\(p \\times p\\))\n\nit’s worth pointing out that although \\(\\Sigma\\) is commonly used in statistics as the notation for the covariance matrix, that isn’t quite true here. If you plug in the SVD for \\(X\\), then you get \\(Cov(X) = \\frac{1}{n-1} V \\Sigma^2 V^\\top\\).\n\nThe columns of \\(V\\) are known as EOFs in the EOF literature and known as Loadings or Principal Components in the PCA literature (each column is a vector of dimension \\(p\\), i.e. a map)\n\nthese are also the eigenvectors of \\(Cov(X)\\).\n\nThe columns of \\(U\\Sigma\\) are known as the Principal Components in the EOF literature and known as the scores in the PCA literature. (each column is a vector of dimension \\(n\\), i.e. a time series)\n\nNote that \\(\\Sigma\\) is diagonal, so that this is really just the column of \\(U\\), scaled by the corresponding singular value (i.e. the diagonal element of \\(\\Sigma\\)).\nPCA people sometimes refer to the first \\(k\\) columns of \\(U\\Sigma\\) as the “projection of \\(X\\) onto the first \\(k\\) PCs”\n\nThe variance explained by the \\(k\\)-th EOF/PC is denoted \\(\\sigma_k^2\\).\n\nrelatedly, the \\(k\\)-th eigenvalue of \\(Cov(X)\\) is \\(\\frac{1}{n-1}\\sigma_k^2\\).\n\nThe rank-k approximation of \\(X\\) is given by \\(U_k \\Sigma_k V_k^\\top\\), where the \\(k\\) subscript refers to the taking the first \\(k\\) columns of \\(U, \\Sigma\\), and \\(V\\).\n\ni.e. this is written equivalently as \\(\\sum_{i=1}^k \\sigma_i u_i v_i^\\top\\), where \\(u_i\\) and \\(v_i\\) are columns of \\(U\\) and \\(V\\), respectively. This is also sometimes called the “reconstruction” of \\(X\\) using the first \\(k\\) principal components.",
+    "objectID": "hvplot_tutorial.html#making-our-first-map",
+    "href": "hvplot_tutorial.html#making-our-first-map",
+    "title": "hvplot/holoviews notes",
+    "section": "Making our first map",
+    "text": "Making our first map\nxarray has handy plotting features built in, so we’re probably familiar with calling da_map.plot(). To make the switch, all we need to do is add two letters! (da_map.hvplot()).\nWe’ll get into resizing plots and all of those other goodies later, so don’t worry about how different the matplotlib and bokeh versions look.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nda_map1.hvplot(coastline=True)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nda_map1.hvplot(coastline=True)",
     "crumbs": [
       "Notes",
-      "What's an EOF?"
+      "hvplot/holoviews notes"
     ]
   },
   {
-    "objectID": "eof_terminology.html#recommendations",
-    "href": "eof_terminology.html#recommendations",
-    "title": "What’s an EOF?",
-    "section": "Recommendations",
-    "text": "Recommendations\nWhen talking about EOFs / PCA in the spatiotemporal context, I have the following recommendations (which are ordered as easiest -&gt; hardest to implement for people trained in EOFs)\n\nAlways mention the dimension (i.e. map or time series)\n\ne.g. say “principal component time series” or “EOF map”\n\nUse the PCA terminology, “scores” and “loadings” along with the dimension!!! This is not just because that’s how I was trained – it’s also practical because these terms can’t really get confused with anything in the climate literature, so there isn’t much chance of overloading the terms.\n\ni.e. say “PC score time series” and “map of EOF loadings”\n\nDon’t be afraid to use the SVD notation! Luckily, notation for SVD is super standard across all disciplines, so this works as long as you specify whether \\(X\\) is (time, space) or (space, time).",
+    "objectID": "hvplot_tutorial.html#making-subplots",
+    "href": "hvplot_tutorial.html#making-subplots",
+    "title": "hvplot/holoviews notes",
+    "section": "Making subplots",
+    "text": "Making subplots\nThis was probably the first feature that I saw that made me want to switch to holoviews!\nSide by side plots are called Layouts in holoviews, and can be made by simply adding plots together!\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# make three different maps, and a line plot\nfig1a = da_map1.hvplot(coastline=True) \nfig1b = da_map2.hvplot(coastline=True)\nfig1c = da_map3.hvplot(coastline=True)\n\n# a line plot of the spatal average\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# combine them, and specify the number of columns\n(fig1a + fig1b + fig1c + fig1d).cols(2)\n\n## the following is equivalent, and is handy if you programatically create a bunch of figures\n# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# make three different maps\nfig1a = da_map1.hvplot(coastline=True)\nfig1b = da_map2.hvplot(coastline=True)\nfig1c = da_map3.hvplot(coastline=True)\n\n# a line plot of the spatal average\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\")\n\n# combine them, and specify the number of columns\n(fig1a + fig1b + fig1c + fig1d).cols(2)\n\n## the following is equivalent, and is handy if you programatically create a bunch of figures\n# hv.Layout([fig1a, fig1b, fig1c, fig1d]).cols(2)",
     "crumbs": [
       "Notes",
-      "What's an EOF?"
+      "hvplot/holoviews notes"
     ]
   },
   {
-    "objectID": "eof_terminology.html#footnotes",
-    "href": "eof_terminology.html#footnotes",
-    "title": "What’s an EOF?",
-    "section": "Footnotes",
-    "text": "Footnotes\n\n\nnote that this means that lon-lat must be collapsed into a single variable↩︎",
+    "objectID": "hvplot_tutorial.html#adding-components-to-a-figure",
+    "href": "hvplot_tutorial.html#adding-components-to-a-figure",
+    "title": "hvplot/holoviews notes",
+    "section": "Adding components to a figure",
+    "text": "Adding components to a figure\nda_map1.hvplot(coastline = True) has two elements on the same figure: the temperatures, and the coastline. When we have multiple elements on the same panel, it’s called an Overlay. They can be made by multiplying plots together (i.e. if we had a separate map and coastline object, we could have done fig_map * fig_coastline).\nIn the example below, I add a horizontal line to the lineplot\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# a line plot of the spatal average, same as before\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# add a horizontal line\nline_1d = hv.HLine(y = 280)\n\nfig1d * line_1d\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# a line plot of the spatal average, same as before\nfig1d = da.mean(dim=[\"lon\", \"lat\"]).hvplot.line(x=\"time\", y=\"air\") \n\n# add a horizontal line\nline_1d = hv.HLine(y = 280)\n\nfig1d * line_1d",
     "crumbs": [
       "Notes",
-      "What's an EOF?"
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#basic-plot-styling",
+    "href": "hvplot_tutorial.html#basic-plot-styling",
+    "title": "hvplot/holoviews notes",
+    "section": "Basic plot styling",
+    "text": "Basic plot styling\nAdding titles, figure sizes, ect. is controlled by adding .opts() to the end of your plot. Some options can go directly into the parentheses of hvplot(), but the general recommendation is to leave most of the styling to the end, through an additional .opts() call.\nSide note: I prefer .options(), which is the same thing except that it doesn’t modify your figure in place. In other words, .options() is equivalent to .opts(clone = True)\nSide note: By default, xarray maps are plotted as “Images”, so that da_map1.hvplot() is equivalent to da_map1.hvplot.Image(). This may not be the best option (see the section on geographic options), so I’ll start making this choice explicit\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nda_map1.hvplot.Image(coastline=True).options(\n    title=\"example plot\",\n    xlabel = \"eg xlab\",\n    ylabel = \"eg ylab\",\n    clabel = \"cbar lab\",\n    ylim=(None, 70),\n    clim=(240, 280), # colorbar limit\n    width=600,\n    height=400,\n    fontsize={\n        \"title\": 15,  # can also use percentages, eg \"200%\"\n        \"labels\": 14,\n        \"ticks\": 10,\n        \"legend\": 10\n    },\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\nda_map1.hvplot.image(coastline=True).options(\n    title=\"example plot\",\n    xlabel = \"eg xlab\",\n    ylabel = \"eg ylab\",\n    clabel = \"cbar lab\",\n    ylim=(None, 70),\n    clim=(240, 280), # colorbar limit\n    width=600,\n    height=400,\n    fontsize={\n        \"title\": 15,  # can also use percentages, eg \"200%\"\n        \"labels\": 14,\n        \"ticks\": 10,\n        \"legend\": 10\n    },\n)",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#plot-styling-pt-2-styling-layouts-and-adding-defaults",
+    "href": "hvplot_tutorial.html#plot-styling-pt-2-styling-layouts-and-adding-defaults",
+    "title": "hvplot/holoviews notes",
+    "section": "Plot styling pt 2 (styling Layouts and adding “defaults”!)",
+    "text": "Plot styling pt 2 (styling Layouts and adding “defaults”!)\nSometimes you make a Layout (i.e. a figure with subplots) and want to apply the same customization to each plot (i.e. changing the figure size). There are a few ways of doing this:\n\nif all subplots are the same (e.g. all “Images” or all scatterplots), then you can nest a hv.opts.Image() call into your original options call (fig.opts(hv.opts.Image(ADD CODE HERE))).\nif the subplot are different (e.g. a map “Image”, a scatterplot, and a lineplot), then you can use fig.map(lambda x: x.opts(ADD CODE HERE), [hv.Scatter, hv.Line]) call, to selectively apply your operation to the scatterplot and lineplot, but NOT the map.\n\nAlso – to save some time with individual plots, I often like to keep a dictionary at the top of my script with all of the plotting options I use “by default”.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nuniversal_style_opts = {\n    # the size of each subplot\n    \"frame_width\": 350,\n    \"frame_height\": 300,\n    # font sizes\n    \"fontsize\": {\n        \"title\": \"14pt\",\n        \"labels\": \"12pt\",\n        \"xticks\": \"10pt\",\n        \"yticks\": \"10pt\",\n        \"legend\": \"12pt\",\n    },\n    # remove the toolbar\n    \"toolbar\": None,\n}\n\n# options we only want to apply to maps\ngeo_opts = {\"coastline\": True}\n\n# options we only want to apply to lineplots\nline_opts = {\"xrotation\": 45}\n\n# for a single plot, we can add some defaults\nda_map1.hvplot.Image(coastline=True).options(title=\"example plot\", ylim=(None, 70), **universal_style_opts)\n\n\n# now, for a multi-panel layout.\n\nlayout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)\n\n# applying separate options based on plot type\nlayout_eg.options(\n    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps\n    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot\n)\n\n# Alternate way to apply universal options to both types\nlayout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])\n\n\n### Bonus! if there are changes you want to make universally, it might be helpful to add a theme\n\n# Forces a specific font ('sans-serif') -----------\nnew_font = \"sans-serif\"\n#  [n for n in bokeh.models.Text.properties() if \"font\" in n] # see what's out there\ncustom_theme = Theme(\n    json={\n        \"attrs\": {\n            \"Title\": {\"text_font\": new_font},\n            \"Axis\": {\"axis_label_text_font\": new_font, \"major_label_text_font\": new_font},\n            \"ColorBar\": {\"title_text_font\": new_font, \"major_label_text_font\": new_font},\n            \"Legend\": {\"title_text_font\": new_font, \"label_text_font\": new_font},\n            \"Label\": {\"text_font\": new_font},\n            \"Text\": {\"text_font\": {\"value\": new_font}},\n        }\n    }\n)\n\n# apply this theme to all bokeh plots\nhv.renderer(\"bokeh\").theme = custom_theme\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nuniversal_style_opts = {\n    # the size of each subplot\n    \"fig_inches\": 5,\n    \"aspect\": 1.17,\n    # font sizes\n    \"fontsize\": {\n        \"title\": 14,\n        \"labels\": 12,\n        \"xticks\": 10,\n        \"yticks\": 10,\n        \"legend\": 12,\n    },\n}\n\n# options we only want to apply to maps\ngeo_opts = {\"cmap\": \"RdBu\"}\n\n# options we only want to apply to lineplots\nline_opts = {\"xrotation\": 45}\n\n# for a single plot, we can add some defaults\nda_map1.hvplot.image(coastline=True).options(\n    title=\"example plot\", ylim=(None, 70), **universal_style_opts\n)\n\n###############################\n# modifying a multi-panel layout.\n################################\n\n# this is the same layout we made previously (3 maps and a lineplot)\nlayout_eg = (fig1a + fig1b + fig1c + fig1d).cols(2)\n\n# applying separate options based on plot type\nlayout_eg.options(\n    hv.opts.Image(**geo_opts, **universal_style_opts),  # will change the 3 maps\n    hv.opts.Curve(**line_opts, **universal_style_opts),  # will change the lineplot\n)\n\n# Alternate way to apply universal options to both plot types\nlayout_eg.map(lambda x: x.opts(**universal_style_opts), [hv.Image, hv.Curve])",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#custom-colorbars",
+    "href": "hvplot_tutorial.html#custom-colorbars",
+    "title": "hvplot/holoviews notes",
+    "section": "Custom colorbars",
+    "text": "Custom colorbars\nI usually use discrete colorbars. Discrete colorbars are made up of 4 components:\n\nthe colors we want to use (controlled by the cmap parameter)\nat what values the colors change (controlled by the color_levels parameter)\nwhere we place the tickmarks (controlled by ticks in mpl and FixedTicker() in bokeh)\nwhere the colorbar starts and ends (controlled by clim)\n\n(technically, you could include other components, like controlling the spacing between the colors. Here I’m assuming that the underlying variable is numeric and continuous, and that the spacing between the colors matches the distance between their values. but this can be changed as well with extra work)\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\nfrom bokeh.models import FixedTicker\n\nda_map1.hvplot.quadmesh.opts(\n    cmap=[\"green\", \"yellow\", \"orange\", \"red\"],\n    colorbar_opts={\"ticker\": FixedTicker(ticks=[230, 250, 270, 300, 320])},\n    color_levels=[230, 250, 270, 300, 320],\n    clim=(230, 320),\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nlevels = [230, 250, 270, 300, 320]\nda_map1.hvplot().opts(\n    cmap=[\"green\", \"yellow\", \"orange\", \"red\"],\n    color_levels=levels,\n    colorbar_opts={'ticks': levels},\n    clim=(230, 320),\n    colorbar=True\n)",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#custom-colorbars-pt-2-non-centered-diverging-colorbars",
+    "href": "hvplot_tutorial.html#custom-colorbars-pt-2-non-centered-diverging-colorbars",
+    "title": "hvplot/holoviews notes",
+    "section": "Custom colorbars pt 2: non-centered diverging colorbars",
+    "text": "Custom colorbars pt 2: non-centered diverging colorbars\nSuppose I have a variable that ranges from -0.5 -&gt; 1, and 0 is important. I would like to use a diverging colorbar to show that 0 is important (e.g. blue -&gt; white -&gt; red). By default, the center of the colorbar is 0. So, if I wanted to show off the full range of the data, I could have the colorbar range from -1 -&gt; 1. I don’t love this, though, because all of the colors between -1 and -0.5 don’t get used!\nThe code below hacks together a colorbar which has 0 at a location different from the center. (Note: in matplotlib, the TwoSlopeNorm() might be a useful alternative)\nI like using the tastymap package for making colorbars (even in matplotlib), just because it has a lot more cmap options than matplotlib (like the colorcet options, e.g. cet_CET_L18), and there are some nice convenience functions. But the tastymap part is totally optional\ntastymap quick usage:\n\nA discrete colorbar with 12 levels:\n\nreds_discrete = tastymap.cook_tmap(\"cet_CET_L18\", num_colors = 12)\n\nIf I want to remove white:\n\nnowhite = tastymap.cook_tmap(\"cet_CET_L18\", num_colors = 12)[1:12].cmap\nor equiv: nowhite = tastymap.utils.subset_cmap(reds_discrete, slice(1,11))\n\nIf I need hex codes, for whatever reason\n\nreds_hex = reds_discrete.to_model(\"hex\")\n\n\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nfrom bokeh.models import FixedTicker\n\n# TODO: I think tastymap.pair_tbar() might make this easier.\n\nmy_ticks = np.arange(-0.5, 0, 0.05).round(2).tolist()  # ticks aren't symmetric around 0!\nn_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom\nmy_cmap = tastymap.cook_tmap(\"RdBu_r\", num_colors=n_colors * 2)[0:n_colors].cmap\n\n# make a map with values closer to zero\neg_map = da_map2 - da_map1\neg_map.hvplot.quadmesh(coastline=True).opts(\n    opts.QuadMesh(\n        cmap=my_cmap,\n        colorbar_opts={\"ticker\": FixedTicker(ticks=my_ticks)},\n        color_levels=my_ticks,\n        clim=(min(my_ticks), max(my_ticks)),\n        title=\"check out my colorbar!\",\n    )\n)\n\n\n# in helper function form\ndef cbar_discrete(start, end, cmap=\"RdBu\", width=None, zero_centered=False, extension=\"bokeh\"):\n    \"\"\"\n    a hvplot helper to make a zero-centered segmented colorbar\n    :param: start and end are the two endpoints of the colorbar. 0 should be contained inside\n    :param: cmap is a string with the desired colormap. should be accepted by tastymap.cook_tmap(), and should probably be a diverging colorbar.\n    :param: width is a number, the distance between colors. This will be used to determine the number of colors.\n    :param: extension is the hvplot extension -- for now, bokeh and matplotlib are supported.\n\n    :returns: a dictionary to be passed into holoviews .opts\n    :example:\n    da = xr.tutorial.load_dataset('air_temperature.nc').isel(time=10) - 273\n    eg_cbar = cbar_discrete(-30, 40, cmap = \"RdBu\", zero_centered= True)\n    da.hvplot().opts(**eg_cbar)\n    \"\"\"\n    crange = end - start  # range of the cbar\n\n    # set default width (aka distance between colors)\n    if width is None:\n        # strategy for setting default width:\n        # we're gonna aim for ~10 colors\n        # but we're going to prioritize \"round\" spacings.\n        # this strategy is assuming that the crange is an integer\n\n        def divisors(n):\n            \"\"\"\n            get divisors of n, used to calculate default width.\n            https://stackoverflow.com/a/36700288\n            \"\"\"\n            divs = [1]\n            for i in range(2, int(np.sqrt(n)) + 1):\n                if n % i == 0:\n                    divs.extend([i, n / i])\n            # divs.extend([n])  # n is a divisor, but not needed for our function\n            return np.array(divs)\n\n        def orderOfMag(n):\n            \"\"\"\n            example: if n = 0.03, then should return 1/100\n            \"\"\"\n            return 10 ** np.floor(np.log10(n))\n\n        # aiming for ~10 colors. this is our initial guess.\n        width_ballpark = crange / 10\n        if width_ballpark &lt; 1:\n            # if 10 evenly spaced colors produces widths &lt; 1, then try widths in [.1, .125,.2, .25,.5]\n            # which guarantees that all integers get their own ticks\n            # this scales by order of magnitude, in case the range is small.\n            # (e.g. if width is 0.03, then should try 0.01, 0.0125, ect..)\n            width_candidates = np.array([1, 1.25, 2, 2.5, 5]) * orderOfMag(width_ballpark)\n\n        else:\n            # if the width between colors spans more than 1, then try the divisors\n            # TODO: might be worth filtering this so that 0 MUST be one of the tickmarks.\n            width_candidates = divisors(crange)\n\n        check_n_colors = crange / width_candidates  # number of colors for each width\n        width = width_candidates[\n            np.argmin(np.abs(check_n_colors - 10))\n        ]  # pick the width that produces closest to 10 colors\n\n    # end getting default width ---\n\n    n_colors = int(np.round(crange / width))  # round to handle weird precision.\n    # use n_colors + 1 bc including both endpoints\n    ticks = np.linspace(start, end, n_colors + 1).round(10).tolist()\n\n    # label the number at every colorchage\n    # todo: if there are a lot of colors, we could do every other number\n    if extension == \"bokeh\":\n        tick_loc = {\"ticker\": FixedTicker(ticks=ticks)}\n    elif extension == \"matplotlib\":\n        tick_loc = {\"ticks\": ticks}\n    else:\n        exit(\"only bokeh and matplotlib extensions are supported.\")\n\n    ############################################\n    # adds logic to center a diverging cmap at 0\n    ############################################\n    is_not_symmetric = abs(start) != abs(end)\n    # check that (1) we want zero centered and (2) the cbar isn't already symmetric\n    if (zero_centered) and (is_not_symmetric):\n        # find location of 0\n        zero_ind = np.searchsorted(ticks, 0)\n\n        # use twice the colors, so that cmap_base[n_colors] is white.\n        # TODO: this is a little hacky and leads to muted colors.\n        # one alternative would be to split the cbar at zero and rescale (as in matplotlib twoslopenorm)\n        # could be done using two calls to tastymap.resize, which are combined using &\n        # e.g. cmap_below0 = cmap_base[0:n_colors].resize(zero_ind),\n        # cmap_above0 = cmap_base[n_colors:].resize(n_colors - zero_ind)\n        # cmap_final = (cmap_below0 & cmap_above0).cmap\n\n        cmap_base = tastymap.cook_tmap(cmap, num_colors=n_colors * 2)\n\n        # n_colors is white, so we want to start zero_ind below, and then pick out the next n_colors.\n        # mult by 2 version if you wanna up the saturation\n        # cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)] * 2\n        cmap_final = cmap_base[(n_colors - zero_ind) : (n_colors - zero_ind + n_colors)]\n    else:\n        cmap_final = tastymap.cook_tmap(cmap, num_colors=n_colors)\n\n    cbar_dict = dict(\n        cmap=cmap_final.cmap,\n        clim=(start, end),\n        colorbar_opts=tick_loc,\n        color_levels=ticks,\n    )\n\n    return cbar_dict\n\n\n\n\n# note: TwoSlopeNorm might be a useful alternative,  see below\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n\nmy_ticks = (\n    np.arange(-0.5, 0, 0.05).round(2).tolist()\n)  # ticks aren't symmetric around 0!\nn_colors = len(my_ticks) - 1  # -1 bc ticks at top and bottom\nmy_cmap = tastymap.cook_tmap(\"RdBu_r\", num_colors=n_colors * 2)[0:n_colors].cmap\n\n# make a map with values closer to zero\neg_map = da_map2 - da_map1\neg_map.hvplot.quadmesh(coastline=True).opts(\n    hv.opts.QuadMesh(\n        cmap=my_cmap,\n        ticks=my_ticks,\n        color_levels=my_ticks,\n        clim=(min(my_ticks), max(my_ticks)),\n        title=\"check out my colorbar!\",\n    )\n)\n\n\n## note: TwoSlopeNorm might be a useful alternative,  see below\n## source: https://discourse.holoviz.org/t/diverging-colorbar-around-asymetric-data/3339/3\n\n# import matplotlib.colors as colors\n# data = np.random.random((10,10))\n# data = 10 * (data - 0.8)\n# test_array = xr.DataArray(\n#     data,\n#     coords=[np.arange(10), np.arange(10)],\n#     dims=['x','y'], name='z')\n# test_array.hvplot(clim=(-8, 2), cmap=\"coolwarm\")\n\n\n# divnorm = colors.TwoSlopeNorm(vmin=-8., vcenter=0., vmax=2)\n# levels = np.arange(-8, 2.5, 0.5)\n# colors = [colors.to_hex(c, keep_alpha=True) for c in plt.cm.coolwarm(divnorm(levels))]\n# test_array.hvplot(clim=(-8, 2), cmap=colors)\n\n\ndef cbar_helper(\n    start, end, num_bins=\"auto\", cmap=\"RdBu\", cmap_center=None, rescale=False\n):\n    \"\"\"\n    generate a discrete matplotlib colorbar.\n\n    most of the work into this function is handling the cmap_center argument, which fixes the center of the cbar to a particular value, even if colorbar isn't symmetric around cmap_center.\n    This function relies on matplotlib's method of automatically choosing tickmark locations, which means it doesn't always respect \"(start, end)\".\n        If you want a version of this that implements some gross custom logic I made for automatically choosing levels, let me know and I'll send it over\n\n    Args:\n        start (numeric): the bottom endpoint of the colobar\n        end (numeric): the top endpoint of the colorbar\n        num_bins (int, optional): number of colors in the colorbar. See matplotlib.ticker.MaxNLocator. Defaults to \"auto\".\n        cmap (str, optional): what colormap to use. see list(plt.colormaps) for options.\n            bonus! if you import colorcet, you can pass in any of their colormap names to this argument!\n        rescale (bool, optional): whether to rescale the colormap so that the endpoints are equally intense, regardess of their values. Defaults to False.\n        cmap_center (numeric, optional): the value where the center of the cmap should be. must be between `start` and `end`.\n            eg. for a white-centered colormap, cmap_center = 0 fixes white to the value 0.\n\n    Returns:\n        dict: dictionary of kwargs that can be passed into xarary's plot accessor. (will also work for most matplotlib functions)\n\n    Example:\n        my_kwargs = cbar_helper(-30, 20, cmap_center = 0)\n        da = xr.tutorial.open_dataset('air_temperature').isel(time=1).air - 273.15\n        da.plot(**my_kwargs)\n    \"\"\"\n\n    if type(cmap) is str:\n        # 256 colors, interpolating between 0 and 1\n        og_cmap = plt.colormaps[cmap]  # endpoints are 0 and 1, by default\n    else:\n        og_cmap = cmap\n\n    # cmap_center is where we want the middle of the cmap to be\n    # e.g. for a diverging colorbar, cmap_center=0 fixes white to value 0.\n    if cmap_center is None:\n        cmap_center = (start + end) / 2\n\n    center_fraction = (cmap_center - start) / (\n        end - start\n    )  # eg. zero is \"0.4\" of the way from the top\n\n    shift_amount = 0.5 - center_fraction\n\n    if rescale:\n        # the bottom and top of the colorbar will be the \"darkest\" shades, even if the numbers aren't symmetric\n        # e.g. for {cmap= 'RdBu', start=-5, end = 30}, -5 will be just as dark red as 30 is dark blue.\n        new_colors = og_cmap(\n            np.interp(\n                np.linspace(0, 1, og_cmap.N), [0, center_fraction, 1], [0, 0.5, 1]\n            )\n        )\n    else:\n        # e.g. for {cmap= 'RdBu', start=-5, end = 30}, -5 will be just light red and 30 dark blue.\n        if shift_amount &gt;= 0:  # if |start| &lt; |end|\n            new_colors = og_cmap(\n                np.interp(\n                    np.linspace(0, 1, og_cmap.N),\n                    [0, center_fraction, 1],\n                    [shift_amount, 0.5, 1],\n                )\n            )\n        else:  # if |start| &gt; |end|\n            # shift amount is negative, so 1 + shift_amount &lt;  1\n            new_colors = og_cmap(\n                np.interp(\n                    np.linspace(0, 1, og_cmap.N),\n                    [0, center_fraction, 1],\n                    [0, 0.5, 1 + shift_amount],\n                )\n            )\n\n    # can also do something like matplotlib.colors.LinearSegmentedColormap.from_list('a', new_colors, N = len(levels))\n    shifted_cmap = matplotlib.colors.ListedColormap(new_colors)\n\n    # rely on mpl's auto-generation of tickmarks\n    # this can be annoying sometimes (i.e. it doesn't respect (start, end) exactly)\n    levels = matplotlib.ticker.MaxNLocator(nbins=num_bins).tick_values(start, end)\n    norm = matplotlib.colors.BoundaryNorm(\n        levels, shifted_cmap.N\n    )  # .N should still be 256\n\n    cbar_kwargs = dict(\n        cmap=shifted_cmap,\n        norm=norm,\n        levels=levels,\n    )\n\n    return cbar_kwargs\n\n\ndef zero_center_hook_mpl(plot, element, cbar_kwargs):\n    \"\"\"\n    hvplot hook for cbar_zero_centered(), with mpl backend\n\n    Args:\n        plot (_type_): _description_\n        element (_type_): _description_\n        cbar_kwargs (_type_): _description_\n\n    Usage:\n    da.hvplot().opts(hooks= [partial(zero_center_hook, cbar_kwargs=eg_cbar)])\n    \"\"\"\n    # 'plot.handles' contains the mpl objects\n    artist = plot.handles.get(\"artist\")\n\n    if artist:\n        # the norm will automatically handle the tickmarks/levels\n        artist.set_cmap(cbar_kwargs[\"cmap\"])\n        artist.set_norm(cbar_kwargs[\"norm\"])\n\n\ndef zero_center_hook_bokeh(plot, element, cbar_kwargs):\n    \"\"\"\n    Analogous hook for the Bokeh backend.\n\n    Usage:\n        hvplot.extension('bokeh')\n        da.hvplot.quadmesh().opts(hooks= [partial(zero_center_hook_bokeh, cbar_kwargs=eg_cbar)])\n    \"\"\"\n    if not cbar_kwargs:\n        return\n\n    mpl_cmap = cbar_kwargs[\"cmap\"]\n    norm = cbar_kwargs[\"norm\"]\n    levels = cbar_kwargs[\"levels\"]\n\n    # get the colors for each level\n    # this method is kinda gross...\n    midpoints = (levels[:-1] + levels[1:]) / 2.0\n    indices = norm(midpoints)\n    colors = mpl_cmap(indices)\n    bokeh_palette = [\n        matplotlib.colors.to_hex(c) for c in colors\n    ]  # this migth not be necessary\n\n    # update bokeh\n    # glyph_render is quadmesh backend\n    glyph_renderer = plot.handles.get(\"glyph_renderer\")\n\n    if glyph_renderer:\n        # \"transform\" contains the cmap\n        color_mapper = glyph_renderer.glyph.fill_color[\"transform\"]\n        color_mapper.palette = bokeh_palette\n\n        # update range\n        color_mapper.low = levels[0]\n        color_mapper.high = levels[-1]\n\n\ndef cbar_helper_hv(\n    start,\n    end,\n    num_bins=\"auto\",\n    cmap=\"RdBu\",\n    cmap_center=None,\n    rescale=False,\n    extension=\"matplotlib\",\n):\n    \"\"\"\n    wrapper around cbar_helper to format for hvplot\n\n    Args\n        as in cbar_helper, except\n        extension (str, optional): \"matplotlib\" or \"bokeh\". Defaults to \"matplotlib\".\n\n    Returns:\n        partial function: to be passed into the \"hooks\" argument of hvplot.\n\n    Usage:\n        hvplot.extension(\"matplotlib\")\n        my_kwargs = cbar_helper_hv(-30, 20, cmap_center = 0, extension = \"matplotlib\")\n        da = xr.tutorial.open_dataset('air_temperature').isel(time=1).air - 273.15\n        da.hvplot(hooks = [my_kwargs])\n\n    \"\"\"\n    cbar_kwargs = cbar_helper(start, end, num_bins, cmap, cmap_center, rescale)\n    if extension == \"matplotlib\":\n        hook_fnc = partial(zero_center_hook_mpl, cbar_kwargs=cbar_kwargs)\n    elif extension == \"bokeh\":\n        hook_fnc = partial(zero_center_hook_bokeh, cbar_kwargs=cbar_kwargs)\n    else:\n        return \"only matplotlib and bokeh extensions are supported\"\n    return hook_fnc",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#geographic-options",
+    "href": "hvplot_tutorial.html#geographic-options",
+    "title": "hvplot/holoviews notes",
+    "section": "Geographic options",
+    "text": "Geographic options\nA list of avaialble geographic-specific options is here. As an example, we’ll change the projection of the data.\nBy default, calling da.hvplot() uses the Image plot type, so that da.hvplot() is equivalent to da.hvplot.Image(). This isn’t very accurate when using different projections, so it’s safer to use da.hvplot.quadmesh() instead. See here for some more detail\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# quadmesh is more accurate than the default (hv.plot.Image)\nda_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# quadmesh is more accurate than the default (hv.plot.Image) with different projections\nda_map1.hvplot.quadmesh(coastline=True, projection=ccrs.LambertConformal())",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#using-matplotlib-bokeh-code",
+    "href": "hvplot_tutorial.html#using-matplotlib-bokeh-code",
+    "title": "hvplot/holoviews notes",
+    "section": "Using matplotlib / bokeh code",
+    "text": "Using matplotlib / bokeh code\nHoloviews doesn’t have ALL of the underlying matplotlib / bokeh options. If there’s a modification that you need to make to your figure, and you can’t find the corresponding holoviews setting, then we can manually add it in using the underlying matplotlib (or bokeh) code.\nThere are two ways to do this: first, by grabbing the underlying matplotlib axes and continuing on in matplotlib land, or by using “hooks”, which allow us to inject matplotlib code whilst keeping the holoviews object intact.\nIn the matplotlib example, I add some text to the corner. I find that hvplot struggles with relative positioning of text.\nIn the bokeh example, I modify the plot titles to include subplot labels (like (a), (b), (c))\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nmy_multipanel_fig = fig1a + fig1b + fig1c + fig1d  # same as layout_eg\n\n# option 1: extracting the underlying object ----------\n\n# option 2: using hooks -----------------------\n\nimport string\nfrom functools import partial\n\n\ndef subplot_label_hook(plot, element, sub_label=\"\"):\n    \"\"\"add subplot labels (a, b, c...)\"\"\"\n    # Access the underlying Bokeh figure\n    fig = plot.state\n\n    original_title = fig.title.text\n    fig.title.text = f\"{sub_label} {original_title}\"\n\n\n# iterate over the subplots and add the label to the title.\nupdated_figlist = []\nfor i, subplot in enumerate(my_multipanel_fig):\n    new_label = f\"({string.ascii_lowercase[i]})\"  # this sets the format to (a), (b), ..\n    updated_subplot = subplot.opts(\n        hooks=[partial(subplot_label_hook, sub_label=new_label)]\n    )\n    updated_figlist.append(updated_subplot)\n\nupdated_figure = hv.Layout(updated_figlist)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# option 1: transferring our work to matplotlib ----------\n\nfig = hv.render(plot)\nax = fig.axes\n\n# alternative to above!\n# fig = plot.handles[\"fig\"]\n# ax = plot.handles[\"axes\"]\n\n# and now we can just continue on using (fig, ax) like in any other matplotlib object!\nax.text(\n    0.95,\n    0.05,\n    \"Hook Text\",\n    transform=ax.transAxes,\n    ha=\"right\",\n    va=\"bottom\",\n    color=\"white\",\n    fontsize=12,\n    bbox=dict(facecolor=\"black\", alpha=0.5),\n)\n\n\n# option 2: trying to stay in holoviews  -----------------------\n\n\ndef mpl_text_hook(plot, element):\n    \"\"\"\n    An example matplotlib hook to add some text to the corner\n    \"\"\"\n    # 1. Access the Matplotlib Axes\n    ax = plot.handles[\"axis\"]\n\n    # transform=ax.transAxes is a nice trick to place text relative to corners\n    ax.text(\n        0.95,\n        0.05,\n        \"Hook Text\",\n        transform=ax.transAxes,\n        ha=\"right\",\n        va=\"bottom\",\n        color=\"white\",\n        fontsize=12,\n        bbox=dict(facecolor=\"black\", alpha=0.5),\n    )\n\n\nfig1d.opts(title=\"testing out hooks\", hooks=[mpl_text_hook])",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#exporting-as-pickle",
+    "href": "hvplot_tutorial.html#exporting-as-pickle",
+    "title": "hvplot/holoviews notes",
+    "section": "Exporting as pickle",
+    "text": "Exporting as pickle\nI often like to save figures as python objects, so that I can quickly load them in and modify cosmetic options without having to re-run the entire analysis (although it’s good practice to re-run your entire analysis once in a while to make sure it’s reproducible!). Pickling objects is a good way of doing this.\nHowever, by default, saving holoview objects as pickles loses their styling options. So, we need to add a line of code before we pickle to make sure that everything gets saved. Alternatively, holoviews has their own wrapper around pickle: hv.Store.dump() and hv.Store.load()\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\nhv.Store.save_option_state = True\npickle.loads(pickle.dumps(fig1a))\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nhv.Store.save_option_state = True\npickle.loads(pickle.dumps(fig1a))",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#exporting-as-png",
+    "href": "hvplot_tutorial.html#exporting-as-png",
+    "title": "hvplot/holoviews notes",
+    "section": "Exporting as png",
+    "text": "Exporting as png\nhv.save() is the function we use to save figures. Including the file extension (e.g. png, svg, jpg) at the end of the filename will automatically determine the output.\nThis is really straightforward with the matplotlib backend, but tricky with the bokeh backend. Bokeh figures are designed to be interactive, so they don’t like static filetypes like png. These figures are designed to be exported as html files, so hv.save(fig, \"my_fig.html\") works really well. If we export as png, what opens the figure in a browser in the backend and takes a screenshot. This is a little hacky, but tends to work well enough.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n# hv.save(fig, 'tmp.html')\n# hv.save(fig, 'tmp.png')\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\n# hv.save(fig, 'tmp.png')",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#custom-layouts",
+    "href": "hvplot_tutorial.html#custom-layouts",
+    "title": "hvplot/holoviews notes",
+    "section": "Custom Layouts",
+    "text": "Custom Layouts\nWe saw that we can arrange plots into a grid using figa + figb, or by hv.Layout([figa, figb]). That’s fine for the basics, but won’t do if we want to customize the arrangements of the plots.\nFor example, the snippet below takes three subplots, and arranges them so that the first plot is by itself in the first row, and is centered.\nThis requires another sibling package of holoviews, called panel. This package provides a ton of layout options.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\nimport panel as pn\npn.Column(\n    pn.panel(fig1a, center=True, sizing_mode=\"fixed\"),\n    pn.panel(fig1b + fig1c, center=True, sizing_mode=\"fixed\"),\n)\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nfig = plt.figure(figsize=(12, 8), constrained_layout=False)\n\n# my figure has 3 subplots. i want the first one on its own, and the second two below it. here's how to arrange them:\n# 2 rows x 4 cols:\n# - top panel spans middle 2 cols\n# - bottom-left spans first 2 cols\n# - bottom-right spans last 2 cols\ngs = fig.add_gridspec(\n    nrows=2,\n    ncols=4,\n    wspace=0.02,\n    hspace=-0.20,\n)\n\nax1 = fig.add_subplot(gs[0, 1:3], projection=ccrs.PlateCarree())\nax2 = fig.add_subplot(gs[1, 0:2], projection=ccrs.PlateCarree())\nax3 = fig.add_subplot(gs[1, 2:4], projection=ccrs.PlateCarree())\n\n# conversion from holoviews -&gt; mpl, in the right axes\nrenderer = hv.renderer(\"matplotlib\")\nrenderer.get_plot(fig_1a, fig=fig, axis=ax1)\nrenderer.get_plot(fig_1b, fig=fig, axis=ax2)\nrenderer.get_plot(fig_1c, fig=fig, axis=ax3)\n\n# fig.savefig(\"tmp.png\", dpi=200)",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#time-series",
+    "href": "hvplot_tutorial.html#time-series",
+    "title": "hvplot/holoviews notes",
+    "section": "Time series",
+    "text": "Time series\nWith the matplotlib backend, time series can look weird and be offset, especially when using cftime (eg.. with the noleap calendar). To fix this, there’s a nice package, nc-time-axis. We can use this together with the xformatter argument in hvplot.\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend\n\nimport nc_time_axis\n\nda.sel(lat=35, lon=-118, method=\"nearest\").opts(\n    hv.opts.Curve(\n        xformatter=nc_time_axis.CFTimeFormatter(\"%Y\", \"noleap\"),\n        title=\"eg time series\",\n    )\n)",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section",
+    "href": "hvplot_tutorial.html#new-section",
+    "title": "hvplot/holoviews notes",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-1",
+    "href": "hvplot_tutorial.html#new-section-1",
+    "title": "hvplot/holoviews notes",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-2",
+    "href": "hvplot_tutorial.html#new-section-2",
+    "title": "hvplot/holoviews notes",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-3",
+    "href": "hvplot_tutorial.html#new-section-3",
+    "title": "hvplot/holoviews notes",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-4",
+    "href": "hvplot_tutorial.html#new-section-4",
+    "title": "hvplot/holoviews notes",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
+    ]
+  },
+  {
+    "objectID": "hvplot_tutorial.html#new-section-5",
+    "href": "hvplot_tutorial.html#new-section-5",
+    "title": "hvplot/holoviews notes",
+    "section": "New section",
+    "text": "New section\n\nBokehMatplotlib\n\n\n\nhv.extension(\"bokeh\")  # use bokeh as the backend\n\n\n\n\nhv.extension(\"matplotlib\")  # use mpl as the backend",
+    "crumbs": [
+      "Notes",
+      "hvplot/holoviews notes"
     ]
   }
 ]
