@@ -225,11 +225,11 @@ ul.task-list li input[type="checkbox"] {
 <section id="step-2-download-cmip-data." class="level3">
 <h3 class="anchored" data-anchor-id="step-2-download-cmip-data.">Step 2: download CMIP data.</h3>
 <p>To calculate the modes, esmValTool <a href="https://docs.esmvaltool.org/en/latest/recipes/recipe_cvdp.html">requires</a> four variables at monthly resolution: - Sea Surface Temperature (cmip name: ts) - Surface Air Temperature (cmip name: tas) - Precipitation (cmip name: pr) - Sea Level Pressure (cmip name: psl)</p>
-<p>It’s worth noting that ESMValTool has a built-in CMIP data downloader, but I downloaded the data before I found out about this functionality… see more <a href="https://blog.esciencecenter.nl/easy-ipcc-powered-by-esmvalcore-19a0b6366ea7">here</a>. I haven’t played around with the route, but if you choose to go down it, the remainder of this tutorial will <em>not</em> be that useful for you. Step 3, in particular, will look different. But.. if you’re like me and download the data manually, it’s best to make sure that you keep the CMIP folder conventions. Here’s an example path (this is on vortex, in case you’re in the McKinnon Group and you have access)</p>
+<p>It’s worth noting that ESMValTool has a built-in CMIP data downloader, but I downloaded the data before I found out about this functionality… see more <a href="https://blog.esciencecenter.nl/easy-ipcc-powered-by-esmvalcore-19a0b6366ea7">here</a>. I haven’t played around with this route, but if you choose to go down it, the remainder of this tutorial will <em>not</em> be that useful for you. Step 3, in particular, will look different. But… if you’re like me and download the data manually, it’s best to make sure that you keep the CMIP folder conventions. Here’s an example path (this is on vortex, in case you’re in the McKinnon Group and you have access)</p>
 <ul>
 <li><code>/home/data/CMIP6/hist-aer/mon/psl/MIROC6/r10i1p1f1/gn/psl_Amon_MIROC6_hist-aer_r10i1p1f1_gn_185001-194912.nc</code></li>
 </ul>
-<p>The part before the <code>/hist-aer/</code> will look different for you depending on where you downloaded the data, but everything past the <code>/hist-aer/</code> should have the same folder structure.</p>
+<p>The part before <code>/mon/</code> will look different for you depending on where you downloaded the data and what CMIP experiment you’re working with (e.g.&nbsp;<code>hist-aer</code>, <code>ssp585</code>), but everything past <code>/mon/</code> should have the same folder structure.</p>
 </section>
 <section id="step-3-update-your-configuration-file." class="level3">
 <h3 class="anchored" data-anchor-id="step-3-update-your-configuration-file.">Step 3: Update your configuration file.</h3>
@@ -237,7 +237,7 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><p>3a. run <code>esmvaltool config copy defaults/data-local-esmvaltool.yml</code>. This command creates a copy of the default configuration file in <code>~/.config/esmvaltool/data-local-esmvaltool.yml</code></p></li>
 <li><p>3b. run <code>nano ~/.config/esmvaltool/data-local-esmvaltool.yml</code> to open the configuration file in a text editor (or use vim or micro or whatever your preferred editor is).</p></li>
-<li><p>3c. You will need to edit this file to point to the location of your CMIP data. In my case, I added the following lines to the bottom of the file:</p></li>
+<li><p>3c. You will need to edit this file to point to the location of your CMIP data. In my case, I added the following lines to the bottom of the file. If you followed the file structure in Step 2, then the only thing you’ll have to change is the <code>rootpath</code>.</p></li>
 </ul>
 <pre><code>  CMIP6:
     data:
