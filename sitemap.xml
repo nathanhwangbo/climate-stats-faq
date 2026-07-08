@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://nathanhwangbo.github.io/climate-stats-faq/modes_esmvaltool.html</loc>
+    <lastmod>2026-07-08T20:46:00.592Z</lastmod>
+  </url>
+  <url>
     <loc>https://nathanhwangbo.github.io/climate-stats-faq/statclimate_model_ensembles.html</loc>
     <lastmod>2026-05-19T21:58:44.341Z</lastmod>
   </url>
@@ -47,5 +51,9 @@
   <url>
     <loc>https://nathanhwangbo.github.io/climate-stats-faq/hvplot_tutorial.html</loc>
     <lastmod>2026-03-17T20:55:07.241Z</lastmod>
+  </url>
+  <url>
+    <loc>https://nathanhwangbo.github.io/climate-stats-faq/robust_se_for_le.html</loc>
+    <lastmod>2026-06-16T05:53:15.426Z</lastmod>
   </url>
 </urlset>

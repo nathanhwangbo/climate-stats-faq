@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>About – climate-stats-faq</title>
+<title>calculating climate modes using ESMValTool – climate-stats-faq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -84,9 +84,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">
-      climate-stats-faq
-      </li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./nc_tutorial.html">Notes</a></li><li class="breadcrumb-item"><a href="./modes_esmvaltool.html">calculating climate modes using ESMValTool</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -164,7 +162,7 @@ ul.task-list li input[type="checkbox"] {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./modes_esmvaltool.html" class="sidebar-item-text sidebar-link">
+  <a href="./modes_esmvaltool.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">calculating climate modes using ESMValTool</span></a>
   </div>
 </li>
@@ -179,15 +177,25 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#step-1-install-esmvaltool." id="toc-step-1-install-esmvaltool." class="nav-link active" data-scroll-target="#step-1-install-esmvaltool.">Step 1: install ESMValTool.</a></li>
+  <li><a href="#step-2-download-cmip-data." id="toc-step-2-download-cmip-data." class="nav-link" data-scroll-target="#step-2-download-cmip-data.">Step 2: download CMIP data.</a></li>
+  <li><a href="#step-3-update-your-configuration-file." id="toc-step-3-update-your-configuration-file." class="nav-link" data-scroll-target="#step-3-update-your-configuration-file.">Step 3: Update your configuration file.</a></li>
+  <li><a href="#step-4-update-the-recipe-file." id="toc-step-4-update-the-recipe-file." class="nav-link" data-scroll-target="#step-4-update-the-recipe-file.">Step 4: Update the “recipe” file.</a></li>
+  <li><a href="#step-5-run-the-recipe." id="toc-step-5-run-the-recipe." class="nav-link" data-scroll-target="#step-5-run-the-recipe.">Step 5: Run the recipe.</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./nc_tutorial.html">Notes</a></li><li class="breadcrumb-item"><a href="./modes_esmvaltool.html">calculating climate modes using ESMValTool</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">About</h1>
+<h1 class="title">calculating climate modes using ESMValTool</h1>
 </div>
 
 
@@ -204,9 +212,63 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>About this site</p>
+<p>ESMValTool is a pretty cool tool that simplifies working with CMIP data. There are good tutorials already (see <a href="https://tutorial.esmvaltool.org/">here</a> and <a href="https://blog.esciencecenter.nl/easy-ipcc-powered-by-esmvalcore-19a0b6366ea7">here</a>), but I’m writing this to streamline a very specific use-case: calculating climate modes (e.g.&nbsp;ENSO, PDO) from climate models. For this task, ESMValTool provides a simple python wrapper around the <code>ncl</code> code that NCAR has developed to calculate modes. I’m trying to hold off working with <code>.ncl</code> directly for as long as I can, so I’m glad I found this wrapper. Here’s how to use ESMValTool to get the modes.</p>
+<section id="step-1-install-esmvaltool." class="level3">
+<h3 class="anchored" data-anchor-id="step-1-install-esmvaltool.">Step 1: install ESMValTool.</h3>
+<p>See the tutorial for detailed instructions, but my preferred method is to use <a href="https://pixi.prefix.dev/latest/"><code>pixi</code></a>.</p>
+<ul>
+<li><p>1a. install <code>pixi</code>, if you don’t already have it on your system. Instructions are <a href="https://pixi.prefix.dev/latest/installation/">here</a>, but it should be as simple as copy pasting a terminal command.</p></li>
+<li><p>1b. clone the ESMValTool <a href="https://github.com/ESMValGroup/ESMValTool">git repository</a>, and <code>cd</code> into this directory.</p></li>
+<li><p>1c. in your terminal, type in <code>pixi shell --frozen</code> and press enter. This will enter you into a pixi environment (the same as conda or mamba environments, if you’re familiar). But that’s it, ESMValToool should now be installed in this pixi environment! You can type <code>esmvaltool</code> to check that it’s installed correctly.</p></li>
+</ul>
+</section>
+<section id="step-2-download-cmip-data." class="level3">
+<h3 class="anchored" data-anchor-id="step-2-download-cmip-data.">Step 2: download CMIP data.</h3>
+<p>To calculate the modes, esmValTool <a href="https://docs.esmvaltool.org/en/latest/recipes/recipe_cvdp.html">requires</a> four variables at monthly resolution: - Sea Surface Temperature (cmip name: ts) - Surface Air Temperature (cmip name: tas) - Precipitation (cmip name: pr) - Sea Level Pressure (cmip name: psl)</p>
+<p>It’s worth noting that ESMValTool has a built-in CMIP data downloader, but I downloaded the data before I found out about this functionality… see more <a href="https://blog.esciencecenter.nl/easy-ipcc-powered-by-esmvalcore-19a0b6366ea7">here</a>. I haven’t played around with the route, but if you choose to go down it, the remainder of this tutorial will <em>not</em> be that useful for you. Step 3, in particular, will look different. But.. if you’re like me and download the data manually, it’s best to make sure that you keep the CMIP folder conventions. Here’s an example path (this is on vortex, in case you’re in the McKinnon Group and you have access)</p>
+<ul>
+<li><code>/home/data/CMIP6/hist-aer/mon/psl/MIROC6/r10i1p1f1/gn/psl_Amon_MIROC6_hist-aer_r10i1p1f1_gn_185001-194912.nc</code></li>
+</ul>
+<p>The part before the <code>/hist-aer/</code> will look different for you depending on where you downloaded the data, but everything past the <code>/hist-aer/</code> should have the same folder structure.</p>
+</section>
+<section id="step-3-update-your-configuration-file." class="level3">
+<h3 class="anchored" data-anchor-id="step-3-update-your-configuration-file.">Step 3: Update your configuration file.</h3>
+<p>In the pixi environment (i.e.&nbsp;after running steps 1b-c),</p>
+<ul>
+<li><p>3a. run <code>esmvaltool config copy defaults/data-local-esmvaltool.yml</code>. This command creates a copy of the default configuration file in <code>~/.config/esmvaltool/data-local-esmvaltool.yml</code></p></li>
+<li><p>3b. run <code>nano ~/.config/esmvaltool/data-local-esmvaltool.yml</code> to open the configuration file in a text editor (or use vim or micro or whatever your preferred editor is).</p></li>
+<li><p>3c. You will need to edit this file to point to the location of your CMIP data. In my case, I added the following lines to the bottom of the file:</p></li>
+</ul>
+<pre><code>  CMIP6:
+    data:
+      local:
+        type: esmvalcore.io.local.LocalDataSource
+        rootpath: /home/data/CMIP6/hist-aer/mon
+        dirname_template: "{short_name}/{dataset}/{ensemble}/{grid}"
+        filename_template: "{short_name}_{mip}_{dataset}_{exp}_{ensemble}_{grid}*.nc"</code></pre>
+<p>For more details on the config file, see <a href="https://tutorial.esmvaltool.org/03-configuration/index.html">here</a></p>
+</section>
+<section id="step-4-update-the-recipe-file." class="level3">
+<h3 class="anchored" data-anchor-id="step-4-update-the-recipe-file.">Step 4: Update the “recipe” file.</h3>
+<p>This is the file that specifies that you want to calculate the climate modes. The pre-built recipe for this is called <a href="https://docs.esmvaltool.org/en/latest/recipes/recipe_cvdp.html"><code>recipe_cvdp.yml</code></a>, and we’re only going to have to modify it a litle bit. Still in the pixi environment,</p>
+<ul>
+<li><p>4a. run <code>esmvaltool recipes get examples/recipe_cvdp.yml</code>. This will copy the pre-built recipe file and put it in the working directory.</p></li>
+<li><p>4b. run <code>nano recipe_python.yml</code>. This should open the example config file</p></li>
+<li><p>4c. Change the <code>datasets</code> section to point to the data that you’ve just downloaded. For example, this is what my <code>datasets</code> section might look like, to calculate the modes for the first 10 members of the MIROC6 and CanESM5 models:</p></li>
+</ul>
+<pre><code>datasets:
+  - {dataset: MIROC6,  project: CMIP6, exp: hist-aer,  ensemble: "r(1:10)i1p1f1", grid: gn,  start_year: 1920,  end_year: 2014}
+  - {dataset: CanESM5,  project: CMIP6, exp: hist-aer,  ensemble: "r(1:10)i1p1f1", grid: gn,  start_year: 1920,  end_year: 2014}</code></pre>
+<p>For more details on working with recipe files, see <a href="https://tutorial.esmvaltool.org/04-recipe/index.html">here</a></p>
+</section>
+<section id="step-5-run-the-recipe." class="level3">
+<h3 class="anchored" data-anchor-id="step-5-run-the-recipe.">Step 5: Run the recipe.</h3>
+<ul>
+<li>In the pixi environment, run <code>esmvaltool run recipe_cvdp.yml</code>. By default, this will create a folder, <code>~/esmvaltool_output</code>, that will store the eventual output. Of course, using the config file, you can change the output directory to whatever and wherever you want.</li>
+</ul>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

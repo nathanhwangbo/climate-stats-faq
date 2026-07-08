@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>About – climate-stats-faq</title>
+<title>robust standard errors for climate large ensembles – climate-stats-faq</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -71,6 +71,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -187,7 +216,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">About</h1>
+<h1 class="title">robust standard errors for climate large ensembles</h1>
 </div>
 
 
@@ -204,7 +233,18 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>About this site</p>
+<p>In <code>when_to_average</code>, we compared two options for analyzing data from a large ensemble: (1) performing the analysis on each ensemble member separately and then averaging the results, or (2) concatenating the ensemble members (typically along the time dimension) and performing the analysis on the combined dataset.</p>
+<p>Here, we discuss the second option for regression-based analyses. Naively concatenating the ensemble members and performing a typical i.i.d-assuming analysis might lead to underestimated standard errors, because the data points from different ensemble members are not independent. This post is an introduction to the use of cluster-robust standard errors, which can help account for some of the depedence structure in the data.</p>
+<p>One approach is to use a pooled estimator with these cluster-robust standard errors along the ensemble member dimension.</p>
+<p>Another approach is to perform the regression separately for each ensemble member, then average the coefficents across members. There are a few different ways to estimate standard errors.</p>
+<ol type="1">
+<li><p>estimation via across-ensemble variance: Calculate the variance of the coefficients across ensemble members, then scale by the number of ensemble members (and then take a square root). Note that this relies on only taking the standard deviation across 10-ish members (i.e.&nbsp;relies on some approximation as <span class="math inline">\(\hat \beta_i \sim N(\beta, \sigma^2_b)\)</span>, where the sample variance across the ensemble is plugged in for <span class="math inline">\(\sigma^2_b\)</span>. Then can just work out the distribution of <span class="math inline">\(\hat \bar \beta\)</span>). In particular, this does not use the variance of the coefficient along the time-dimension within each member. This can be an advantage in some cases, as the variance along the time-dimension might be underestimated if regressing two time series against each other. This method is consistent, is sometimes advocated as part of the <em>mean-group estimator</em> approach to panel data, and gives the same scaling with <span class="math inline">\(N\)</span> as a pooled estimator. (I think they call it the non-parametric cross-sectional variance estimator in the panel data literature). The variance of the coefficient of the time dimension is supposed to be “baked in” to the variance across members (I think the literature on the DerSimonian-Laird estimator gets at this by using the model <span class="math inline">\(\beta_i \sim N(\beta, \text{var(across ensemble)} + \text{var(within ensemble)})\)</span>)</p></li>
+<li><p>estimation via time-series variance (aka classical pooled sd): Calculate the variance of the coefficient within each ensemble member along the time dimension, then average these variances across members, and then take a square root. i.e.&nbsp;<span class="math inline">\(\hat \sigma^2_{pooled} = \frac{\frac{1}{N} \sum_{i} \hat \sigma_i^2}{N}\)</span>, where <span class="math inline">\(N\)</span> is the number of ensemble members. This approach uses the time-series variance within each member (i.e.&nbsp;<span class="math inline">\(\hat \sigma_i^2\)</span>), which might be underestimated if regressing two time series against each other. Also, this method might do a worse job of capturing variance across members.</p></li>
+</ol>
+<ul>
+<li><p>This method can be modified to use a cluster-robust estimator of the variance for each of the individual regressions. That’s probably a good idea. Or something like Newey-West standard errors to help account for autocorrelation.</p></li>
+<li><p>if we’re worried about the variance being different in each member (maybe due to different internal variability, like if one regression is only estimated over El-Nino years or something), then we could use a inverse variance weighted estimator, i.e.&nbsp;<span class="math inline">\(\hat \bar \beta: = \frac{\sum_i w_i \hat \beta_i}{\sum_i w_i}\)</span>, where <span class="math inline">\(w_i = 1/(\hat \sigma_i^2)\)</span> and <span class="math inline">\(\hat \sigma_i^2\)</span> is the variance of <span class="math inline">\(\hat \beta_i\)</span>. In this case, the joint standard error would be <span class="math inline">\(\sqrt{1/\sum_i w_i}\)</span>.</p></li>
+</ul>
 
 
 
