@@ -1,0 +1,80 @@
+---
+title: "calculating climate modes using ESMValTool"
+format: html
+execute:
+  eval: false
+---
+
+ESMValTool is a pretty cool tool that simplifies working with CMIP data. There are good tutorials already (see [here](https://tutorial.esmvaltool.org/) and [here](https://blog.esciencecenter.nl/easy-ipcc-powered-by-esmvalcore-19a0b6366ea7)), but I'm writing this to streamline a very specific use-case: calculating climate modes (e.g. ENSO, PDO) from climate models. For this task, ESMValTool provides a simple python wrapper around the `ncl` code that NCAR has developed to calculate modes. I'm trying to hold off working with `.ncl` directly for as long as I can, so I'm glad I found this wrapper. Here's how to use ESMValTool to get the modes.
+
+### Step 1: install ESMValTool. 
+
+See the tutorial for detailed instructions, but my preferred method is to use [`pixi`](https://pixi.prefix.dev/latest/). 
+
+- 1a. install `pixi`, if you don't already have it on your system. Instructions are [here](https://pixi.prefix.dev/latest/installation/), but it should be as simple as copy pasting a terminal command.
+
+- 1b. clone the ESMValTool [git repository](https://github.com/ESMValGroup/ESMValTool), and `cd` into this directory.
+
+- 1c. in your terminal, type in `pixi shell --frozen` and press enter. This will enter you into a pixi environment (the same as conda or mamba environments, if you're familiar). But that's it, ESMValToool should now be installed in this pixi environment! You can type `esmvaltool` to check that it's installed correctly.
+
+
+### Step 2: download CMIP data. 
+
+To calculate the modes, esmValTool [requires](https://docs.esmvaltool.org/en/latest/recipes/recipe_cvdp.html) four variables at monthly resolution:
+    - Sea Surface Temperature (cmip name: ts)
+    - Surface Air Temperature (cmip name: tas)
+    - Precipitation (cmip name: pr)
+    - Sea Level Pressure (cmip name: psl)
+
+It's worth noting that ESMValTool has a built-in CMIP data downloader, but I downloaded the data before I found out about this functionality... see more [here](https://blog.esciencecenter.nl/easy-ipcc-powered-by-esmvalcore-19a0b6366ea7). I haven't played around with this route, but if you choose to go down it, the remainder of this tutorial will *not* be that useful for you. Step 3, in particular, will look different. But... if you're like me and download the data manually, it's best to make sure that you keep the CMIP folder conventions. Here's an example path (this is on vortex, in case you're in the McKinnon Group and you have access)
+
+- `/home/data/CMIP6/hist-aer/mon/psl/MIROC6/r10i1p1f1/gn/psl_Amon_MIROC6_hist-aer_r10i1p1f1_gn_185001-194912.nc`
+
+The part before `/mon/` will look different for you depending on where you downloaded the data and what CMIP experiment you're working with (e.g. `hist-aer`, `ssp585`), but everything past `/mon/` should have the same folder structure.
+
+### Step 3: Update your configuration file. 
+
+In the pixi environment (i.e. after running steps 1b-c),
+
+- 3a. run `esmvaltool config copy defaults/data-local-esmvaltool.yml`. This command creates a copy of the default configuration file in `~/.config/esmvaltool/data-local-esmvaltool.yml` 
+
+- 3b. run `nano ~/.config/esmvaltool/data-local-esmvaltool.yml` to open the configuration file in a text editor (or use vim or micro or whatever your preferred editor is). 
+
+- 3c. You will need to edit this file to point to the location of your CMIP data. In my case, I added the following lines to the bottom of the file. If you followed the file structure in Step 2, then the only thing you'll have to change is the `rootpath`. 
+
+```
+  CMIP6:
+    data:
+      local:
+        type: esmvalcore.io.local.LocalDataSource
+        rootpath: /home/data/CMIP6/hist-aer/mon
+        dirname_template: "{short_name}/{dataset}/{ensemble}/{grid}"
+        filename_template: "{short_name}_{mip}_{dataset}_{exp}_{ensemble}_{grid}*.nc"
+```
+
+For more details on the config file, see [here](https://tutorial.esmvaltool.org/03-configuration/index.html)
+
+### Step 4: Update the "recipe" file. 
+
+This is the file that specifies that you want to calculate the climate modes. The pre-built recipe for this is called [`recipe_cvdp.yml`](https://docs.esmvaltool.org/en/latest/recipes/recipe_cvdp.html), and we're only going to have to modify it a litle bit. Still in the pixi environment,
+
+- 4a. run `esmvaltool recipes get examples/recipe_cvdp.yml`. This will copy the pre-built recipe file and put it in the working directory.
+
+- 4b. run `nano recipe_python.yml`. This should open the example config file
+
+- 4c. Change the `datasets` section to point to the data that you've just downloaded. For example, this is what my `datasets` section might look like, to calculate the modes for the first 10 members of the MIROC6 and CanESM5 models:
+
+```
+datasets:
+  - {dataset: MIROC6,  project: CMIP6, exp: hist-aer,  ensemble: "r(1:10)i1p1f1", grid: gn,  start_year: 1920,  end_year: 2014}
+  - {dataset: CanESM5,  project: CMIP6, exp: hist-aer,  ensemble: "r(1:10)i1p1f1", grid: gn,  start_year: 1920,  end_year: 2014}
+```
+
+For more details on working with recipe files, see [here](https://tutorial.esmvaltool.org/04-recipe/index.html)
+
+### Step 5: Run the recipe. 
+
+- In the pixi environment, run `esmvaltool run recipe_cvdp.yml`. By default, this will create a folder, `~/esmvaltool_output`, that will store the eventual output. Of course, using the config file, you can change the output directory to whatever and wherever you want. 
+
+
+

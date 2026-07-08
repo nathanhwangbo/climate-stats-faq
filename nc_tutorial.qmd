@@ -1410,6 +1410,50 @@ slopes = xr.apply_ufunc(
 
 :::
 
+
+# Misc
+
+## Simulating data in .nc format
+
+Here are some helpers for composing fake data into a netcdf format. 
+
+
+::: {.panel-tabset group="language"}
+
+## R 
+
+
+```{r}
+
+
+```
+
+## Python
+
+```{python}
+timescale = "daily"  # monthly, annual can be postprocessed from daily
+is_trend = True
+
+# read in multiple years of ERA to get reasonable lon/lat (var matters, but not much)
+urls_era = [f"http://bickford.asuscomm.com:3923/ERA5/t2m_x_1x1/t2m_x_daily_{year}_1x1.nc" for year in 1960:2024]
+
+era_t2m_x = xr.open_mfdataset(urls_era)
+
+# center and scale (each location has mean 0, std 1)
+
+# estimate doy-cycle
+
+# estimate month-cycle
+
+# estimate trend
+
+# generate spatial field of noise
+
+# generate y = doy_cycle + month_cycle + trend*t + noise
+```
+
+:::
+
 <!-- # Conversion between data types
 
 We commonly represent spatiotemporal data cubes as matrices: one row per time point, and one column per spatial gridcell. How do we convert from our spatial objects (i.e. xarray, spatRaster) to this matrix form?

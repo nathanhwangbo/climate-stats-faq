@@ -15,7 +15,9 @@ website:
           - hvplot_tutorial.qmd
           - eof_terminology.qmd  
           - climate_data_access.qmd
-          - when_to_average.qmd          
+          - when_to_average.qmd
+          - statclimate_model_ensembles.qmd          
+          - modes_esmvaltool.qmd
       - section: "Tools"
         contents: 
           # - nc_explorer.qmd       # TODO: need to work out shinylive
